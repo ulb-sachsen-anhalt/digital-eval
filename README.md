@@ -58,3 +58,13 @@ candidate root/
 │    └── <subdomain>/
 │         └── <page-01>.xml
 ```
+
+# Contribute
+
+Contributions welcome!
+
+# Licence
+
+Under terms of the [MIT license](https://opensource.org/licenses/MIT).
+
+**NOTE**: This software depends on other packages that may be licensed under different open source licenses.
