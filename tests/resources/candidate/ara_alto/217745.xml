@@ -1,0 +1,288 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<alto xmlns="http://www.loc.gov/standards/alto/ns-v3#" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.loc.gov/standards/alto/ns-v3# http://www.loc.gov/alto/v3/alto-3-0.xsd">
+	<Description>
+		<MeasurementUnit>pixel</MeasurementUnit>
+		<sourceImageInformation>
+			<fileName></fileName>
+		</sourceImageInformation>
+		<OCRProcessing ID="OCR_0">
+			<ocrProcessingStep>
+				<processingSoftware>
+					<softwareName>tesseract 4.1.1</softwareName>
+				</processingSoftware>
+			</ocrProcessingStep>
+		</OCRProcessing>
+	</Description>
+	<Layout>
+		<Page WIDTH="2020" HEIGHT="2866" PHYSICAL_IMG_NR="0" ID="page_0">
+			<PrintSpace HPOS="0" VPOS="0" WIDTH="2020" HEIGHT="2866">
+				<ComposedBlock ID="cblock_0" HPOS="1855" VPOS="1926" WIDTH="62" HEIGHT="265">
+					<TextBlock ID="block_0" HPOS="1855" VPOS="1926" WIDTH="62" HEIGHT="265">
+						<TextLine ID="line_0" HPOS="1855" VPOS="1926" WIDTH="62" HEIGHT="265">
+							<String ID="string_0" HPOS="1850" VPOS="2181" WIDTH="71" HEIGHT="19" WC="0.0" CONTENT="لسْ"/>
+						</TextLine>
+					</TextBlock>
+				</ComposedBlock>
+				<ComposedBlock ID="cblock_1" HPOS="1850" VPOS="2429" WIDTH="66" HEIGHT="276">
+					<TextBlock ID="block_1" HPOS="1838" VPOS="2429" WIDTH="74" HEIGHT="276">
+						<TextLine ID="line_1" HPOS="1850" VPOS="2613" WIDTH="24" HEIGHT="92">
+							<String ID="string_1" HPOS="1834" VPOS="2701" WIDTH="44" HEIGHT="11" WC="0.0" CONTENT="لوْ"/>
+						</TextLine>
+						<TextLine ID="line_2" HPOS="1872" VPOS="2429" WIDTH="44" HEIGHT="273">
+							<String ID="string_2" HPOS="1897" VPOS="2429" WIDTH="2" HEIGHT="2" WC="0.0" CONTENT="ٍُ"/><SP WIDTH="-27" VPOS="2429" HPOS="1899"/>
+							<String ID="string_3" HPOS="1872" VPOS="2651" WIDTH="44" HEIGHT="12" WC="0.0" CONTENT="لسْ"/><SP WIDTH="-9" VPOS="2651" HPOS="1916"/>
+							<String ID="string_4" HPOS="1907" VPOS="2699" WIDTH="2" HEIGHT="3" WC="0.0" CONTENT="لَْ"/>
+						</TextLine>
+					</TextBlock>
+				</ComposedBlock>
+				<ComposedBlock ID="cblock_2" HPOS="490" VPOS="258" WIDTH="706" HEIGHT="78">
+					<TextBlock ID="block_2" HPOS="490" VPOS="258" WIDTH="706" HEIGHT="78">
+						<TextLine ID="line_3" HPOS="490" VPOS="258" WIDTH="706" HEIGHT="78">
+							<String ID="string_5" HPOS="1116" VPOS="261" WIDTH="80" HEIGHT="60" WC="0.0" CONTENT="ا"/><SP WIDTH="-364" VPOS="261" HPOS="1196"/>
+							<String ID="string_6" HPOS="832" VPOS="254" WIDTH="28" HEIGHT="83" WC="0.0" CONTENT="لاْ"/><SP WIDTH="-370" VPOS="254" HPOS="860"/>
+							<String ID="string_7" HPOS="490" VPOS="265" WIDTH="37" HEIGHT="71" WC="0.0" CONTENT="إلاcْ"/>
+						</TextLine>
+					</TextBlock>
+				</ComposedBlock>
+				<ComposedBlock ID="cblock_3" HPOS="740" VPOS="393" WIDTH="570" HEIGHT="244">
+					<TextBlock ID="block_3" HPOS="740" VPOS="393" WIDTH="570" HEIGHT="244">
+						<TextLine ID="line_4" HPOS="740" VPOS="393" WIDTH="570" HEIGHT="244">
+							<String ID="string_8" HPOS="740" VPOS="393" WIDTH="570" HEIGHT="244" WC="0.95" CONTENT=" "/>
+						</TextLine>
+					</TextBlock>
+				</ComposedBlock>
+				<ComposedBlock ID="cblock_4" HPOS="475" VPOS="638" WIDTH="1160" HEIGHT="355">
+					<TextBlock ID="block_4" HPOS="475" VPOS="638" WIDTH="1160" HEIGHT="355">
+						<TextLine ID="line_5" HPOS="834" VPOS="638" WIDTH="248" HEIGHT="64">
+							<String ID="string_9" HPOS="1066" VPOS="638" WIDTH="16" HEIGHT="64" WC="0.0" CONTENT="لسْ"/><SP WIDTH="-97" VPOS="638" HPOS="1082"/>
+							<String ID="string_10" HPOS="985" VPOS="638" WIDTH="21" HEIGHT="46" WC="0.0" CONTENT="إصوىَْ"/><SP WIDTH="-172" VPOS="638" HPOS="1006"/>
+							<String ID="string_11" HPOS="834" VPOS="638" WIDTH="83" HEIGHT="47" WC="0.0" CONTENT="تصإإلَْ"/>
+						</TextLine>
+						<TextLine ID="line_6" HPOS="827" VPOS="643" WIDTH="368" HEIGHT="159">
+							<String ID="string_12" HPOS="827" VPOS="643" WIDTH="368" HEIGHT="159" WC="0.0" CONTENT="يييللسْ"/>
+						</TextLine>
+						<TextLine ID="line_7" HPOS="840" VPOS="767" WIDTH="310" HEIGHT="43">
+							<String ID="string_13" HPOS="1117" VPOS="767" WIDTH="14" HEIGHT="43" WC="0.0" CONTENT="لاسْ"/><SP WIDTH="-164" VPOS="767" HPOS="1131"/>
+							<String ID="string_14" HPOS="967" VPOS="767" WIDTH="17" HEIGHT="43" WC="0.0" CONTENT="إجسْ"/><SP WIDTH="-144" VPOS="767" HPOS="984"/>
+							<String ID="string_15" HPOS="840" VPOS="767" WIDTH="64" HEIGHT="42" WC="0.0" CONTENT="نإإالسْ"/>
+						</TextLine>
+						<TextLine ID="line_8" HPOS="1005" VPOS="806" WIDTH="600" HEIGHT="117">
+							<String ID="string_16" HPOS="1591" VPOS="904" WIDTH="14" HEIGHT="17" WC="0.0" CONTENT="ٍُْ"/><SP WIDTH="-600" VPOS="904" HPOS="1605"/>
+							<String ID="string_17" HPOS="1005" VPOS="806" WIDTH="28" HEIGHT="117" WC="0.0" CONTENT="لاْ"/>
+						</TextLine>
+						<TextLine ID="line_9" HPOS="475" VPOS="921" WIDTH="1160" HEIGHT="72">
+							<String ID="string_18" HPOS="1559" VPOS="927" WIDTH="45" HEIGHT="59" WC="0.0" CONTENT="و ‏"/><SP WIDTH="-192" VPOS="927" HPOS="1604"/>
+							<String ID="string_19" HPOS="1412" VPOS="923" WIDTH="42" HEIGHT="64" WC="0.0" CONTENT="اي"/><SP WIDTH="-346" VPOS="923" HPOS="1454"/>
+							<String ID="string_20" HPOS="1108" VPOS="925" WIDTH="140" HEIGHT="68" WC="0.0" CONTENT="اا ‏"/><SP WIDTH="-307" VPOS="925" HPOS="1248"/>
+							<String ID="string_21" HPOS="941" VPOS="916" WIDTH="72" HEIGHT="81" WC="0.0" CONTENT="ال ‏"/><SP WIDTH="-117" VPOS="916" HPOS="1013"/>
+							<String ID="string_22" HPOS="896" VPOS="926" WIDTH="46" HEIGHT="61" WC="0.0" CONTENT="اا"/><SP WIDTH="-132" VPOS="926" HPOS="942"/>
+							<String ID="string_23" HPOS="810" VPOS="921" WIDTH="22" HEIGHT="64" WC="0.0" CONTENT="ا"/><SP WIDTH="-103" VPOS="921" HPOS="832"/>
+							<String ID="string_24" HPOS="729" VPOS="952" WIDTH="33" HEIGHT="36" WC="0.0" CONTENT="ا"/><SP WIDTH="-54" VPOS="952" HPOS="762"/>
+							<String ID="string_25" HPOS="708" VPOS="916" WIDTH="17" HEIGHT="81" WC="0.0" CONTENT="اي"/><SP WIDTH="-62" VPOS="916" HPOS="725"/>
+							<String ID="string_26" HPOS="663" VPOS="916" WIDTH="21" HEIGHT="81" WC="0.0" CONTENT="ا"/><SP WIDTH="-117" VPOS="916" HPOS="684"/>
+							<String ID="string_27" HPOS="567" VPOS="916" WIDTH="97" HEIGHT="81" WC="0.0" CONTENT="اا ‏"/><SP WIDTH="-199" VPOS="916" HPOS="664"/>
+							<String ID="string_28" HPOS="465" VPOS="916" WIDTH="27" HEIGHT="81" WC="0.0" CONTENT="لا ‏"/>
+						</TextLine>
+					</TextBlock>
+				</ComposedBlock>
+				<ComposedBlock ID="cblock_5" HPOS="407" VPOS="1021" WIDTH="1191" HEIGHT="109">
+					<TextBlock ID="block_5" HPOS="407" VPOS="1021" WIDTH="1191" HEIGHT="109">
+						<TextLine ID="line_10" HPOS="407" VPOS="1021" WIDTH="1191" HEIGHT="109">
+							<String ID="string_29" HPOS="1397" VPOS="1029" WIDTH="201" HEIGHT="57" WC="0.0" CONTENT="وواايل"/><SP WIDTH="-308" VPOS="1029" HPOS="1598"/>
+							<String ID="string_30" HPOS="1290" VPOS="1026" WIDTH="88" HEIGHT="59" WC="0.0" CONTENT="ال"/><SP WIDTH="-104" VPOS="1026" HPOS="1378"/>
+							<String ID="string_31" HPOS="1274" VPOS="1022" WIDTH="22" HEIGHT="68" WC="0.0" CONTENT="لوَْ"/><SP WIDTH="-104" VPOS="1022" HPOS="1296"/>
+							<String ID="string_32" HPOS="1192" VPOS="1027" WIDTH="20" HEIGHT="77" WC="0.0" CONTENT="لسْ"/><SP WIDTH="-168" VPOS="1027" HPOS="1212"/>
+							<String ID="string_33" HPOS="1044" VPOS="1029" WIDTH="78" HEIGHT="44" WC="0.0" CONTENT="اا ‏"/><SP WIDTH="-108" VPOS="1029" HPOS="1122"/>
+							<String ID="string_34" HPOS="1014" VPOS="1029" WIDTH="26" HEIGHT="44" WC="0.0" CONTENT="ا"/><SP WIDTH="-104" VPOS="1029" HPOS="1040"/>
+							<String ID="string_35" HPOS="936" VPOS="1042" WIDTH="44" HEIGHT="30" WC="0.0" CONTENT="اا ‏"/><SP WIDTH="-91" VPOS="1042" HPOS="980"/>
+							<String ID="string_36" HPOS="889" VPOS="1032" WIDTH="39" HEIGHT="40" WC="0.0" CONTENT="اا"/><SP WIDTH="-104" VPOS="1032" HPOS="928"/>
+							<String ID="string_37" HPOS="824" VPOS="1029" WIDTH="58" HEIGHT="42" WC="0.0" CONTENT="ا"/><SP WIDTH="-136" VPOS="1029" HPOS="882"/>
+							<String ID="string_38" HPOS="746" VPOS="1025" WIDTH="59" HEIGHT="69" WC="0.0" CONTENT="لواْ"/><SP WIDTH="-119" VPOS="1025" HPOS="805"/>
+							<String ID="string_39" HPOS="686" VPOS="1027" WIDTH="29" HEIGHT="75" WC="0.0" CONTENT="اواْ"/><SP WIDTH="-308" VPOS="1027" HPOS="715"/>
+							<String ID="string_40" HPOS="407" VPOS="1021" WIDTH="271" HEIGHT="109" WC="0.0" CONTENT="جلَْ"/>
+						</TextLine>
+					</TextBlock>
+				</ComposedBlock>
+				<ComposedBlock ID="cblock_6" HPOS="415" VPOS="1097" WIDTH="1292" HEIGHT="1589">
+					<TextBlock ID="block_6" HPOS="426" VPOS="1097" WIDTH="1281" HEIGHT="1585">
+						<TextLine ID="line_11" HPOS="995" VPOS="1097" WIDTH="492" HEIGHT="135">
+							<String ID="string_41" HPOS="1437" VPOS="1114" WIDTH="50" HEIGHT="67" WC="0.0" CONTENT="ا ‏"/><SP WIDTH="-226" VPOS="1114" HPOS="1487"/>
+							<String ID="string_42" HPOS="1261" VPOS="1097" WIDTH="23" HEIGHT="88" WC="0.0" CONTENT="لوْ"/><SP WIDTH="-217" VPOS="1097" HPOS="1284"/>
+							<String ID="string_43" HPOS="1067" VPOS="1108" WIDTH="245" HEIGHT="124" WC="0.0" CONTENT="يلسْ"/><SP WIDTH="-317" VPOS="1108" HPOS="1312"/>
+							<String ID="string_44" HPOS="995" VPOS="1114" WIDTH="68" HEIGHT="63" WC="0.0" CONTENT="ولcْ"/>
+						</TextLine>
+						<TextLine ID="line_12" HPOS="914" VPOS="1218" WIDTH="279" HEIGHT="102">
+							<String ID="string_45" HPOS="914" VPOS="1218" WIDTH="279" HEIGHT="102" WC="0.0" CONTENT="يلاَْ"/>
+						</TextLine>
+						<TextLine ID="line_13" HPOS="867" VPOS="1324" WIDTH="370" HEIGHT="110">
+							<String ID="string_46" HPOS="1095" VPOS="1347" WIDTH="142" HEIGHT="87" WC="0.0" CONTENT="انلواْ"/><SP WIDTH="-223" VPOS="1347" HPOS="1237"/>
+							<String ID="string_47" HPOS="1014" VPOS="1348" WIDTH="73" HEIGHT="62" WC="0.0" CONTENT="ولاْ"/><SP WIDTH="-220" VPOS="1348" HPOS="1087"/>
+							<String ID="string_48" HPOS="867" VPOS="1324" WIDTH="123" HEIGHT="93" WC="0.0" CONTENT="ايصإلسْ"/>
+						</TextLine>
+						<TextLine ID="line_14" HPOS="940" VPOS="1455" WIDTH="232" HEIGHT="49">
+							<String ID="string_49" HPOS="932" VPOS="1451" WIDTH="16" HEIGHT="64" WC="0.0" CONTENT="لاْ"/>
+						</TextLine>
+						<TextLine ID="line_15" HPOS="415" VPOS="1524" WIDTH="1217" HEIGHT="110">
+							<String ID="string_50" HPOS="1483" VPOS="1540" WIDTH="149" HEIGHT="75" WC="0.0" CONTENT="يلاْ"/><SP WIDTH="-241" VPOS="1540" HPOS="1632"/>
+							<String ID="string_51" HPOS="1391" VPOS="1524" WIDTH="70" HEIGHT="79" WC="0.0" CONTENT="ل8اشسْ"/><SP WIDTH="-118" VPOS="1524" HPOS="1461"/>
+							<String ID="string_52" HPOS="1343" VPOS="1538" WIDTH="32" HEIGHT="72" WC="0.0" CONTENT="إلوَسْ"/><SP WIDTH="-101" VPOS="1538" HPOS="1375"/>
+							<String ID="string_53" HPOS="1274" VPOS="1536" WIDTH="41" HEIGHT="83" WC="0.0" CONTENT="إاٍَْ"/><SP WIDTH="-188" VPOS="1536" HPOS="1315"/>
+							<String ID="string_54" HPOS="1127" VPOS="1537" WIDTH="44" HEIGHT="68" WC="0.0" CONTENT="ا"/><SP WIDTH="-154" VPOS="1537" HPOS="1171"/>
+							<String ID="string_55" HPOS="1017" VPOS="1546" WIDTH="120" HEIGHT="55" WC="0.0" CONTENT="للاْ"/><SP WIDTH="-221" VPOS="1546" HPOS="1137"/>
+							<String ID="string_56" HPOS="916" VPOS="1539" WIDTH="52" HEIGHT="91" WC="0.0" CONTENT="إاٍَْ"/><SP WIDTH="-189" VPOS="1539" HPOS="968"/>
+							<String ID="string_57" HPOS="779" VPOS="1539" WIDTH="16" HEIGHT="62" WC="0.0" CONTENT="لَْ"/><SP WIDTH="-63" VPOS="1539" HPOS="795"/>
+							<String ID="string_58" HPOS="732" VPOS="1529" WIDTH="40" HEIGHT="89" WC="0.0" CONTENT="وإَُْ"/><SP WIDTH="-150" VPOS="1529" HPOS="772"/>
+							<String ID="string_59" HPOS="622" VPOS="1536" WIDTH="16" HEIGHT="62" WC="0.0" CONTENT="لاْ"/><SP WIDTH="-223" VPOS="1536" HPOS="638"/>
+							<String ID="string_60" HPOS="415" VPOS="1534" WIDTH="197" HEIGHT="100" WC="0.0" CONTENT="9ياَسْ"/>
+						</TextLine>
+						<TextLine ID="line_16" HPOS="427" VPOS="1618" WIDTH="1264" HEIGHT="74">
+							<String ID="string_61" HPOS="1437" VPOS="1636" WIDTH="154" HEIGHT="56" WC="0.0" CONTENT="ااااا"/><SP WIDTH="-164" VPOS="1636" HPOS="1591"/>
+							<String ID="string_62" HPOS="1427" VPOS="1614" WIDTH="32" HEIGHT="82" WC="0.0" CONTENT="اا"/><SP WIDTH="-48" VPOS="1614" HPOS="1459"/>
+							<String ID="string_63" HPOS="1411" VPOS="1633" WIDTH="7" HEIGHT="38" WC="0.0" CONTENT="ا"/><SP WIDTH="-140" VPOS="1633" HPOS="1418"/>
+							<String ID="string_64" HPOS="1278" VPOS="1647" WIDTH="13" HEIGHT="27" WC="0.0" CONTENT="ا"/><SP WIDTH="-69" VPOS="1647" HPOS="1291"/>
+							<String ID="string_65" HPOS="1222" VPOS="1614" WIDTH="42" HEIGHT="82" WC="0.0" CONTENT="ا"/><SP WIDTH="-67" VPOS="1614" HPOS="1264"/>
+							<String ID="string_66" HPOS="1197" VPOS="1633" WIDTH="33" HEIGHT="49" WC="0.0" CONTENT="ا"/><SP WIDTH="-126" VPOS="1633" HPOS="1230"/>
+							<String ID="string_67" HPOS="1104" VPOS="1632" WIDTH="27" HEIGHT="40" WC="0.0" CONTENT="ا"/><SP WIDTH="-48" VPOS="1632" HPOS="1131"/>
+							<String ID="string_68" HPOS="1083" VPOS="1635" WIDTH="12" HEIGHT="7" WC="0.0" CONTENT="ا"/><SP WIDTH="-129" VPOS="1635" HPOS="1095"/>
+							<String ID="string_69" HPOS="966" VPOS="1633" WIDTH="14" HEIGHT="38" WC="0.0" CONTENT="ا"/><SP WIDTH="-106" VPOS="1633" HPOS="980"/>
+							<String ID="string_70" HPOS="874" VPOS="1654" WIDTH="48" HEIGHT="36" WC="0.0" CONTENT="ا ‏"/><SP WIDTH="-124" VPOS="1654" HPOS="922"/>
+							<String ID="string_71" HPOS="798" VPOS="1630" WIDTH="54" HEIGHT="41" WC="0.0" CONTENT="ا"/><SP WIDTH="-101" VPOS="1630" HPOS="852"/>
+							<String ID="string_72" HPOS="751" VPOS="1614" WIDTH="43" HEIGHT="82" WC="0.0" CONTENT="ا ‏"/><SP WIDTH="-110" VPOS="1614" HPOS="794"/>
+							<String ID="string_73" HPOS="684" VPOS="1633" WIDTH="78" HEIGHT="56" WC="0.0" CONTENT="اا ‏"/><SP WIDTH="-196" VPOS="1633" HPOS="762"/>
+							<String ID="string_74" HPOS="566" VPOS="1614" WIDTH="53" HEIGHT="82" WC="0.0" CONTENT="اا"/><SP WIDTH="-192" VPOS="1614" HPOS="619"/>
+							<String ID="string_75" HPOS="427" VPOS="1628" WIDTH="59" HEIGHT="46" WC="0.0" CONTENT="للا ‏"/>
+						</TextLine>
+						<TextLine ID="line_17" HPOS="428" VPOS="1706" WIDTH="1265" HEIGHT="83">
+							<String ID="string_76" HPOS="1618" VPOS="1702" WIDTH="75" HEIGHT="90" WC="0.0" CONTENT="فجي"/><SP WIDTH="-170" VPOS="1702" HPOS="1693"/>
+							<String ID="string_77" HPOS="1523" VPOS="1702" WIDTH="23" HEIGHT="90" WC="0.0" CONTENT="لاْ"/><SP WIDTH="-110" VPOS="1702" HPOS="1546"/>
+							<String ID="string_78" HPOS="1436" VPOS="1709" WIDTH="22" HEIGHT="52" WC="0.0" CONTENT="ا"/><SP WIDTH="-121" VPOS="1709" HPOS="1458"/>
+							<String ID="string_79" HPOS="1337" VPOS="1717" WIDTH="21" HEIGHT="54" WC="0.0" CONTENT="ا"/><SP WIDTH="-71" VPOS="1717" HPOS="1358"/>
+							<String ID="string_80" HPOS="1287" VPOS="1705" WIDTH="34" HEIGHT="88" WC="0.0" CONTENT="ا"/><SP WIDTH="-149" VPOS="1705" HPOS="1321"/>
+							<String ID="string_81" HPOS="1172" VPOS="1705" WIDTH="50" HEIGHT="88" WC="0.0" CONTENT="اا"/><SP WIDTH="-149" VPOS="1705" HPOS="1222"/>
+							<String ID="string_82" HPOS="1073" VPOS="1705" WIDTH="50" HEIGHT="88" WC="0.0" CONTENT="ا ‏"/><SP WIDTH="-141" VPOS="1705" HPOS="1123"/>
+							<String ID="string_83" HPOS="982" VPOS="1714" WIDTH="84" HEIGHT="75" WC="0.0" CONTENT="ااي ‏"/><SP WIDTH="-311" VPOS="1714" HPOS="1066"/>
+							<String ID="string_84" HPOS="755" VPOS="1718" WIDTH="89" HEIGHT="71" WC="0.0" CONTENT="ا ‏"/><SP WIDTH="-167" VPOS="1718" HPOS="844"/>
+							<String ID="string_85" HPOS="677" VPOS="1717" WIDTH="40" HEIGHT="41" WC="0.0" CONTENT="ا"/><SP WIDTH="-106" VPOS="1717" HPOS="717"/>
+							<String ID="string_86" HPOS="611" VPOS="1724" WIDTH="48" HEIGHT="51" WC="0.0" CONTENT="ا"/><SP WIDTH="-241" VPOS="1724" HPOS="659"/>
+							<String ID="string_87" HPOS="418" VPOS="1705" WIDTH="23" HEIGHT="88" WC="0.0" CONTENT="لا ‏"/>
+						</TextLine>
+						<TextLine ID="line_18" HPOS="431" VPOS="1805" WIDTH="1263" HEIGHT="70">
+							<String ID="string_88" HPOS="1648" VPOS="1807" WIDTH="46" HEIGHT="52" WC="0.0" CONTENT="9ا"/><SP WIDTH="-120" VPOS="1807" HPOS="1694"/>
+							<String ID="string_89" HPOS="1574" VPOS="1791" WIDTH="41" HEIGHT="88" WC="0.0" CONTENT="اا"/><SP WIDTH="-186" VPOS="1791" HPOS="1615"/>
+							<String ID="string_90" HPOS="1429" VPOS="1813" WIDTH="21" HEIGHT="48" WC="0.0" CONTENT="ا ‏"/><SP WIDTH="-165" VPOS="1813" HPOS="1450"/>
+							<String ID="string_91" HPOS="1285" VPOS="1791" WIDTH="55" HEIGHT="88" WC="0.0" CONTENT="اا"/><SP WIDTH="-143" VPOS="1791" HPOS="1340"/>
+							<String ID="string_92" HPOS="1197" VPOS="1791" WIDTH="86" HEIGHT="88" WC="0.0" CONTENT="اا"/><SP WIDTH="-145" VPOS="1791" HPOS="1283"/>
+							<String ID="string_93" HPOS="1138" VPOS="1810" WIDTH="87" HEIGHT="40" WC="0.0" CONTENT="اا ‏"/><SP WIDTH="-193" VPOS="1810" HPOS="1225"/>
+							<String ID="string_94" HPOS="1032" VPOS="1809" WIDTH="43" HEIGHT="58" WC="0.0" CONTENT="ا ‏"/><SP WIDTH="-233" VPOS="1809" HPOS="1075"/>
+							<String ID="string_95" HPOS="842" VPOS="1809" WIDTH="78" HEIGHT="40" WC="0.0" CONTENT="ا"/><SP WIDTH="-97" VPOS="1809" HPOS="920"/>
+							<String ID="string_96" HPOS="823" VPOS="1810" WIDTH="3" HEIGHT="37" WC="0.0" CONTENT="ا"/><SP WIDTH="-141" VPOS="1810" HPOS="826"/>
+							<String ID="string_97" HPOS="685" VPOS="1791" WIDTH="67" HEIGHT="88" WC="0.0" CONTENT="اا"/><SP WIDTH="-104" VPOS="1791" HPOS="752"/>
+							<String ID="string_98" HPOS="648" VPOS="1814" WIDTH="58" HEIGHT="33" WC="0.0" CONTENT="اا"/><SP WIDTH="-150" VPOS="1814" HPOS="706"/>
+							<String ID="string_99" HPOS="556" VPOS="1820" WIDTH="76" HEIGHT="42" WC="0.0" CONTENT="اا"/><SP WIDTH="-201" VPOS="1820" HPOS="632"/>
+							<String ID="string_100" HPOS="431" VPOS="1805" WIDTH="57" HEIGHT="41" WC="0.0" CONTENT="العدلا ‏"/>
+						</TextLine>
+						<TextLine ID="line_19" HPOS="432" VPOS="1882" WIDTH="1261" HEIGHT="85">
+							<String ID="string_101" HPOS="1667" VPOS="1892" WIDTH="25" HEIGHT="75" WC="0.0" CONTENT="9"/><SP WIDTH="-172" VPOS="1892" HPOS="1692"/>
+							<String ID="string_102" HPOS="1520" VPOS="1921" WIDTH="22" HEIGHT="28" WC="0.0" CONTENT="ا"/><SP WIDTH="-80" VPOS="1921" HPOS="1542"/>
+							<String ID="string_103" HPOS="1462" VPOS="1877" WIDTH="36" HEIGHT="94" WC="0.0" CONTENT="ا ‏"/><SP WIDTH="-160" VPOS="1877" HPOS="1498"/>
+							<String ID="string_104" HPOS="1338" VPOS="1899" WIDTH="182" HEIGHT="56" WC="0.0" CONTENT="لا ‏"/><SP WIDTH="-199" VPOS="1899" HPOS="1520"/>
+							<String ID="string_105" HPOS="1321" VPOS="1877" WIDTH="47" HEIGHT="94" WC="0.0" CONTENT="ا"/><SP WIDTH="-553" VPOS="1877" HPOS="1368"/>
+							<String ID="string_106" HPOS="815" VPOS="1877" WIDTH="36" HEIGHT="94" WC="0.0" CONTENT="اا"/><SP WIDTH="-112" VPOS="1877" HPOS="851"/>
+							<String ID="string_107" HPOS="739" VPOS="1891" WIDTH="60" HEIGHT="61" WC="0.0" CONTENT="ا"/><SP WIDTH="-101" VPOS="1891" HPOS="799"/>
+							<String ID="string_108" HPOS="698" VPOS="1898" WIDTH="21" HEIGHT="40" WC="0.0" CONTENT="ا"/><SP WIDTH="-133" VPOS="1898" HPOS="719"/>
+							<String ID="string_109" HPOS="586" VPOS="1899" WIDTH="59" HEIGHT="63" WC="0.0" CONTENT="ا"/><SP WIDTH="-223" VPOS="1899" HPOS="645"/>
+							<String ID="string_110" HPOS="422" VPOS="1877" WIDTH="24" HEIGHT="94" WC="0.0" CONTENT="لا ‏"/>
+						</TextLine>
+						<TextLine ID="line_20" HPOS="422" VPOS="1977" WIDTH="1276" HEIGHT="95">
+							<String ID="string_111" HPOS="1491" VPOS="1987" WIDTH="38" HEIGHT="53" WC="0.0" CONTENT="ا"/><SP WIDTH="-121" VPOS="1987" HPOS="1529"/>
+							<String ID="string_112" HPOS="1408" VPOS="1984" WIDTH="61" HEIGHT="62" WC="0.0" CONTENT="اا"/><SP WIDTH="-158" VPOS="1984" HPOS="1469"/>
+							<String ID="string_113" HPOS="1311" VPOS="1980" WIDTH="18" HEIGHT="74" WC="0.0" CONTENT="لاْ"/><SP WIDTH="-87" VPOS="1980" HPOS="1329"/>
+							<String ID="string_114" HPOS="1242" VPOS="1977" WIDTH="36" HEIGHT="95" WC="0.0" CONTENT="إسىَْ"/><SP WIDTH="-191" VPOS="1977" HPOS="1278"/>
+							<String ID="string_115" HPOS="1087" VPOS="1978" WIDTH="27" HEIGHT="72" WC="0.0" CONTENT="ا"/><SP WIDTH="-149" VPOS="1978" HPOS="1114"/>
+							<String ID="string_116" HPOS="965" VPOS="1985" WIDTH="126" HEIGHT="60" WC="0.0" CONTENT="اي ‏"/><SP WIDTH="-283" VPOS="1985" HPOS="1091"/>
+							<String ID="string_117" HPOS="808" VPOS="1982" WIDTH="87" HEIGHT="51" WC="0.0" CONTENT="اا"/><SP WIDTH="-119" VPOS="1982" HPOS="895"/>
+							<String ID="string_118" HPOS="776" VPOS="1978" WIDTH="28" HEIGHT="72" WC="0.0" CONTENT="ا ‏"/><SP WIDTH="-95" VPOS="1978" HPOS="804"/>
+							<String ID="string_119" HPOS="709" VPOS="1978" WIDTH="41" HEIGHT="72" WC="0.0" CONTENT="اا"/><SP WIDTH="-172" VPOS="1978" HPOS="750"/>
+							<String ID="string_120" HPOS="578" VPOS="1978" WIDTH="19" HEIGHT="72" WC="0.0" CONTENT="لا ‏"/><SP WIDTH="-175" VPOS="1978" HPOS="597"/>
+							<String ID="string_121" HPOS="422" VPOS="1977" WIDTH="140" HEIGHT="93" WC="0.0" CONTENT="واالاْ"/>
+						</TextLine>
+						<TextLine ID="line_21" HPOS="429" VPOS="2063" WIDTH="1270" HEIGHT="93">
+							<String ID="string_122" HPOS="1474" VPOS="2059" WIDTH="48" HEIGHT="90" WC="0.0" CONTENT="ا ‏"/><SP WIDTH="-113" VPOS="2059" HPOS="1522"/>
+							<String ID="string_123" HPOS="1409" VPOS="2078" WIDTH="97" HEIGHT="53" WC="0.0" CONTENT="اا"/><SP WIDTH="-201" VPOS="2078" HPOS="1506"/>
+							<String ID="string_124" HPOS="1305" VPOS="2063" WIDTH="63" HEIGHT="82" WC="0.0" CONTENT="اا"/><SP WIDTH="-233" VPOS="2063" HPOS="1368"/>
+							<String ID="string_125" HPOS="1135" VPOS="2069" WIDTH="86" HEIGHT="60" WC="0.0" CONTENT="يللوْ"/><SP WIDTH="-365" VPOS="2069" HPOS="1221"/>
+							<String ID="string_126" HPOS="856" VPOS="2074" WIDTH="258" HEIGHT="82" WC="0.0" CONTENT="الَْ"/><SP WIDTH="-385" VPOS="2074" HPOS="1114"/>
+							<String ID="string_127" HPOS="729" VPOS="2088" WIDTH="47" HEIGHT="55" WC="0.0" CONTENT="ا"/><SP WIDTH="-227" VPOS="2088" HPOS="776"/>
+							<String ID="string_128" HPOS="549" VPOS="2074" WIDTH="145" HEIGHT="55" WC="0.0" CONTENT="اا ‏"/><SP WIDTH="-275" VPOS="2074" HPOS="694"/>
+							<String ID="string_129" HPOS="419" VPOS="2055" WIDTH="24" HEIGHT="92" WC="0.0" CONTENT="لوْ"/>
+						</TextLine>
+						<TextLine ID="line_22" HPOS="741" VPOS="2160" WIDTH="954" HEIGHT="75">
+							<String ID="string_130" HPOS="1380" VPOS="2160" WIDTH="209" HEIGHT="76" WC="0.0" CONTENT="ا ‏"/><SP WIDTH="-265" VPOS="2160" HPOS="1589"/>
+							<String ID="string_131" HPOS="1324" VPOS="2188" WIDTH="49" HEIGHT="27" WC="0.0" CONTENT="ا"/><SP WIDTH="-295" VPOS="2188" HPOS="1373"/>
+							<String ID="string_132" HPOS="1078" VPOS="2163" WIDTH="37" HEIGHT="42" WC="0.0" CONTENT="ا ‏"/><SP WIDTH="-177" VPOS="2163" HPOS="1115"/>
+							<String ID="string_133" HPOS="938" VPOS="2166" WIDTH="123" HEIGHT="69" WC="0.0" CONTENT="اا"/><SP WIDTH="-330" VPOS="2166" HPOS="1061"/>
+							<String ID="string_134" HPOS="731" VPOS="2145" WIDTH="24" HEIGHT="95" WC="0.0" CONTENT="لا ‏"/>
+						</TextLine>
+						<TextLine ID="line_23" HPOS="435" VPOS="2199" WIDTH="1222" HEIGHT="142">
+							<String ID="string_135" HPOS="1572" VPOS="2236" WIDTH="20" HEIGHT="78" WC="0.0" CONTENT="لَْ"/><SP WIDTH="-147" VPOS="2236" HPOS="1592"/>
+							<String ID="string_136" HPOS="1445" VPOS="2212" WIDTH="37" HEIGHT="113" WC="0.0" CONTENT="وَىْ"/><SP WIDTH="-78" VPOS="2212" HPOS="1482"/>
+							<String ID="string_137" HPOS="1404" VPOS="2239" WIDTH="36" HEIGHT="70" WC="0.0" CONTENT="د"/><SP WIDTH="-194" VPOS="2239" HPOS="1440"/>
+							<String ID="string_138" HPOS="1246" VPOS="2248" WIDTH="78" HEIGHT="56" WC="0.0" CONTENT="ا ‏"/><SP WIDTH="-120" VPOS="2248" HPOS="1324"/>
+							<String ID="string_139" HPOS="1204" VPOS="2235" WIDTH="40" HEIGHT="80" WC="0.0" CONTENT="ا ‏"/><SP WIDTH="-210" VPOS="2235" HPOS="1244"/>
+							<String ID="string_140" HPOS="1034" VPOS="2235" WIDTH="20" HEIGHT="80" WC="0.0" CONTENT="لوْ"/><SP WIDTH="-136" VPOS="2235" HPOS="1054"/>
+							<String ID="string_141" HPOS="918" VPOS="2235" WIDTH="41" HEIGHT="106" WC="0.0" CONTENT="اعَْ"/><SP WIDTH="-234" VPOS="2235" HPOS="959"/>
+							<String ID="string_142" HPOS="725" VPOS="2242" WIDTH="187" HEIGHT="74" WC="0.0" CONTENT="يلاْ"/><SP WIDTH="-466" VPOS="2242" HPOS="912"/>
+							<String ID="string_143" HPOS="446" VPOS="2199" WIDTH="34" HEIGHT="130" WC="0.0" CONTENT="لسْ"/><SP WIDTH="-45" VPOS="2199" HPOS="480"/>
+							<String ID="string_144" HPOS="435" VPOS="2232" WIDTH="13" HEIGHT="87" WC="0.45" CONTENT="ٍْ"/>
+						</TextLine>
+						<TextLine ID="line_24" HPOS="528" VPOS="2325" WIDTH="868" HEIGHT="108">
+							<String ID="string_145" HPOS="1081" VPOS="2325" WIDTH="315" HEIGHT="108" WC="0.0" CONTENT="االاْ"/><SP WIDTH="-535" VPOS="2325" HPOS="1396"/>
+							<String ID="string_146" HPOS="861" VPOS="2325" WIDTH="140" HEIGHT="77" WC="0.0" CONTENT="ا ‏"/><SP WIDTH="-244" VPOS="2325" HPOS="1001"/>
+							<String ID="string_147" HPOS="757" VPOS="2350" WIDTH="1" HEIGHT="26" WC="0.0" CONTENT="ا"/><SP WIDTH="-49" VPOS="2350" HPOS="758"/>
+							<String ID="string_148" HPOS="709" VPOS="2336" WIDTH="1" HEIGHT="53" WC="0.0" CONTENT="ا"/><SP WIDTH="-182" VPOS="2336" HPOS="710"/>
+							<String ID="string_149" HPOS="528" VPOS="2333" WIDTH="115" HEIGHT="59" WC="0.0" CONTENT="الو ‏"/>
+						</TextLine>
+						<TextLine ID="line_25" HPOS="430" VPOS="2409" WIDTH="1181" HEIGHT="112">
+							<String ID="string_150" HPOS="1505" VPOS="2422" WIDTH="56" HEIGHT="69" WC="0.0" CONTENT="ا ‏"/><SP WIDTH="-159" VPOS="2422" HPOS="1561"/>
+							<String ID="string_151" HPOS="1402" VPOS="2434" WIDTH="123" HEIGHT="53" WC="0.0" CONTENT="اليلاْ"/><SP WIDTH="-372" VPOS="2434" HPOS="1525"/>
+							<String ID="string_152" HPOS="1153" VPOS="2409" WIDTH="231" HEIGHT="112" WC="0.0" CONTENT="يلسْ"/><SP WIDTH="-330" VPOS="2409" HPOS="1384"/>
+							<String ID="string_153" HPOS="1054" VPOS="2420" WIDTH="90" HEIGHT="66" WC="0.0" CONTENT="نلوْ"/><SP WIDTH="-231" VPOS="2420" HPOS="1144"/>
+							<String ID="string_154" HPOS="913" VPOS="2416" WIDTH="169" HEIGHT="87" WC="0.0" CONTENT="يلسْ"/><SP WIDTH="-197" VPOS="2416" HPOS="1082"/>
+							<String ID="string_155" HPOS="885" VPOS="2412" WIDTH="29" HEIGHT="75" WC="0.0" CONTENT="ةيا"/><SP WIDTH="-81" VPOS="2412" HPOS="914"/>
+							<String ID="string_156" HPOS="833" VPOS="2445" WIDTH="17" HEIGHT="23" WC="0.0" CONTENT="ا"/><SP WIDTH="-83" VPOS="2445" HPOS="850"/>
+							<String ID="string_157" HPOS="767" VPOS="2412" WIDTH="29" HEIGHT="75" WC="0.0" CONTENT="اي"/><SP WIDTH="-71" VPOS="2412" HPOS="796"/>
+							<String ID="string_158" HPOS="725" VPOS="2427" WIDTH="39" HEIGHT="42" WC="0.0" CONTENT="ا"/><SP WIDTH="-212" VPOS="2427" HPOS="764"/>
+							<String ID="string_159" HPOS="552" VPOS="2412" WIDTH="174" HEIGHT="75" WC="0.0" CONTENT="اااي ‏"/><SP WIDTH="-296" VPOS="2412" HPOS="726"/>
+							<String ID="string_160" HPOS="430" VPOS="2412" WIDTH="20" HEIGHT="75" WC="0.0" CONTENT="لا ‏"/>
+						</TextLine>
+						<TextLine ID="line_26" HPOS="440" VPOS="2447" WIDTH="1267" HEIGHT="136">
+							<String ID="string_161" HPOS="1463" VPOS="2511" WIDTH="244" HEIGHT="72" WC="0.0" CONTENT="٠اا‏"/><SP WIDTH="-323" VPOS="2511" HPOS="1707"/>
+							<String ID="string_162" HPOS="1384" VPOS="2502" WIDTH="74" HEIGHT="85" WC="0.0" CONTENT="اا"/><SP WIDTH="-114" VPOS="2502" HPOS="1458"/>
+							<String ID="string_163" HPOS="1344" VPOS="2506" WIDTH="62" HEIGHT="53" WC="0.0" CONTENT="اا"/><SP WIDTH="-161" VPOS="2506" HPOS="1406"/>
+							<String ID="string_164" HPOS="1245" VPOS="2518" WIDTH="83" HEIGHT="45" WC="0.0" CONTENT="ا ‏"/><SP WIDTH="-109" VPOS="2518" HPOS="1328"/>
+							<String ID="string_165" HPOS="1219" VPOS="2502" WIDTH="33" HEIGHT="85" WC="0.0" CONTENT="ا"/><SP WIDTH="-115" VPOS="2502" HPOS="1252"/>
+							<String ID="string_166" HPOS="1137" VPOS="2510" WIDTH="90" HEIGHT="59" WC="0.0" CONTENT="ا ‏"/><SP WIDTH="-178" VPOS="2510" HPOS="1227"/>
+							<String ID="string_167" HPOS="1049" VPOS="2502" WIDTH="22" HEIGHT="85" WC="0.0" CONTENT="لو ‏"/><SP WIDTH="-160" VPOS="2502" HPOS="1071"/>
+							<String ID="string_168" HPOS="911" VPOS="2447" WIDTH="128" HEIGHT="127" WC="0.0" CONTENT="ؤإلسْ"/><SP WIDTH="-252" VPOS="2447" HPOS="1039"/>
+							<String ID="string_169" HPOS="787" VPOS="2503" WIDTH="118" HEIGHT="71" WC="0.0" CONTENT="اا"/><SP WIDTH="-350" VPOS="2503" HPOS="905"/>
+							<String ID="string_170" HPOS="555" VPOS="2507" WIDTH="23" HEIGHT="75" WC="0.0" CONTENT="ا"/><SP WIDTH="-148" VPOS="2507" HPOS="578"/>
+							<String ID="string_171" HPOS="430" VPOS="2499" WIDTH="23" HEIGHT="87" WC="0.0" CONTENT="لاْ"/>
+						</TextLine>
+						<TextLine ID="line_27" HPOS="745" VPOS="2603" WIDTH="589" HEIGHT="83">
+							<String ID="string_172" HPOS="1063" VPOS="2607" WIDTH="20" HEIGHT="79" WC="0.0" CONTENT="لضْ"/><SP WIDTH="-161" VPOS="2607" HPOS="1083"/>
+							<String ID="string_173" HPOS="922" VPOS="2609" WIDTH="141" HEIGHT="72" WC="0.0" CONTENT="اا"/><SP WIDTH="-318" VPOS="2609" HPOS="1063"/>
+							<String ID="string_174" HPOS="745" VPOS="2603" WIDTH="161" HEIGHT="83" WC="0.0" CONTENT="ااْ"/>
+						</TextLine>
+					</TextBlock>
+				</ComposedBlock>
+				<ComposedBlock ID="cblock_7" HPOS="0" VPOS="313" WIDTH="0" HEIGHT="29">
+					<TextBlock ID="block_7" HPOS="0" VPOS="313" WIDTH="0" HEIGHT="29">
+						<TextLine ID="line_28" HPOS="0" VPOS="313" WIDTH="0" HEIGHT="29">
+							<String ID="string_175" HPOS="0" VPOS="313" WIDTH="0" HEIGHT="29" WC="0.95" CONTENT=" "/>
+						</TextLine>
+					</TextBlock>
+				</ComposedBlock>
+			</PrintSpace>
+		</Page>
+	</Layout>
+</alto>

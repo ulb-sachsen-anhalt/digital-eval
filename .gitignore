@@ -1,0 +1,19 @@
+# ignore vscode ide stuff
+.vscode
+
+# ignore python venv
+venv
+
+# ingore python caches
+**/__pycache__/**
+
+# ignore coverage stuff
+.coverage
+htmlcov
+
+# ignore build artifacts
+*.egg-info
+build
+log
+workdir
+config

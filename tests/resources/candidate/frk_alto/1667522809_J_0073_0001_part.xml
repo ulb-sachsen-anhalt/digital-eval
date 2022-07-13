@@ -1,0 +1,77 @@
+<alto xmlns="http://www.loc.gov/standards/alto/ns-v3#" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.loc.gov/standards/alto/ns-v3# http://www.loc.gov/alto/v3/alto-3-0.xsd">
+	<Description>
+		<MeasurementUnit>pixel</MeasurementUnit>
+		<sourceImageInformation>
+			<fileName />
+		</sourceImageInformation>
+		<OCRProcessing ID="OCR_0">
+			<ocrProcessingStep>
+				<processingSoftware>
+					<softwareName>tesseract 4.1.1</softwareName>
+				</processingSoftware>
+			</ocrProcessingStep>
+		</OCRProcessing>
+	</Description>
+	<Layout>
+		<Page HEIGHT="9944" ID="page_0" PHYSICAL_IMG_NR="0" WIDTH="6712">
+			<PrintSpace HEIGHT="9944" HPOS="0" VPOS="0" WIDTH="6712">
+				<ComposedBlock HEIGHT="1076" HPOS="455" ID="cblock_47" VPOS="3967" WIDTH="1895">
+					<TextBlock HEIGHT="843" HPOS="455" ID="block_50" VPOS="4123" WIDTH="1895">
+						<TextLine HEIGHT="150" HPOS="455" ID="line_85" VPOS="4893" WIDTH="1895">
+							<String CONTENT="großen" HEIGHT="132" HPOS="509" ID="string_454" VPOS="4863" WC="0.96" WIDTH="189" /><SP HPOS="644" VPOS="4893" WIDTH="18" />
+							<String CONTENT="Wahlrehisdemonſtratio" HEIGHT="131" HPOS="716" ID="string_455" VPOS="4863" WC="0.35" WIDTH="681" /><SP HPOS="1343" VPOS="4893" WIDTH="119" />
+							<String CONTENT="jede," HEIGHT="141" HPOS="1516" ID="string_456" VPOS="4872" WC="0.6" WIDTH="214" /><SP HPOS="1676" VPOS="4902" WIDTH="18" />
+							<String CONTENT="daß" HEIGHT="83" HPOS="1748" ID="string_457" VPOS="4866" WC="0.96" WIDTH="114" /><SP HPOS="1808" VPOS="4896" WIDTH="39" />
+							<String CONTENT="ſie" HEIGHT="75" HPOS="1901" ID="string_458" VPOS="4857" WC="0.95" WIDTH="63" /><SP HPOS="1910" VPOS="4887" WIDTH="43" />
+							<String CONTENT="keine" HEIGHT="55" HPOS="2007" ID="string_459" VPOS="4873" WC="0.96" WIDTH="130" /><SP HPOS="2083" VPOS="4903" WIDTH="38" />
+							<String CONTENT="Freunde" HEIGHT="65" HPOS="2175" ID="string_460" VPOS="4871" WC="0.96" WIDTH="229" />
+						</TextLine>
+					</TextBlock>
+				</ComposedBlock>
+				<ComposedBlock HEIGHT="172" HPOS="1462" ID="cblock_48" VPOS="4967" WIDTH="887">
+					<TextBlock HEIGHT="144" HPOS="1550" ID="block_51" VPOS="4977" WIDTH="800">
+						<TextLine HEIGHT="76" HPOS="1817" ID="line_86" VPOS="4978" WIDTH="396">
+							<String CONTENT="vielmehr." HEIGHT="76" HPOS="1871" ID="string_461" VPOS="4948" WC="0.42" WIDTH="271" /><SP HPOS="2088" VPOS="4978" WIDTH="1" />
+							<String CONTENT="Ord" HEIGHT="75" HPOS="2143" ID="string_462" VPOS="4948" WC="0.48" WIDTH="124" />
+						</TextLine>
+						<TextLine HEIGHT="172" HPOS="1462" ID="line_87" VPOS="4967" WIDTH="887">
+							<String CONTENT="jmdn" HEIGHT="161" HPOS="1516" ID="string_463" VPOS="4942" WC="0.14" WIDTH="218" /><SP HPOS="1680" VPOS="4972" WIDTH="-98" />
+							<String CONTENT="dan" HEIGHT="170" HPOS="1636" ID="string_464" VPOS="4937" WC="0.7" WIDTH="118" /><SP HPOS="1700" VPOS="4967" WIDTH="20" />
+							<String CONTENT="ffe" HEIGHT="155" HPOS="1774" ID="string_465" VPOS="4941" WC="0.21" WIDTH="65" /><SP HPOS="1785" VPOS="4971" WIDTH="430" />
+							<String CONTENT="ctig," HEIGHT="147" HPOS="2269" ID="string_466" VPOS="4962" WC="0.63" WIDTH="134" />
+						</TextLine>
+					</TextBlock>
+				</ComposedBlock>
+				<ComposedBlock HEIGHT="779" HPOS="456" ID="cblock_51" VPOS="5191" WIDTH="1895">
+					<TextBlock HEIGHT="779" HPOS="456" ID="block_54" VPOS="5191" WIDTH="1895">
+						<TextLine HEIGHT="84" HPOS="457" ID="line_90" VPOS="5191" WIDTH="1894">
+							<String CONTENT="bitterung" HEIGHT="78" HPOS="511" ID="string_470" VPOS="5166" WC="0.91" WIDTH="255" /><SP HPOS="712" VPOS="5196" WIDTH="34" />
+							<String CONTENT="gegen" HEIGHT="55" HPOS="800" ID="string_471" VPOS="5190" WC="0.96" WIDTH="148" /><SP HPOS="894" VPOS="5220" WIDTH="37" />
+							<String CONTENT="die" HEIGHT="54" HPOS="985" ID="string_472" VPOS="5179" WC="0.93" WIDTH="79" /><SP HPOS="1010" VPOS="5209" WIDTH="33" />
+							<String CONTENT="Kohlenfirma" HEIGHT="78" HPOS="1097" ID="string_473" VPOS="5161" WC="0.91" WIDTH="346" /><SP HPOS="1389" VPOS="5191" WIDTH="30" />
+							<String CONTENT="Qupfer" HEIGHT="73" HPOS="1473" ID="string_474" VPOS="5166" WC="0.0" WIDTH="199" /><SP HPOS="1618" VPOS="5196" WIDTH="35" />
+							<String CONTENT="u." HEIGHT="38" HPOS="1707" ID="string_475" VPOS="5194" WC="0.96" WIDTH="49" /><SP HPOS="1702" VPOS="5224" WIDTH="35" />
+							<String CONTENT="Co." HEIGHT="56" HPOS="1791" ID="string_476" VPOS="5178" WC="0.93" WIDTH="88" /><SP HPOS="1825" VPOS="5208" WIDTH="38" />
+							<String CONTENT="berrſcht," HEIGHT="62" HPOS="1917" ID="string_477" VPOS="5179" WC="0.90" WIDTH="224" /><SP HPOS="2087" VPOS="5209" WIDTH="33" />
+							<String CONTENT="die" HEIGHT="54" HPOS="2174" ID="string_478" VPOS="5181" WC="0.96" WIDTH="80" /><SP HPOS="2200" VPOS="5211" WIDTH="37" />
+							<String CONTENT="noch" HEIGHT="63" HPOS="2291" ID="string_479" VPOS="5180" WC="0.92" WIDTH="114" />
+						</TextLine>
+					</TextBlock>
+				</ComposedBlock>
+				<ComposedBlock HEIGHT="173" HPOS="409" ID="cblock_58" VPOS="5037" WIDTH="2158">
+					<TextBlock HEIGHT="170" HPOS="401" ID="block_61" VPOS="5033" WIDTH="2166">
+						<TextLine HEIGHT="114" HPOS="409" ID="line_146" VPOS="5037" WIDTH="2158">
+							<String CONTENT="un" HEIGHT="93" HPOS="463" ID="string_1000" VPOS="5007" WC="0.64" WIDTH="113" /><SP HPOS="522" VPOS="5037" WIDTH="27" />
+							<String CONTENT=" Digzipli" HEIGHT="92" HPOS="603" ID="string_1001" VPOS="4975" WC="0.0" WIDTH="285" /><SP HPOS="834" VPOS="5005" WIDTH="30" />
+							<String CONTENT="-zu" HEIGHT="87" HPOS="918" ID="string_1002" VPOS="5011" WC="0.62" WIDTH="88" /><SP HPOS="952" VPOS="5041" WIDTH="151" />
+							<String CONTENT="wahren:pexſtehen" HEIGHT="44" HPOS="1157" ID="string_1003" VPOS="5003" WC="0.35" WIDTH="379" /><SP HPOS="1482" VPOS="5033" WIDTH="354" />
+							<String CONTENT="allerdings" HEIGHT="76" HPOS="1890" ID="string_1004" VPOS="5021" WC="0.95" WIDTH="297" /><SP HPOS="2133" VPOS="5051" WIDTH="26" />
+							<String CONTENT="richtig," HEIGHT="85" HPOS="2213" ID="string_1005" VPOS="5008" WC="0.94" WIDTH="193" /><SP HPOS="2352" VPOS="5038" WIDTH="45" />
+							<String CONTENT="laſſen." HEIGHT="105" HPOS="2451" ID="string_1006" VPOS="5016" WC="0.96" WIDTH="170" />
+						</TextLine>
+					</TextBlock>
+				</ComposedBlock>
+			</PrintSpace>
+		</Page>
+	</Layout>
+</alto>
