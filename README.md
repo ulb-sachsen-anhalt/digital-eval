@@ -1,5 +1,7 @@
 # digital eval
 
+![example workflow](https://github.com/ulb-sachsen-anhalt/digital-eval/actions/workflows/python-app.yml/badge.svg)
+
 Evaluate data from mass digitalization workflows
 
 ## Requirements
