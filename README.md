@@ -61,6 +61,21 @@ candidate root/
 │         └── <page-01>.xml
 ```
 
+Now call via: 
+
+```bash
+digital-eval <path-candidate-root>/domain/ -ref <path-groundtruth>/domain/
+```
+
+for an aggregated overview on stdout. Feel free to increase verbosity via `-v` (or even `-vv`) to get detailed information about each single data set which was evaluated.
+
+Structured OCR is considered to contain valid geometrical and textual data on word level, even though for recent PAGE also line level is possible.
+
+### Data problems  
+
+Inconsistent OCR Groundtruth with empty texts (ALTO String elements missing CONTENT or PAGE without TextEquiv) or invalid geometrical coordinates (less than 3 points or even empty) will lead to evaluation errors.
+
+
 # Contribute
 
 Contributions welcome!
