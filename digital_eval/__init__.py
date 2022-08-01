@@ -21,8 +21,11 @@ from .metrics import (
 
 from .model import (
     Piece,
+    PieceType,
     to_pieces,
     OCRToken,
+    OCRWord,
     OCRWordLine,
     OCRRegion,
+    BoundingBox,
 )

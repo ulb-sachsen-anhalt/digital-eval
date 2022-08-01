@@ -1,0 +1,288 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<pc:PcGts xmlns:pc="http://schema.primaresearch.org/PAGE/gts/pagecontent/2019-07-15" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://schema.primaresearch.org/PAGE/gts/pagecontent/2019-07-15 http://schema.primaresearch.org/PAGE/gts/pagecontent/2019-07-15/pagecontent.xsd" pcGtsId="OCR-D-BIN-REG-4074_007817778_00001">
+  <pc:Metadata>
+    <pc:Creator>OCR-D/core 2.33.0</pc:Creator>
+    <pc:Created>2022-05-10T10:25:57.553427</pc:Created>
+    <pc:LastChange>2022-05-10T10:25:57.553427</pc:LastChange>
+    <pc:MetadataItem type="processingStep" name="preprocessing/optimization/binarization" value="ocrd-cis-ocropy-binarize">
+      <pc:Labels externalModel="ocrd-tool" externalId="parameters">
+        <pc:Label value="ocropy" type="method" />
+        <pc:Label value="0.5" type="threshold" />
+        <pc:Label value="False" type="grayscale" />
+        <pc:Label value="0.0" type="maxskew" />
+        <pc:Label value="0" type="noise_maxsize" />
+        <pc:Label value="0" type="dpi" />
+        <pc:Label value="page" type="level-of-operation" />
+      </pc:Labels>
+      <pc:Labels externalModel="ocrd-tool" externalId="version">
+        <pc:Label value="0.1.5" type="ocrd-cis-ocropy-binarize" />
+        <pc:Label value="2.33.0" type="ocrd/core" />
+      </pc:Labels>
+    </pc:MetadataItem>
+    <pc:MetadataItem type="processingStep" name="preprocessing/optimization/binarization" value="ocrd-cis-ocropy-binarize">
+      <pc:Labels externalModel="ocrd-tool" externalId="parameters">
+        <pc:Label value="region" type="level-of-operation" />
+        <pc:Label value="ocropy" type="method" />
+        <pc:Label value="0.5" type="threshold" />
+        <pc:Label value="False" type="grayscale" />
+        <pc:Label value="0.0" type="maxskew" />
+        <pc:Label value="0" type="noise_maxsize" />
+        <pc:Label value="0" type="dpi" />
+      </pc:Labels>
+      <pc:Labels externalModel="ocrd-tool" externalId="version">
+        <pc:Label value="0.1.5" type="ocrd-cis-ocropy-binarize" />
+        <pc:Label value="2.33.0" type="ocrd/core" />
+      </pc:Labels>
+    </pc:MetadataItem>
+    <pc:MetadataItem type="processingStep" name="preprocessing/optimization/mergeregionwithline" value="ccs-mergeregionwithline">
+      <pc:Labels externalModel="ccs-tool" externalId="version">
+        <pc:Label value="V1" type="mergeregionwithline" />
+      </pc:Labels>
+    </pc:MetadataItem>
+  </pc:Metadata>
+  <pc:Page imageFilename="OCR-D-IMG/4074_007817778_00001.tif" imageWidth="4619" imageHeight="3312" orientation="0.">
+    <pc:AlternativeImage filename="OCR-D-BIN/OCR-D-BIN_4074_007817778_00001.IMG-BIN.png" comments=",binarized" />
+    <pc:TextRegion id="TR-1" orientation="0.">
+      <pc:AlternativeImage filename="OCR-D-BIN-REG/OCR-D-BIN-REG-4074_007817778_00001_TR-1.IMG-BIN.png" comments=",binarized" />
+      <pc:Coords points="1966,595 1966,682 2151,682 2151,595" />
+      <pc:TextLine id="TR-1_line0001">
+        <pc:Coords points="1966,595 1966,682 2151,682 2151,595" />
+        <pc:TextEquiv>
+          <pc:Unicode>1889</pc:Unicode>
+        </pc:TextEquiv>
+      </pc:TextLine>
+    </pc:TextRegion>
+    <pc:TextRegion id="TR-2" orientation="0.">
+      <pc:AlternativeImage filename="OCR-D-BIN-REG/OCR-D-BIN-REG-4074_007817778_00001_TR-2.IMG-BIN.png" comments=",binarized" />
+      <pc:Coords points="1403,2573 1560,2573 1560,2598 2311,2598 2311,2757 2220,2757 2220,2798 2311,2798 2311,2908 1403,2908" />
+      <pc:TextLine id="TR-2_line0001">
+        <pc:Coords points="2125,2704 2081,2685 1916,2688 1913,2688 1408,2638 1413,2616 1413,2573 1452,2573 1557,2597 1560,2597 1560,2598 1573,2598 1733,2608 1751,2598 1779,2598 1794,2610 1822,2599 1825,2598 1853,2598 1869,2605 1916,2622 2001,2616 2043,2613 2051,2613 2051,2616 2054,2616 2056,2622 2067,2635 2236,2638 2239,2674 2236,2691 2131,2704" />
+        <pc:TextEquiv>
+          <pc:Unicode>Отставный Унтеръ Офицеръ</pc:Unicode>
+        </pc:TextEquiv>
+      </pc:TextLine>
+      <pc:TextLine id="TR-2_line0002">
+        <pc:Coords points="2220,2789 2189,2787 2183,2787 2183,2784 2161,2765 1993,2768 1990,2768 1642,2729 1551,2729 1532,2743 1521,2743 1468,2729 1432,2751 1419,2751 1419,2748 1403,2733 1403,2660 1546,2652 1554,2652 1554,2655 1557,2655 1565,2666 1568,2668 1675,2668 1689,2682 1733,2660 1742,2660 1786,2674 1855,2693 1916,2679 1924,2677 1932,2677 1938,2679 1963,2691 1987,2682 2032,2666 2043,2666 2043,2668 2059,2685 2073,2702 2247,2704 2272,2691 2308,2674 2311,2674 2311,2757 2220,2757" />
+        <pc:TextEquiv>
+          <pc:Unicode>Трофимъ Ѳедотовъ Соколикъ и зако</pc:Unicode>
+        </pc:TextEquiv>
+      </pc:TextLine>
+      <pc:TextLine id="TR-2_line0003">
+        <pc:Coords points="2261,2851 2239,2834 2076,2848 2073,2848 1435,2790 1441,2773 1441,2740 1802,2768 1849,2757 1891,2748 1899,2748 1916,2760 1946,2779 2032,2782 2062,2768 2065,2765 2076,2765 2076,2768 2078,2768 2098,2784 2175,2771 2208,2768 2211,2768 2220,2769 2220,2798 2305,2798 2305,2823 2308,2834 2272,2851" />
+        <pc:TextEquiv>
+          <pc:Unicode>ная жена его Александра Ѳедо-</pc:Unicode>
+        </pc:TextEquiv>
+      </pc:TextLine>
+      <pc:TextLine id="TR-2_line0004">
+        <pc:Coords points="2065,2900 1667,2889 1617,2884 1479,2864 1403,2872 1403,2811 1432,2798 1438,2798 1584,2820 1659,2812 1667,2812 1667,2815 1686,2831 1686,2834 1764,2837 1766,2834 1791,2820 1802,2820 1836,2840 1847,2845 2067,2851 2070,2886" />
+        <pc:TextEquiv>
+          <pc:Unicode>рова, оба православные.</pc:Unicode>
+        </pc:TextEquiv>
+      </pc:TextLine>
+    </pc:TextRegion>
+    <pc:TextRegion id="TR-3" orientation="0.">
+      <pc:AlternativeImage filename="OCR-D-BIN-REG/OCR-D-BIN-REG-4074_007817778_00001_TR-3.IMG-BIN.png" comments=",binarized" />
+      <pc:Coords points="1419,2091 1572,2091 1572,2128 2317,2128 2317,2445 1419,2445" />
+      <pc:TextLine id="TR-3_line0001">
+        <pc:Coords points="2299,2210 1582,2180 1587,2163 1587,2128 1682,2128 1913,2150 1965,2139 2018,2128 2044,2128 2054,2144 2065,2158 2106,2158 2123,2147 2145,2130 2153,2130 2239,2133 2244,2133 2244,2136 2269,2161 2299,2158 2305,2199" />
+        <pc:TextEquiv>
+          <pc:Unicode>Казенный крестьянинъ Иванъ</pc:Unicode>
+        </pc:TextEquiv>
+      </pc:TextLine>
+      <pc:TextLine id="TR-3_line0002">
+        <pc:Coords points="2294,2288 1753,2277 1615,2249 1529,2263 1524,2263 1479,2241 1441,2257 1432,2257 1419,2250 1419,2170 1432,2166 1438,2166 1551,2188 1617,2202 1645,2194 1681,2183 1692,2183 1692,2185 1709,2202 1717,2199 1744,2185 1753,2185 1789,2202 1813,2216 2297,2235 2297,2268" />
+        <pc:TextEquiv>
+          <pc:Unicode>Ѳедоровъ Кругликъ и законная</pc:Unicode>
+        </pc:TextEquiv>
+      </pc:TextLine>
+      <pc:TextLine id="TR-3_line0003">
+        <pc:Coords points="2316,2387 2056,2373 2051,2373 2043,2365 2034,2359 1990,2362 1968,2362 1946,2381 1946,2384 1938,2384 1769,2373 1766,2373 1695,2337 1692,2334 1673,2334 1507,2332 1504,2332 1468,2318 1457,2315 1454,2318 1432,2332 1419,2332 1419,2264 1709,2290 1736,2282 1780,2271 1791,2271 1816,2288 1833,2299 1869,2293 1916,2285 1924,2285 1924,2288 1935,2296 1949,2310 2032,2312 2056,2304 2095,2293 2103,2293 2156,2312 2192,2326 2261,2326 2266,2318 2280,2307 2291,2307 2317,2320 2317,2381" />
+        <pc:TextEquiv>
+          <pc:Unicode>жена его Варвара Емеліанова,</pc:Unicode>
+        </pc:TextEquiv>
+      </pc:TextLine>
+      <pc:TextLine id="TR-3_line0004">
+        <pc:Coords points="1774,2445 1634,2420 1515,2434 1510,2434 1419,2404 1419,2338 1551,2368 1642,2370 1659,2362 1670,2357 1678,2357 1700,2365 1739,2384 1824,2390 1838,2381 1844,2376 1852,2376 1979,2398 1979,2445" />
+        <pc:TextEquiv>
+          <pc:Unicode>оба православные.</pc:Unicode>
+        </pc:TextEquiv>
+      </pc:TextLine>
+    </pc:TextRegion>
+    <pc:TextRegion id="TR-4" orientation="0.">
+      <pc:AlternativeImage filename="OCR-D-BIN-REG/OCR-D-BIN-REG-4074_007817778_00001_TR-4.IMG-BIN.png" comments=",binarized" />
+      <pc:Coords points="1421,1572 1421,1963 2305,1963 2305,1572" />
+      <pc:TextLine id="TR-4_line0004">
+        <pc:Coords points="2189,1700 1866,1678 1838,1694 1830,1694 1504,1653 1421,1640 1421,1590 1442,1572 1542,1572 1559,1586 1584,1609 2142,1636 2156,1633 2214,1617 2225,1617 2225,1620 2250,1642 2244,1675 2247,1680 2194,1700" />
+        <pc:TextEquiv>
+          <pc:Unicode>Казенный крестьянинъ</pc:Unicode>
+        </pc:TextEquiv>
+      </pc:TextLine>
+      <pc:TextLine id="TR-4_line0001">
+        <pc:Coords points="2040,1788 1783,1755 1692,1769 1684,1769 1684,1766 1662,1741 1620,1741 1540,1760 1535,1760 1421,1731 1421,1665 1477,1658 1482,1658 1504,1669 1540,1689 1631,1678 1637,1678 1697,1697 1755,1680 1775,1680 1775,1683 1794,1705 1940,1711 1976,1691 1987,1686 1998,1686 2007,1694 2029,1711 2048,1694 2054,1691 2062,1691 2164,1697 2170,1697 2175,1702 2211,1722 2294,1708 2297,1758 2291,1774 2125,1771 2043,1788" />
+        <pc:TextEquiv>
+          <pc:Unicode>Ѳедоръ Прохоповъ Їуленокъ</pc:Unicode>
+        </pc:TextEquiv>
+      </pc:TextLine>
+      <pc:TextLine id="TR-4_line0002">
+        <pc:Coords points="2081,1865 1421,1807 1421,1750 1477,1744 1485,1744 1485,1747 1488,1747 1496,1758 1499,1760 1664,1774 1695,1769 1747,1758 1753,1758 1800,1774 1836,1791 2040,1799 2059,1791 2087,1780 2095,1780 2153,1796 2181,1807 2299,1807 2299,1857 2084,1865" />
+        <pc:TextEquiv>
+          <pc:Unicode>и законная жена его Їустинія</pc:Unicode>
+        </pc:TextEquiv>
+      </pc:TextLine>
+      <pc:TextLine id="TR-4_line0003">
+        <pc:Coords points="2096,1963 1891,1959 1725,1929 1689,1943 1681,1943 1637,1920 1421,1898 1421,1822 1493,1829 1499,1829 1499,1832 1501,1832 1521,1857 1526,1862 1648,1871 1659,1865 1684,1849 1697,1849 1725,1871 1733,1879 1791,1879 1800,1876 1841,1857 1852,1857 1880,1882 1891,1893 2001,1898 2012,1893 2040,1879 2051,1879 2051,1882 2065,1896 2073,1907 2170,1909 2181,1904 2217,1887 2228,1887 2228,1890 2244,1907 2252,1898 2252,1896 2263,1896 2305,1913 2305,1958 2303,1963" />
+        <pc:TextEquiv>
+          <pc:Unicode>Васильева, оба православные</pc:Unicode>
+        </pc:TextEquiv>
+      </pc:TextLine>
+    </pc:TextRegion>
+    <pc:TextRegion id="TR-5" orientation="0.">
+      <pc:AlternativeImage filename="OCR-D-BIN-REG/OCR-D-BIN-REG-4074_007817778_00001_TR-5.IMG-BIN.png" comments=",binarized" />
+      <pc:Coords points="1416,1017 2298,1017 2298,1402 1416,1402 1416,1209 1381,1209 1381,1133 1416,1133" />
+      <pc:TextLine id="TR-5_line0004">
+        <pc:Coords points="2291,1142 2172,1120 1893,1128 1755,1131 1747,1131 1736,1123 1722,1115 1416,1115 1416,1041 1457,1023 1468,1018 1479,1018 1488,1023 1540,1057 1954,1065 1985,1051 2045,1021 2051,1021 2112,1023 2117,1023 2117,1026 2145,1051 2172,1026 2172,1023 2181,1023 2211,1026 2217,1026 2217,1029 2252,1065 2261,1070 2294,1068 2297,1112" />
+        <pc:TextEquiv>
+          <pc:Unicode>Казенный крестьянинъ Зотипъ</pc:Unicode>
+        </pc:TextEquiv>
+      </pc:TextLine>
+      <pc:TextLine id="TR-5_line0001">
+        <pc:Coords points="1965,1242 1786,1217 1761,1236 1753,1236 1471,1214 1416,1228 1416,1209 1381,1209 1381,1133 1416,1133 1416,1120 1501,1120 1501,1123 1529,1150 1537,1161 1645,1161 1653,1156 1711,1126 1722,1126 1722,1128 1750,1156 1811,1126 1822,1126 1855,1153 1918,1128 1929,1128 1929,1131 1963,1164 1965,1167 2263,1173 2263,1211 2261,1222 2001,1222 1974,1242" />
+        <pc:TextEquiv>
+          <pc:Unicode>Степановъ Грива и законная</pc:Unicode>
+        </pc:TextEquiv>
+      </pc:TextLine>
+      <pc:TextLine id="TR-5_line0002">
+        <pc:Coords points="2283,1344 1416,1300 1416,1244 1709,1258 1733,1253 1797,1239 1802,1239 1844,1255 1869,1269 1971,1272 2020,1261 2070,1253 2073,1253 2125,1255 2131,1255 2131,1258 2153,1280 2286,1272 2288,1324" />
+        <pc:TextEquiv>
+          <pc:Unicode>жена его Меланія Васильева,</pc:Unicode>
+        </pc:TextEquiv>
+      </pc:TextLine>
+      <pc:TextLine id="TR-5_line0003">
+        <pc:Coords points="2009,1391 1438,1377 1443,1368 1441,1330 1526,1316 1535,1316 1535,1319 1548,1330 1562,1316 1570,1316 1720,1333 1739,1335 1742,1335 1772,1319 1780,1319 1819,1335 1827,1341 2012,1341 2015,1377" />
+        <pc:TextEquiv>
+          <pc:Unicode>оба православные</pc:Unicode>
+        </pc:TextEquiv>
+      </pc:TextLine>
+    </pc:TextRegion>
+    <pc:TextRegion id="TR-6" orientation="0.">
+      <pc:AlternativeImage filename="OCR-D-BIN-REG/OCR-D-BIN-REG-4074_007817778_00001_TR-6.IMG-BIN.png" comments=",binarized" />
+      <pc:Coords points="1112,2491 1112,2619 1369,2619 1369,2491" />
+      <pc:TextLine id="TR-6_line0001">
+        <pc:Coords points="1112,2491 1112,2619 1369,2619 1369,2491" />
+        <pc:TextEquiv>
+          <pc:Unicode>Марія</pc:Unicode>
+        </pc:TextEquiv>
+      </pc:TextLine>
+    </pc:TextRegion>
+    <pc:TextRegion id="TR-7" orientation="0.">
+      <pc:AlternativeImage filename="OCR-D-BIN-REG/OCR-D-BIN-REG-4074_007817778_00001_TR-7.IMG-BIN.png" comments=",binarized" />
+      <pc:Coords points="1071,2013 1071,2131 1338,2131 1338,2013" />
+      <pc:TextLine id="TR-7_line0001">
+        <pc:Coords points="1071,2013 1071,2131 1338,2131 1338,2013" />
+        <pc:TextEquiv>
+          <pc:Unicode>Симеонъ</pc:Unicode>
+        </pc:TextEquiv>
+      </pc:TextLine>
+    </pc:TextRegion>
+    <pc:TextRegion id="TR-8" orientation="0.">
+      <pc:AlternativeImage filename="OCR-D-BIN-REG/OCR-D-BIN-REG-4074_007817778_00001_TR-8.IMG-BIN.png" comments=",binarized" />
+      <pc:Coords points="1077,1521 1077,1673 1420,1673 1420,1521" />
+      <pc:TextLine id="TR-8_line0001">
+        <pc:Coords points="1077,1521 1077,1673 1420,1673 1420,1521" />
+        <pc:TextEquiv>
+          <pc:Unicode>Григорій</pc:Unicode>
+        </pc:TextEquiv>
+      </pc:TextLine>
+    </pc:TextRegion>
+    <pc:TextRegion id="TR-9" orientation="0.">
+      <pc:AlternativeImage filename="OCR-D-BIN-REG/OCR-D-BIN-REG-4074_007817778_00001_TR-9.IMG-BIN.png" comments=",binarized" />
+      <pc:Coords points="1093,1008 1093,1117 1407,1117 1407,1008" />
+      <pc:TextLine id="TR-9_line0001">
+        <pc:Coords points="1093,1008 1093,1117 1407,1117 1407,1008" />
+        <pc:TextEquiv>
+          <pc:Unicode>Тимоѳей</pc:Unicode>
+        </pc:TextEquiv>
+      </pc:TextLine>
+    </pc:TextRegion>
+    <pc:TextRegion id="TR-10" orientation="0.">
+      <pc:AlternativeImage filename="OCR-D-BIN-REG/OCR-D-BIN-REG-4074_007817778_00001_TR-10.IMG-BIN.png" comments=",binarized" />
+      <pc:Coords points="900,2491 900,2564 991,2564 991,2491" />
+      <pc:TextLine id="TR-10_line0001">
+        <pc:Coords points="900,2491 900,2564 991,2564 991,2491" />
+        <pc:TextEquiv>
+          <pc:Unicode>27</pc:Unicode>
+        </pc:TextEquiv>
+      </pc:TextLine>
+    </pc:TextRegion>
+    <pc:TextRegion id="TR-11" orientation="0.">
+      <pc:AlternativeImage filename="OCR-D-BIN-REG/OCR-D-BIN-REG-4074_007817778_00001_TR-11.IMG-BIN.png" comments=",binarized" />
+      <pc:Coords points="795,2491 795,2559 867,2559 867,2491" />
+      <pc:TextLine id="TR-11_line0001">
+        <pc:Coords points="795,2491 795,2559 867,2559 867,2491" />
+        <pc:TextEquiv>
+          <pc:Unicode>11</pc:Unicode>
+        </pc:TextEquiv>
+      </pc:TextLine>
+    </pc:TextRegion>
+    <pc:TextRegion id="TR-12" orientation="0.">
+      <pc:AlternativeImage filename="OCR-D-BIN-REG/OCR-D-BIN-REG-4074_007817778_00001_TR-12.IMG-BIN.png" comments=",binarized" />
+      <pc:Coords points="891,2007 891,2093 963,2093 963,2007" />
+      <pc:TextLine id="TR-12_line0001">
+        <pc:Coords points="891,2007 891,2093 963,2093 963,2007" />
+        <pc:TextEquiv>
+          <pc:Unicode>25</pc:Unicode>
+        </pc:TextEquiv>
+      </pc:TextLine>
+    </pc:TextRegion>
+    <pc:TextRegion id="TR-13" orientation="0.">
+      <pc:AlternativeImage filename="OCR-D-BIN-REG/OCR-D-BIN-REG-4074_007817778_00001_TR-13.IMG-BIN.png" comments=",binarized" />
+      <pc:Coords points="886,1531 886,1609 977,1609 977,1531" />
+      <pc:TextLine id="TR-13_line0001">
+        <pc:Coords points="886,1531 886,1609 977,1609 977,1531" />
+        <pc:TextEquiv>
+          <pc:Unicode>22</pc:Unicode>
+        </pc:TextEquiv>
+      </pc:TextLine>
+    </pc:TextRegion>
+    <pc:TextRegion id="TR-14" orientation="0.">
+      <pc:AlternativeImage filename="OCR-D-BIN-REG/OCR-D-BIN-REG-4074_007817778_00001_TR-14.IMG-BIN.png" comments=",binarized" />
+      <pc:Coords points="883,1030 883,1088 958,1088 958,1030" />
+      <pc:TextLine id="TR-14_line0001">
+        <pc:Coords points="883,1030 883,1088 958,1088 958,1030" />
+        <pc:TextEquiv>
+          <pc:Unicode>21</pc:Unicode>
+        </pc:TextEquiv>
+      </pc:TextLine>
+    </pc:TextRegion>
+    <pc:TextRegion id="TR-15" orientation="0.">
+      <pc:AlternativeImage filename="OCR-D-BIN-REG/OCR-D-BIN-REG-4074_007817778_00001_TR-15.IMG-BIN.png" comments=",binarized" />
+      <pc:Coords points="676,2007 676,2070 742,2070 742,2007" />
+      <pc:TextLine id="TR-15_line0001">
+        <pc:Coords points="676,2007 676,2070 742,2070 742,2007" />
+        <pc:TextEquiv>
+          <pc:Unicode>5</pc:Unicode>
+        </pc:TextEquiv>
+      </pc:TextLine>
+    </pc:TextRegion>
+    <pc:TextRegion id="TR-16" orientation="0.">
+      <pc:AlternativeImage filename="OCR-D-BIN-REG/OCR-D-BIN-REG-4074_007817778_00001_TR-16.IMG-BIN.png" comments=",binarized" />
+      <pc:Coords points="667,1513 667,1590 723,1590 723,1513" />
+      <pc:TextLine id="TR-16_line0001">
+        <pc:Coords points="667,1513 667,1590 723,1590 723,1513" />
+        <pc:TextEquiv>
+          <pc:Unicode>4</pc:Unicode>
+        </pc:TextEquiv>
+      </pc:TextLine>
+    </pc:TextRegion>
+    <pc:TextRegion id="TR-17" orientation="0.">
+      <pc:AlternativeImage filename="OCR-D-BIN-REG/OCR-D-BIN-REG-4074_007817778_00001_TR-17.IMG-BIN.png" comments=",binarized" />
+      <pc:Coords points="674,1024 674,1101 737,1101 737,1024" />
+      <pc:TextLine id="TR-17_line0001">
+        <pc:Coords points="674,1024 674,1101 737,1101 737,1024" />
+        <pc:TextEquiv>
+          <pc:Unicode>3</pc:Unicode>
+        </pc:TextEquiv>
+      </pc:TextLine>
+    </pc:TextRegion>
+  </pc:Page>
+</pc:PcGts>

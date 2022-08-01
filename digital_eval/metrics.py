@@ -41,6 +41,9 @@ DIGITS = string.digits + '\u0660' + '\u0661' + '\u0662' + '\u0663' + '\u0664' + 
 # persian indic digits
 DIGITS = DIGITS + '\u06f0' + '\u06f1' + '\u06f2' + '\u06f3' + '\u06f4' + '\u06f5' + '\u06f6' + '\u06f7' + '\u06f8' + '\u06f9'
 
+# information retrival (nltk)
+STOPWORDS = ['german', 'russian', 'english', 'french', 'greek', 'arabic', 'turkish', 'italian']
+STOPWORDS_DEFAULT = ['german', 'english', 'arabic','russian']
 
 class Metric:
     """Basic definition of a Metric"""
@@ -212,7 +215,7 @@ def _diff(gt_tokens, cd_tokens) -> List[str]:
     return list((Counter(gt_tokens) - Counter(cd_tokens)).elements())
 
 
-def _setup_stopwords(word_mappings=['german']):
+def _setup_stopwords(word_mappings=STOPWORDS):
     """Helper Function to ensure NLTK stopword data available
     """
     try:
@@ -226,7 +229,7 @@ def _ir_preprocess(gt_data, test_data, languages):
     """Common Preprocessing for Information Retrival Metrics"""
     _setup_stopwords()
     if languages == None:
-        languages = ['german']
+        languages = STOPWORDS_DEFAULT
     _stopwords = set([_all_words
                       for _lang in languages
                       for _all_words in stopwords.words(_lang)]

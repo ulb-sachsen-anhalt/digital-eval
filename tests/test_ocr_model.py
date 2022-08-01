@@ -11,7 +11,6 @@ import pytest
 
 from digital_eval.evaluation import (
     OCRData,
-    match_candidates,
     get_bbox_data,
     review
 )
@@ -91,6 +90,24 @@ def test_get_bbox_from_ocrd_page():
     assert p1[1] == 240
     assert p2[0] == 1048
     assert p2[1] == 1646
+
+
+def test_get_bbox_from_page2019():
+    """Ensure other PAGE formats than Transcribus 2013
+    can be used as GT-Input
+    """
+
+    # arrange
+    ocr_path = './tests/resources/groundtruth/page/page01.gt.xml'
+
+    # act
+    (p1, p2) = get_bbox_data(ocr_path)
+
+    # assert
+    assert p1[0] == 667
+    assert p1[1] == 595
+    assert p2[0] == 2317
+    assert p2[1] == 2900
 
 
 def test_get_bbox_fails_file_missing():

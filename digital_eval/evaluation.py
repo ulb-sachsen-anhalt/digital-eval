@@ -255,9 +255,13 @@ def get_bbox_data(file_path):
         return ((x0, y0), (x1, y1))
 
     with open(file_path) as _handle:
+        # rather brute force approach
+        # to recognize OCR formats inside
         start_token = _handle.read(128)
+        
+        # switch by estimated ocr format
         if 'alto' in start_token:
-            # 2: read from meta data
+            # legacy: read from custom ALTO meta data
             root_element = ET.parse(file_path).getroot()
             element = root_element.find(
                 './/alto:Tags/alto:OtherTag[@ID="ulb_groundtruth_points"]', XML_NS)
@@ -269,17 +273,18 @@ def get_bbox_data(file_path):
                 p2 = (int(_p2[0]), int(_p2[1]))
                 return (p1, p2)
 
-            # 3: read from given alto coordinates
+            # read from given alto coordinates
             raw_elements = root_element.findall('.//alto:String', XML_NS)
             non_empty = [s for s in raw_elements if s.attrib['CONTENT'].strip(
             ) and re.match(r'[^\d]', s.attrib['CONTENT'])]
             return extract_from_geometric_data(non_empty, _map_alto)
 
         elif 'PcGts' in start_token:
-            # 4: read from given page-2013 coordinates
+            # read from given page coordinates
+            doc_root = xml.dom.minidom.parse(file_path).documentElement
+            name_space = doc_root.namespaceURI
             root_element = ET.parse(file_path).getroot()
-            raw_elements = root_element.findall(
-                './/pg2013:TextLine/pg2013:Coords', XML_NS)
+            raw_elements = root_element.findall(f'.//{{{name_space}}}TextLine/{{{name_space}}}Coords')
             if not raw_elements:
                 raise RuntimeError(f"{file_path} contains no TextLine/Coords!")
             return extract_from_geometric_data(raw_elements, _map_page2013)
@@ -455,12 +460,17 @@ class OCRData:
         filter_lines = []
         for line in all_lines:
             new_line = OCRWordLine(line.id)
-            for word in line.words:
-                c = centroid(word)
+            if not isinstance(line.words, str):
+                for _word in line.words:
+                    c = centroid(_word)
+                    if filter_box.contains(BoundingBox(c, c)):
+                        new_line.add_word(_word)
+                if new_line.words:
+                    filter_lines.append(new_line)
+            elif isinstance(line.words, str):
+                c = centroid(line)
                 if filter_box.contains(BoundingBox(c, c)):
-                    new_line.add_word(word)
-            if new_line.words:
-                filter_lines.append(new_line)
+                    filter_lines.append(line)
         return filter_lines
 
     def get_lines_text(self) -> List[str]:
@@ -714,44 +724,55 @@ class Evaluator:
             try:
                 return self.eval_entry(entry)
             except Exception as exc:
-                print(f"[WARN ] '{exc}'")
+                print(f"[WARN ] _wrap' {exc}'")
 
     def eval_entry(self, entry: EvalEntry) -> EvalEntry:
+        """Create evaluation entry for matching pair of 
+        groundtruth and candidate data"""
+
         path_g = entry.path_g
         path_c = entry.path_c
-        # inspect start and end marker
+
+        # read coordinate information (if any provided)
+        # to create frame for candidate data
         coords = get_bbox_data(path_g)
         if coords is not None and self.verbosity >= 2:
             print(f"[TRACE] token coordinates {coords[0]}, {coords[1]}")
 
-        # load ground-thruth, load candidate
+        # load ground-thruth text
         (gt_type, txt_gt, _) = review(path_g, oneliner=True)
         if not txt_gt:
             raise RuntimeError(f"missing gt text from {path_g}!")
+        
+        # if text mode enforced, forget any avaiable
+        # groundtruth coodinates
         coords = None if self.text_mode else coords
+
+        # read candidate data as text
         (_, txt_c, _) = review(path_c, coords, oneliner=True)
         if self.verbosity >= 2:
             print(f'[TRACE] GROUND_TRUTH TXT :: "{txt_gt}"')
             print(f'[TRACE] CANDIDATE TXT    :: "{txt_c}"')
 
-        # normalize
+        # normalize text on UTF-8 level
         txt_gt = unicodedata.normalize(UC_NORMALIZATION, txt_gt)
         txt_c = unicodedata.normalize(UC_NORMALIZATION, txt_c)
         
         # fill metrics with life
-        _metrics = []
         for _m in self.metrics:
              _m.data_refr = txt_gt
              _m.data_test = txt_c
              _m.calc()
-             _metrics.append(_m)
 
         # enrich entry with metrics and
         # normalized data type (i.e., art or ann or ...)
         _normed_gt_type = _normalize_gt_type(str(gt_type))
         entry.gt_type = _normed_gt_type
-        entry.metrics = _metrics
+        entry.metrics = self.metrics
         self.evaluation_entries.append(entry)
+
+        # necessary to return values
+        # due actual process pool mapping
         return entry
 
     def _add(self, evaluation_result: EvaluationResult):

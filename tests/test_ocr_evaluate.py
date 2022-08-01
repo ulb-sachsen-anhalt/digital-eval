@@ -4,7 +4,6 @@
 import os
 
 from xml.dom.minidom import (
-    parse,
     parseString,
 )
 
@@ -29,6 +28,9 @@ from digital_eval.model import (
     OCRWordLine,
 )
 
+from .conftest import (
+    TEST_RES_DIR
+)
 
 @pytest.mark.skip("due re-structuring")
 def test_match_candidates_alto_candidate_with_coords():
@@ -252,13 +254,12 @@ def test_they_intersect(b1, b2, expected):
     assert expected == b1.intersection(b2)
 
 
-OCR_DATA = [
-    './tests/resources/candidate/frk_alto/1667522809_J_0073_0001_part.xml',
-    './tests/resources/groundtruth/alto/1667522809_J_0073_0001_375x2050_2325x9550.xml',
-    './tests/resources/groundtruth/alto/1667522809_J_0073_0512_300x375_6200x3425.xml',
-    './tests/resources/candidate/frk_alto/1667522809_J_0073_0512_2019-09-24.xml',
-    './tests/resources/candidate/frk_page/1667522809_J_0001_0512.xml',
-    './tests/resources/groundtruth/page/1681877805_J_0075_0001.art.gt.xml']
+OCR_DATA = [f"{TEST_RES_DIR}/candidate/frk_alto/1667522809_J_0073_0001_part.xml",
+    f"{TEST_RES_DIR}/groundtruth/alto/1667522809_J_0073_0001_375x2050_2325x9550.xml",
+    f"{TEST_RES_DIR}/groundtruth/alto/1667522809_J_0073_0512_300x375_6200x3425.xml",
+    f"{TEST_RES_DIR}/candidate/frk_alto/1667522809_J_0073_0512_2019-09-24.xml",
+    f"{TEST_RES_DIR}/candidate/frk_page/1667522809_J_0001_0512.xml",
+    f"{TEST_RES_DIR}/groundtruth/page/1681877805_J_0075_0001.art.gt.xml"]
 
 
 def test_get_groundtruth_type_legacy():
@@ -301,20 +302,45 @@ def test_alto_page_dimensions():
     assert (6712, 9944) == page_dim
 
 
-def test_filter_data():
-    ocr_data = OCRData(OCR_DATA[3])
-    coords_start = (300, 375)
-    coords_end = (6000, 3425)
-    filtered_data = ocr_data.filter_all(coords_start, coords_end)
-    assert 165 == len(filtered_data)
+@pytest.mark.parametrize(["path_data","coords_start","coords_end","n_lines"],
+[(OCR_DATA[3], (300, 375), (6000, 3425), 165),
+ (f"{TEST_RES_DIR}/groundtruth/page/page01.gt.xml", (667,595), (2317,2900), 29),
+ (f"{TEST_RES_DIR}/candidate/page_lines/page01.xml", (667,595), (2317,2900), 29),
+ (OCR_DATA[4], None, None, 532),
+ (OCR_DATA[5], None, None, 101)
+])
+def test_get_line_data(path_data,coords_start,coords_end,n_lines):
+    """Ensure different formats will be properly processd,
+    i.e. with frame information lines and words are filtered,
+    and with missing frame data all lines are being read
+    """
+    # arrange
+    ocr_data = OCRData(path_data)
+    txt_data = []
+
+    # act
+    if not coords_start:
+        txt_data = ocr_data.get_lines_text()
+    else:
+        txt_data = ocr_data.filter_all(coords_start, coords_end)
+
+    assert n_lines == len(txt_data)
+    for _line in txt_data:
+        if isinstance(_line, str):
+            assert len(_line) > 0
+        else:
+            assert len(_line.get_text()) > 0
 
 
 def test_page_data():
     ocr_data = OCRData(OCR_DATA[4])
     gt_lines = ocr_data.get_lines_text()
     assert not [] == gt_lines
-    assert 519 == len(gt_lines)
-    assert 'Seite 4 Sonnabend' == gt_lines[3]
+    assert 532 == len(gt_lines)
+    # 519 lines without respect to lines 
+    # which don't contain at least 2 ("two")
+    # alphabetical characters, 532 otherwise
+    assert 'Seite 4 Sonnabend' == gt_lines[12]
 
 
 def test_read_page_2013_data():

@@ -525,7 +525,7 @@ class OCRWordLine(OCRToken):
         if not len(children) > 0:
             return False
         chars = children[0].nodeValue.strip()
-        if OCRWordLine._contains_at_least_one_alpha(chars):
+        if len(chars)> 0:
             return chars
 
     @staticmethod
