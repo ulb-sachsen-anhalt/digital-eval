@@ -4,7 +4,6 @@
 import os
 import re
 import sys
-import unicodedata
 import xml.dom.minidom
 import xml.etree.ElementTree as ET
 from concurrent.futures import (
@@ -53,8 +52,6 @@ XML_NS = {'alto': 'http://www.loc.gov/standards/alto/ns-v3#',
 EVAL_EXTRA_IGNORE_GEOMETRY = 'ignore_geometry'
 # mark unset values as 'not available'
 NOT_SET = 'n.a.'
-# unicode normalization
-UC_NORMALIZATION = 'NFKD'
 
 
 def strip_outliers_from(data_tuples):
@@ -109,7 +106,7 @@ def find_groundtruth(path_candidate, root_candidates, root_groundtruth):
         root_candidates) else os.path.dirname(root_candidates)
     _segm_cand = path_segmts.pop()
     _segm_gt = [os.path.splitext(file_name)[0]]
-    while not candidate_root_dir == _segm_cand:
+    while candidate_root_dir != _segm_cand:
         _segm_gt.append(_segm_cand)
         _segm_cand = path_segmts.pop()
     _segm_gt.reverse()
@@ -284,9 +281,10 @@ def get_bbox_data(file_path):
             doc_root = xml.dom.minidom.parse(file_path).documentElement
             name_space = doc_root.namespaceURI
             root_element = ET.parse(file_path).getroot()
-            raw_elements = root_element.findall(f'.//{{{name_space}}}TextLine/{{{name_space}}}Coords')
+            _xpr_coords = f'.//{{{name_space}}}TextLine/{{{name_space}}}Coords'
+            raw_elements = root_element.findall(_xpr_coords)
             if not raw_elements:
-                raise RuntimeError(f"{file_path} contains no TextLine/Coords!")
+                raise RuntimeError(f"{file_path} missing {_xpr_coords} !")
             return extract_from_geometric_data(raw_elements, _map_page2013)
 
     return None
@@ -481,8 +479,12 @@ class OCRData:
         return self.page_dimensions
 
 
-def review(file_path, coords=None, oneliner=False) -> Tuple:
-    '''Wrapper function for OCR-Data Comparisons'''
+def ocr_to_text(file_path, coords=None, oneliner=False) -> Tuple:
+    """Create representation which contains
+    * groundtruth type (if annotated)
+    * groundtruth text (as string or list of lines)
+    * number of text lines
+    """
 
     gt_type = NOT_SET
     try:
@@ -740,29 +742,32 @@ class Evaluator:
             print(f"[TRACE] token coordinates {coords[0]}, {coords[1]}")
 
         # load ground-thruth text
-        (gt_type, txt_gt, _) = review(path_g, oneliner=True)
+        (gt_type, txt_gt, _) = ocr_to_text(path_g, oneliner=True)
         if not txt_gt:
             raise RuntimeError(f"missing gt text from {path_g}!")
         
-        # if text mode enforced, forget any avaiable
-        # groundtruth coodinates
+        # if text mode is enforced
+        # forget groundtruth coodinates
         coords = None if self.text_mode else coords
 
         # read candidate data as text
-        (_, txt_c, _) = review(path_c, coords, oneliner=True)
+        (_, txt_c, _) = ocr_to_text(path_c, coords, oneliner=True)
         if self.verbosity >= 2:
-            print(f'[TRACE] GROUND_TRUTH TXT :: "{txt_gt}"')
-            print(f'[TRACE] CANDIDATE TXT    :: "{txt_c}"')
+            _label_ref = os.path.basename(path_g)
+            _label_can = os.path.basename(path_c)
+            print(f'[TRACE][{_label_ref}] RAW GROUNDTRUTH :: "{txt_gt}"')
+            print(f'[TRACE][{_label_can}] RAW CANDIDATE   :: "{txt_c}"')
 
-        # normalize text on UTF-8 level
-        txt_gt = unicodedata.normalize(UC_NORMALIZATION, txt_gt)
-        txt_c = unicodedata.normalize(UC_NORMALIZATION, txt_c)
-        
         # fill metrics with life
         for _m in self.metrics:
-             _m.data_refr = txt_gt
-             _m.data_test = txt_c
+             _m.input_reference = txt_gt
+             _m.input_candidate = txt_c
              _m.calc()
+             if self.verbosity >= 2:
+                _label_ref = os.path.basename(path_g)
+                _label_can = os.path.basename(path_c)
+                print(f'[TRACE][{_label_ref}][{_m.label}] REFERENCE :: "{_m.data_reference}"')
+                print(f'[TRACE][{_label_can}][{_m.label}] CANDIDATE :: "{_m.data_candidate}"')
 
         # enrich entry with metrics and
         # normalized data type (i.e., art or ann or ...)

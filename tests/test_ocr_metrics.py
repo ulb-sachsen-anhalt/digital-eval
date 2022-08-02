@@ -13,6 +13,7 @@ from digital_eval.metrics import (
     ir_fmeasure,
     ir_recall,
     ir_precision,
+    _ir_preprocess,
     token_based,
 )
 
@@ -82,53 +83,89 @@ def test_metric_bot_miss_tokens():
     gt = "the lazy brown fox jumps"
     s2 = "the brown fux jumps"
 
-    (hit_rate, _, _) = bag_of_tokens(gt, s2)
+    (hit_rate, _, _) = bag_of_tokens(gt.split(), s2.split())
     assert 60.0 == pytest.approx(hit_rate, 0.001)
 
 
 def test_ir_metrics_basics():
     """Some explorative tests with IR metrics"""
     
-    gt = "the lazy brown fox jumps"
-    td = "the lazy brown fox fox fox jumps"
+    # arrange
+    _input_gt = "the lazy brown fox jumps"
+    _input_td = "the lazy brown fox fox fox jumps"
+    gt, td = _ir_preprocess(_input_gt, _input_td, None)
 
-    _pre, _n_ref1 = ir_precision(gt, td, ['german'])
-    _rec, _n_ref2 = ir_recall(gt, td, ['german'])
-    _fm, _n_ref3 = ir_fmeasure(gt, td, ['german'])
+    # act
+    _pre, _n_ref1 = ir_precision(gt, td)
+    _rec, _n_ref2 = ir_recall(gt, td)
+    _fm, _n_ref3 = ir_fmeasure(gt, td)
 
+    # assert
+    assert len(gt) == 4
+    assert gt == {'brown', 'fox', 'jumps', 'lazy'}
     assert _pre == 1.0
     assert _rec == 1.0
     assert _fm == 1.0
-    assert _n_ref1 == 5
     assert _n_ref1 == _n_ref2
     assert _n_ref2 == _n_ref3
 
 
-def test_ir_metrics_bad():
-    gt = "the lazy brown fox jumps over"
-    td = "the red fox"
+def test_ir_metrics_english_poor_candidate():
+    """Example with rather poor candidate"""
 
-    _pre, _n_ref1 = ir_precision(gt, td, ['german'])
-    _rec, _n_ref2 = ir_recall(gt, td, ['german'])
-    _fm, _n_ref3 = ir_fmeasure(gt, td, ['german'])
+    # arrange
+    _input_gt = "the lazy brown fox jumps over"
+    _input_td = "the red fox"
+    gt, td = _ir_preprocess(_input_gt, _input_td, None)
 
-    assert 0.66 == pytest.approx(_pre , 0.01)
-    assert 0.33 == pytest.approx(_rec , 0.01)
-    assert 0.44 == pytest.approx(_fm , 0.01)
-    assert _n_ref1 == 6
+    # act
+    _pre, _ = ir_precision(gt, td )
+    _rec, _ = ir_recall(gt, td)
+    _fm, _ = ir_fmeasure(gt, td)
+
+    # assert
+    assert gt == {'brown', 'fox', 'jumps', 'lazy'}
+    assert 0.50 == pytest.approx(_pre , 0.01)
+    assert 0.25 == pytest.approx(_rec , 0.01)
+    assert 0.33 == pytest.approx(_fm , 0.01)
 
 
 def test_ir_metrics_german_stopwords():
-    gt = "dieser faule Fuchs springt die Hecke"
-    td = "faule Fuchs springt Hecke"
+    """Candidate with german phrase
+    and very nice candidate"""
 
-    _pre, _n_ref1 = ir_precision(gt, td, ['german'])
-    _rec, _n_ref2 = ir_recall(gt, td, ['german'])
-    _fm, _n_ref3 = ir_fmeasure(gt, td, ['german'])
+    # arrange
+    _input_gt = "dieser faule Fuchs springt die Hecke"
+    _input_td = "faule Fuchs springt Hecke"
+    gt, td = _ir_preprocess(_input_gt, _input_td, None)
+
+    # act
+    _pre, _ = ir_precision(gt, td)
+    _rec, _ = ir_recall(gt, td)
+    _fm, _ = ir_fmeasure(gt, td)
 
     assert _pre == 1.0
     assert _rec == 1.0
     assert _fm == 1.0
+
+
+def test_ir_metrics_german_stopwords_poor_candidate():
+    """Candidate with german phrase
+    and rather poor candidate"""
+
+    # arrange
+    _input_gt = "dieser faule Fuchs springt die Hecke"
+    _input_td = "forsche Fuchs hopst"
+    gt, td = _ir_preprocess(_input_gt, _input_td, None)
+
+    # act
+    _pre, _ = ir_precision(gt, td)
+    _rec, _ = ir_recall(gt, td)
+    _fm, _ = ir_fmeasure(gt, td)
+
+    assert _pre == pytest.approx(_pre , 0.33)
+    assert _rec == 0.25
+    assert _fm == pytest.approx(_pre , 0.28)
 
 
 def test_metrics_token_based_more_gt_than_tc():
@@ -139,7 +176,7 @@ def test_metrics_token_based_more_gt_than_tc():
     tc = "faule springt Fuchs Hecke"
 
     # act
-    ratio, diff, ref = token_based(gt, tc)
+    ratio, diff, ref = token_based(gt.split(), tc.split())
     
     # sert
     assert diff == 5
@@ -156,7 +193,7 @@ def test_metrics_token_based_more_tc_than_gt():
     tc = "der faule Fuchs springt über die"
 
     # actsert
-    assert 0.0 == pytest.approx(token_based(gt, tc)[0])
+    assert 0.0 == pytest.approx(token_based(gt.split(), tc.split())[0])
 
 
 def test_metrics_token_based_equal():
@@ -167,7 +204,7 @@ def test_metrics_token_based_equal():
     tc = "der fahle Fuchs springt über die Hecke"
 
     # act
-    ratio, diff, _ = token_based(gt, tc)
+    ratio, diff, _ = token_based(gt.split(), tc.split())
 
     # assert
     assert 100.00 == pytest.approx(ratio)
@@ -182,7 +219,7 @@ def test_metrics_token_based_same_length_but_final_differ():
     tc = "faule Fuchs springt über Hecke"
 
     # act
-    normed, diff, _ = token_based(gt, tc)
+    normed, diff, _ = token_based(gt.split(), tc.split())
     
     # assert
     assert 80.00 == pytest.approx(normed)
@@ -190,14 +227,13 @@ def test_metrics_token_based_same_length_but_final_differ():
 
 
 def test_metrics_token_based_no_test_candidate():
-    """Empty test candidate => 0.0"""
+    """Empty candidate yields word accuracy 0.0"""
 
     # arrange
     gt = "ein Dachs springt die Hecke"
-    tc = ""
 
     # act
-    ratio, diff, _ = token_based(gt, tc)
+    ratio, diff, _ = token_based(gt.split(), [])
 
     # assert
     assert 0.0 == pytest.approx(ratio)

@@ -19,7 +19,7 @@ from digital_eval.evaluation import (
     Evaluator,
     OCRData,
     match_candidates,
-    review,
+    ocr_to_text,
 )
 
 from digital_eval.model import (
@@ -73,15 +73,15 @@ def test_match_candidates_groundtruth_txt_candidate_alto():
     assert actual_matches[0] == './tests/resources/candidate/ara_alto/217745.xml'
 
 
-def test_review_alto_candidate_with_coords():
+def test_ocr_to_text_alto_candidate_with_coords():
     """Check lines from regular ALTO candidate"""
 
-    alto_path = './tests/resources/candidate/frk_alto/1667522809_J_0073_0512_2019-09-24.xml'
+    alto_path = './tests/resources/candidate/frk_alto/1667522809_J_0073_0512_01.xml'
     p1 = (300, 375)
     p2 = (6200, 3425)
 
     # act
-    result = review(alto_path, coords=(p1, p2))
+    result = ocr_to_text(alto_path, coords=(p1, p2))
 
     # assert
     assert result is not None
@@ -90,12 +90,14 @@ def test_review_alto_candidate_with_coords():
     assert 166 == len(lines)
 
 
-def test_review_text_data_without_coords():
+def test_ocr_to_text_text_data_without_coords():
+    """Also data sets without coordinates can be
+    processed and transformed into text/textlines"""
 
     text_path = './tests/resources/groundtruth/txt/1246734.gt.txt'
 
     # act
-    result = review(text_path, oneliner=True)
+    result = ocr_to_text(text_path, coords=None, oneliner=True)
 
     # assert
     assert result is not None
@@ -104,12 +106,12 @@ def test_review_text_data_without_coords():
     assert 650 == len(one_liner)
 
 
-def test_review_groundtruth_odem_ocrd_page_2019():
+def test_ocr_to_text_groundtruth_odem_ocrd_page_2019():
 
     text_path = './tests/resources/groundtruth/page/urn+nbn+de+gbv+3+1-115907-p0042-0_ger.gt.xml'
 
     # act
-    result = review(text_path, oneliner=True)
+    result = ocr_to_text(text_path, oneliner=True)
 
     # assert
     assert result is not None
@@ -119,12 +121,12 @@ def test_review_groundtruth_odem_ocrd_page_2019():
     assert 829 == len(text_as_one_liner)
 
 
-def test_review_candidate_odem_ocrd_page_2019():
+def test_ocr_to_text_candidate_odem_ocrd_page_2019():
 
     text_path = './tests/resources/candidate/frk_page/urn+nbn+de+gbv+3+1-115907-p0042-0_ger.xml'
 
     # act
-    result = review(text_path, coords=((216, 240), (1050,1640)), oneliner=True)
+    result = ocr_to_text(text_path, coords=((216, 240), (1050,1640)), oneliner=True)
 
     # assert
     assert result is not None
@@ -257,7 +259,7 @@ def test_they_intersect(b1, b2, expected):
 OCR_DATA = [f"{TEST_RES_DIR}/candidate/frk_alto/1667522809_J_0073_0001_part.xml",
     f"{TEST_RES_DIR}/groundtruth/alto/1667522809_J_0073_0001_375x2050_2325x9550.xml",
     f"{TEST_RES_DIR}/groundtruth/alto/1667522809_J_0073_0512_300x375_6200x3425.xml",
-    f"{TEST_RES_DIR}/candidate/frk_alto/1667522809_J_0073_0512_2019-09-24.xml",
+    f"{TEST_RES_DIR}/candidate/frk_alto/1667522809_J_0073_0512_01.xml",
     f"{TEST_RES_DIR}/candidate/frk_page/1667522809_J_0001_0512.xml",
     f"{TEST_RES_DIR}/groundtruth/page/1681877805_J_0075_0001.art.gt.xml"]
 
@@ -335,7 +337,7 @@ def test_get_line_data(path_data,coords_start,coords_end,n_lines):
 def test_page_data():
     ocr_data = OCRData(OCR_DATA[4])
     gt_lines = ocr_data.get_lines_text()
-    assert not [] == gt_lines
+    assert [] != gt_lines
     assert 532 == len(gt_lines)
     # 519 lines without respect to lines 
     # which don't contain at least 2 ("two")
@@ -347,7 +349,7 @@ def test_read_page_2013_data():
     ocr_data = OCRData(OCR_DATA[5])
     gt_lines = ocr_data.get_lines_text()
     assert gt_lines
-    assert not [] == gt_lines
+    assert [] != gt_lines
     assert 101 == len(gt_lines)
     assert 'vie kleine Excellenz von Meppen nicht mehr unter den Lebenden' == gt_lines[2]
 
@@ -483,8 +485,10 @@ def test_handle_exception_min_empty_slice():
         evaluator.eval_entry(eval_entry)
 
     # assert
+    # split error message and check specific tokens
     assert 'urn+nbn+de+gbv+3+1-792620-p1008-8_ger.gt.xml' in err.value.args[0]
-    assert 'contains no TextLine/Coords' in err.value.args[0]
+    assert ' missing ' in err.value.args[0]
+    assert 'TextLine' in err.value.args[0]
 
 
 def test_handle_table_text_groundtruth():

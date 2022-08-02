@@ -12,6 +12,8 @@ from typing import (
     Tuple, 
 )
 
+import unicodedata
+
 from nltk import (
     download,
 )
@@ -27,6 +29,9 @@ from nltk.metrics import (
 from rapidfuzz.string_metric import (
     levenshtein
 )
+
+# unicode normalization
+UC_NORMALIZATION = 'NFKD'
 
 # punctuations to take into account
 # includes
@@ -45,6 +50,7 @@ DIGITS = DIGITS + '\u06f0' + '\u06f1' + '\u06f2' + '\u06f3' + '\u06f4' + '\u06f5
 STOPWORDS = ['german', 'russian', 'english', 'french', 'greek', 'arabic', 'turkish', 'italian']
 STOPWORDS_DEFAULT = ['german', 'english', 'arabic','russian']
 
+
 class Metric:
     """Basic definition of a Metric"""
 
@@ -55,13 +61,19 @@ class Metric:
         self.n_ref = 0
         self.label = None
         self.name = None
-        self.data_test = None
-        self.data_refr = None
+        self.input_reference = None
+        self.input_candidate = None
+        self.data_reference = None
+        self.data_candidate = None
         self.languages = None
 
     def calc(self):
-        """Calculate metric value"""
-        pass
+        """Calculate metric value
+        First, normalize text on UTF-8 level
+        """
+
+        self.data_reference = unicodedata.normalize(UC_NORMALIZATION, self.input_reference)
+        self.data_candidate = unicodedata.normalize(UC_NORMALIZATION, self.input_candidate)
 
 
 class MetricCA(Metric):
@@ -72,7 +84,8 @@ class MetricCA(Metric):
         self.name = 'Character Accuracy'
 
     def calc(self):
-        self.value, self.diff, _n_ref = character_accuracy(self.data_refr, self.data_test)
+        super().calc()
+        self.value, self.diff, _n_ref = character_accuracy(self.data_reference, self.data_candidate)
         self.n_ref = round(_n_ref, self.precision)
 
 
@@ -84,7 +97,10 @@ class MetricLA(Metric):
         self.name = 'Letter Accuracy'
 
     def calc(self):
-        self.value, self.diff, _n_ref = calculate_lar(self.data_refr, self.data_test)
+        super().calc()
+        self.data_reference = transform_string(self.data_reference)
+        self.data_candidate = transform_string(self.data_candidate)
+        self.value, self.diff, _n_ref = calculate_lar(self.data_reference, self.data_candidate)
         self.n_ref = round(_n_ref, self.precision)
 
 
@@ -96,7 +112,10 @@ class MetricWA(Metric):
         self.name = 'Word Token Accuracy'
     
     def calc(self):
-        self.value, self.diff, _n_ref = token_based(self.data_refr, self.data_test)
+        super().calc()
+        self.data_reference = self.data_reference.split()
+        self.data_candidate = self.data_candidate.split()
+        self.value, self.diff, _n_ref = token_based(self.data_reference, self.data_candidate)
         self.n_ref = round(_n_ref, self.precision)
 
 
@@ -108,7 +127,10 @@ class MetricBoW(Metric):
         self.name = 'Bag of Words'
 
     def calc(self):
-        self.value, self.diff, _n_ref = bag_of_tokens(self.data_refr, self.data_test)
+        super().calc()
+        self.data_reference = self.data_reference.split()
+        self.data_candidate = self.data_candidate.split()
+        self.value, self.diff, _n_ref = bag_of_tokens(self.data_reference, self.data_candidate)
         self.n_ref = round(_n_ref, self.precision)
 
 
@@ -118,11 +140,15 @@ class MetricPre(Metric):
         super().__init__()
         self.label = 'IRPre'
         self.name = 'IR Precision'
-        self.languages = ['german']
+        self.languages = None
 
     def calc(self):
-        self.value, _n_ref = ir_precision(self.data_refr, self.data_test, self.languages)
+        super().calc()
+        self.data_reference, self.data_candidate = _ir_preprocess(self.data_reference, self.data_candidate, self.languages)
+        self.value, _n_ref = ir_precision(self.data_reference, self.data_candidate)
         self.n_ref = round(_n_ref, self.precision)
+        self.data_reference = sorted(self.data_reference)
+        self.data_candidate = sorted(self.data_candidate)
 
 
 class MetricRec(Metric):
@@ -131,11 +157,15 @@ class MetricRec(Metric):
         super().__init__()
         self.label = 'IRRec'
         self.name = 'IR Recall'
-        self.languages = ['german']
+        self.languages = None
 
     def calc(self):
-        self.value, _n_ref = ir_recall(self.data_refr, self.data_test, self.languages)
+        super().calc()
+        self.data_reference, self.data_candidate = _ir_preprocess(self.data_reference, self.data_candidate, self.languages)
+        self.value, _n_ref = ir_recall(self.data_reference, self.data_candidate)
         self.n_ref = round(_n_ref, self.precision)
+        self.data_reference = sorted(self.data_reference)
+        self.data_candidate = sorted(self.data_candidate)
 
 
 class MetricFM(Metric):
@@ -144,11 +174,15 @@ class MetricFM(Metric):
         super().__init__()
         self.label = 'IRFM'
         self.name = 'IR F-Measure'
-        self.languages = ['german']
+        self.languages = None
 
     def calc(self):
-        self.value, _n_ref = ir_fmeasure(self.data_refr, self.data_test, self.languages)
+        super().calc()
+        self.data_reference, self.data_candidate = _ir_preprocess(self.data_reference, self.data_candidate, self.languages)
+        self.value, _n_ref = ir_fmeasure(self.data_reference, self.data_candidate)
         self.n_ref = round(_n_ref, self.precision)
+        self.data_reference = sorted(self.data_reference)
+        self.data_candidate = sorted(self.data_candidate)
 
 
 def transform_string(the_content):
@@ -170,18 +204,16 @@ def character_accuracy(gt_str, test_str) -> Tuple[float, int, int]:
     return (_result, distance, _len_ref)
 
 
-def calculate_lar(gt_str, test_str) -> Tuple[float, int, int]:
+def calculate_lar(reference: str, candidate: str) -> Tuple[float, int, int]:
     """Apply additional preprocess to both datasets"""
     
-    _clean_gt = transform_string(gt_str)
-    _cleat_c = transform_string(test_str)
-    distance = levenshtein(_clean_gt, _cleat_c)
-    _len_ref = len(_clean_gt)
+    distance = levenshtein(reference, candidate)
+    _len_ref = len(reference)
     _result = _norm(_len_ref, distance)
     return (_result, distance, _len_ref)
 
 
-def token_based(gt_str, test_str) -> Tuple[float, int, int]:
+def token_based(reference_tokens: List[str], candidate_tokens: List[str]) -> Tuple[float, int, int]:
     """Levenshtein on word-level
     Ratio of token misses of two texts.
     Tokens correspond often words, but also to:
@@ -190,24 +222,20 @@ def token_based(gt_str, test_str) -> Tuple[float, int, int]:
     * splitted words (line endings/beginnings)
     """
 
-    gt_list = gt_str.split()
-    tc_list = test_str.split()
-    _len_ref = len(gt_list)
-    distance = levenshtein(gt_list, tc_list)
+    _len_ref = len(reference_tokens)
+    distance = levenshtein(reference_tokens, candidate_tokens)
     return (_norm(_len_ref, distance), distance, _len_ref)
 
 
-def bag_of_tokens(groundtruth_str, candidate_str) -> Tuple[float, int, int]:
+def bag_of_tokens(reference_tokens: List[str], candidate_tokens: List[str]) -> Tuple[float, int, int]:
     """Calculate intersection/difference
     between GT and Candidate Text"""
 
-    gt_tokens = groundtruth_str.split()
-    cd_tokens = candidate_str.split()
-    n_tokens_gt = len(gt_tokens)
-    diff_tokens =_diff(gt_tokens, cd_tokens)
+    n_tokens_gt = len(reference_tokens)
+    diff_tokens =_diff(reference_tokens, candidate_tokens)
     n_tokens_missed = len(diff_tokens)
     hit_rate = 100 * (n_tokens_gt - len(diff_tokens)) / n_tokens_gt
-    _len_ref = len(gt_tokens)
+    _len_ref = len(reference_tokens)
     return (hit_rate, n_tokens_missed, _len_ref)
 
 
@@ -244,35 +272,32 @@ def _ir_preprocess(gt_data, test_data, languages):
     return (gt_tokens, test_tokens)
 
 
-def ir_precision(gt_data, candidate_data, languages) -> Tuple:
+def ir_precision(refrence_data, candidate_data) -> Tuple:
     """Calculate Precision for given languages"""
     
-    gt_token, test_token = _ir_preprocess(gt_data, candidate_data, languages)
-    _prec = precision(gt_token, test_token) 
+    _prec = precision(refrence_data, candidate_data) 
     # nltk actually handles this inconsistently ...
     if _prec == None:
         _prec = 0.0
-    return (_prec, len(gt_token))
+    return (_prec, len(refrence_data))
 
 
-def ir_recall(gt_data, candidate_data, languages) -> Tuple:
+def ir_recall(refrence_data, candidate_data) -> Tuple:
     """Calculate Recall for given languages"""
     
-    gt_tokens, test_tokens = _ir_preprocess(gt_data, candidate_data, languages)
     # here nltk reports 0.0 if nothing recalled
-    _rec = recall(gt_tokens, test_tokens)
-    return (_rec, len(gt_tokens))
+    _rec = recall(refrence_data, candidate_data)
+    return (_rec, len(refrence_data))
 
 
-def ir_fmeasure(gt_data, candidate_data, languages) -> Tuple:
+def ir_fmeasure(refrence_data, candidate_data) -> Tuple:
     """Calculate F-Measure for given languages"""
     
-    gt_tokens, test_tokens = _ir_preprocess(gt_data, candidate_data, languages)
-    _fm = f_measure(gt_tokens, test_tokens)
+    _fm = f_measure(refrence_data, candidate_data)
     # required since nltk actually handles this inconsistently ...
     if _fm == None:
         _fm = 0.0
-    return (_fm, len(gt_tokens))
+    return (_fm, len(refrence_data))
 
 
 def _norm(reference, errs, scale_by=100) -> float:
@@ -280,4 +305,3 @@ def _norm(reference, errs, scale_by=100) -> float:
     if (reference - errs) < 0:
         return 0
     return scale_by * ((reference - errs) / reference)
-

@@ -12,7 +12,6 @@ import pytest
 from digital_eval.evaluation import (
     OCRData,
     get_bbox_data,
-    review
 )
 
 from digital_eval.model import (
@@ -115,26 +114,6 @@ def test_get_bbox_fails_file_missing():
     with pytest.raises(IOError) as exc:
         get_bbox_data(file_path)
     assert "not existing" in str(exc)
-
-
-def test_review_without_gt_coords():
-    """Check Behavior when GT is just plain text an cannot provide any kind of GT-Frame"""
-
-    # arrange
-    file_gt = './tests/resources/groundtruth/txt/217745.gt.txt'
-    file_cn = './tests/resources/candidate/ara_alto/217745.xml'
-
-    # act I
-    coords = get_bbox_data(file_gt)
-
-    # assert
-    assert coords is None
-
-    # act II
-    result = review(file_cn, coords, oneliner=True)
-
-    # assert
-    assert result
 
 
 def test_to_pieces_page_odem_transkribus_gt():
