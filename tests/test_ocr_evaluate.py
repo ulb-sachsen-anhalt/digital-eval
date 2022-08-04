@@ -184,7 +184,8 @@ def test_evaluate_set_with_5_entries(tmp_path):
     path_dir_gt.mkdir()
     path_dir_c = tmp_path / 'media' / 'jpg'/ 'odem'
     path_dir_c.mkdir(parents=True)
-    evaluator = Evaluator(path_dir_gt)
+    evaluator = Evaluator(path_dir_c)
+    evaluator.domain_reference = path_dir_gt
     _metric_ca1 = MetricCA()
     _metric_ca1.value = 95.70
     _metric_ca1.n_ref = 810

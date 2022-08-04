@@ -3,11 +3,13 @@
 
 import os
 import re
-import sys
 import xml.dom.minidom
 import xml.etree.ElementTree as ET
 from concurrent.futures import (
     ProcessPoolExecutor
+)
+from datetime import (
+    date
 )
 from multiprocessing import (
     cpu_count
@@ -116,36 +118,6 @@ def find_groundtruth(path_candidate, root_candidates, root_groundtruth):
     if os.path.exists(groundtruth_filepath_parent):
         path_groundtruth = match_candidate(groundtruth_filepath)
         return path_groundtruth
-
-
-def _calculate_default_groundtruth_dir(path_candidates: str) -> str:
-    """
-    try to guess best where groundtruth resides by analyzing the candidates location
-    """
-    the_path = path_candidates.replace('/media/', '/groundtruth/')
-    if os.path.exists(the_path):
-        return the_path   
-    the_path = os.path.join(os.path.curdir, "groundtruth")
-    return the_path
-
-
-def validate_paths(path_candidates: str, path_groundtruth:str) -> Tuple[str, str]:
-
-    if not os.path.exists(path_candidates):
-        print(f'[ERROR] invalid path "{path_candidates}" with ocr data! exit!')
-        sys.exit(1)
-    if path_groundtruth and not os.path.exists(path_groundtruth):
-            print(f'[ERROR] invalid path "{path_groundtruth}" with groundthruth! exit!')
-            sys.exit(1)
-
-    # cut off last slash
-    path_groundtruth = path_groundtruth[:-1] if path_groundtruth.endswith('/') else path_groundtruth
-    path_candidates = path_candidates[:-1] if path_candidates.endswith('/') else path_candidates
-    if not path_groundtruth:
-        path_groundtruth = _calculate_default_groundtruth_dir(path_candidates)
-        print(f'[WARN] calculated "{path_groundtruth}" for "{path_candidates}"')
-    
-    return (path_candidates, path_groundtruth)
 
 
 def match_candidates(path_candidates, path_gt_file):
@@ -555,6 +527,8 @@ def review2(file_path, frame=None, oneliner=True) -> Tuple:
         raise RuntimeError(f"{file_path}: {exc}") from exc
 
 
+
+
 def filter_word_pieces(frame, current):
     _tmp_stack = []
     _total_stack = []
@@ -658,12 +632,15 @@ class EvalEntry:
 
 
 class Evaluator:
-    '''Evaluate candidate versus existing groundtruth data
-    aggregates results on each directory, starting from root_groundtruth
-    '''
+    """Wrapper for Evaluation given candidates versus reference data
 
-    def __init__(self, root_groundtruth, verbosity=0, extras=None):
-        self.root_groundtruth = root_groundtruth
+    Raises:
+        RuntimeError: if candidates or reference data missing
+    """
+
+    def __init__(self, root_candidates, verbosity=0, extras=None):
+        self.domain_candidate = root_candidates
+        self.domain_reference = None
         self.evaluation_entries = []
         self.verbosity = verbosity
         self.evaluation_data = {}
@@ -824,7 +801,7 @@ class Evaluator:
         # precheck - having root dir
         self._check_aggregate_preconditions()
 
-        root_base = Path(self.root_groundtruth).parts[-1]
+        root_base = Path(self.domain_reference).parts[-1]
 
         # aggregate on each directory
         for _metrics_index in by_metrics:
@@ -864,8 +841,28 @@ class Evaluator:
     def _check_aggregate_preconditions(self):
         if not self.evaluation_entries:
             raise RuntimeError("missing evaluation data")
-        if not Path(self.root_groundtruth).is_dir():
-            raise RuntimeError("no root dir to aggregate data from")
+        if not Path(self.domain_candidate).is_dir():
+            raise RuntimeError("no candidate root dir to aggregate data from")
 
     def get_results(self):
         return self.evaluation_results
+
+
+def report_stdout(evaluator: Evaluator):
+    """Generate report data on stdout"""
+
+    results = evaluator.get_results()
+    _path_can = evaluator.domain_candidate
+    _path_ref = evaluator.domain_reference
+    evaluation_date = date.today().isoformat()
+    print(f'[INFO ] Evaluation Summary (candidates: "{_path_can}" vs. reference: "{_path_ref}" ({evaluation_date})')
+    for result in results:
+        (gt_type, n_total, mean_total, med, _n_refs) = result.get_defaults()
+        add_stats = f', std: {result.std:.2f}, median: {med:.2f}' if n_total > 1 else ''
+        print(f'[INFO ] "{gt_type}"\t∅: {mean_total:.2f}\t{n_total} items, {_n_refs} refs{add_stats}')
+        if result.cleared_result:
+            (_, n_t2, mean2, med2, n_c2) = result.cleared_result.get_defaults()
+            ccr_std = result.cleared_result.std
+            drops = n_total - n_t2
+            if drops > 0:
+                print(f'[INFO ] "{gt_type}"\t∅: {mean2:.2f}\t{n_t2} items (-{drops}), {n_c2} refs, std: {ccr_std:.2f}, median: {med2:.2f}')

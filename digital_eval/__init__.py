@@ -5,8 +5,8 @@ from .evaluation import (
     Evaluator,
     find_groundtruth,
     gather_candidates,
-    validate_paths,
     Evaluator,
+    report_stdout,
 )
 
 from .metrics import (
