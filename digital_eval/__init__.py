@@ -1,5 +1,5 @@
 #
-# required explicite API exports
+# required explicit API exports
 #
 from .evaluation import (
     Evaluator,

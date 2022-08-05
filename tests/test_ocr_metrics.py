@@ -197,7 +197,7 @@ def test_metrics_token_based_more_tc_than_gt():
 
 
 def test_metrics_token_based_equal():
-    """No missmatch => 100.00"""
+    """No mismatch => 100.00"""
 
     # arrange
     gt = "der fahle Fuchs springt über die Hecke"

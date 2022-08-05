@@ -35,7 +35,7 @@ def _main(path_candidates, path_reference, verbosity, xtra):
         _base_can = os.path.basename(path_candidates)
         _base_ref = os.path.basename(path_reference)
         if _base_can != _base_ref:
-            print(f"[WARN ] start domains '{_base_can}' and '{_base_ref}' missmatch, summary might be inaccurate!")
+            print(f"[WARN ] start domains '{_base_can}' and '{_base_ref}' mismatch, summary might be inaccurate!")
 
     # some diagnostics
     if verbosity >= 2:

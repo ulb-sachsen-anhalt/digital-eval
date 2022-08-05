@@ -6,10 +6,10 @@ Python3 Tool to evaluate outcomes from mass digitalization workflows.
 
 ## Features
 
-* textual metrics based on characters or words plus common Information Retrival
+* textual metrics based on characters or words plus common Information Retrieval
 * groundtruth formats: ALTO, PAGE or plain text
 * candidate formats: ALTO, PAGE or plain text
-* match groundtruth and candiates by filename beginnings
+* match groundtruth and candidates by filename beginnings
 * sum up evaluation on domain range (with multiple subdomains)
 * speedup with parallel execution depending on available cores
 * use geometric information to evaluate only specific frame (i.e. specific column or region from large page) of candidate (required ALTO or PAGE format)
@@ -22,7 +22,7 @@ Python3 Tool to evaluate outcomes from mass digitalization workflows.
 # clone local
 git clone <repository-url> <local-dir>
 
-# enable virtual python enviroment (linux)
+# enable virtual python environment (linux)
 # and install libraries
 python3 -m venv venv
 . venv/bin/activate
@@ -46,7 +46,7 @@ digital-eval --help
 * Word Accuracy (WWA): like CCA, but on "word"-level ("word" means each whitespace separated token, therefore also numbers, abbreviations, etc.)
 * Bag of Words (WBoW): no respect to "word" order, calculate intersection between candidate and groundtruth reference
 
-#### Information Retrival
+#### Information Retrieval
 
 Operate on sets of "words" with respect to language specific stopwords using [nltk](https://www.nltk.org/)-framework.
 
@@ -56,7 +56,7 @@ Operate on sets of "words" with respect to language specific stopwords using [nl
 
 ### Statistics
 
-Statistics are calculated via [numpy](https://numpy.org/) and include arithmetic mean, median and an outlier dectection using interquartile range.
+Statistics are calculated via [numpy](https://numpy.org/) and include arithmetic mean, median and an outlier detection using interquartile range.
 
 For each metric statistics are calculated based on the specific groundtruth reference (ref) for each metric, i.e. characters, letters, tokens or a set of tokens.
 

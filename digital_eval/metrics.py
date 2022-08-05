@@ -48,7 +48,7 @@ DIGITS = string.digits + '\u0660' + '\u0661' + '\u0662' + '\u0663' + '\u0664' + 
 # persian indic digits
 DIGITS = DIGITS + '\u06f0' + '\u06f1' + '\u06f2' + '\u06f3' + '\u06f4' + '\u06f5' + '\u06f6' + '\u06f7' + '\u06f8' + '\u06f9'
 
-# information retrival (nltk)
+# information retrieval (nltk)
 STOPWORDS = ['german', 'russian', 'english', 'french', 'greek', 'arabic', 'turkish', 'italian']
 STOPWORDS_DEFAULT = ['german', 'english', 'arabic','russian']
 
@@ -221,7 +221,7 @@ def token_based(reference_tokens: List[str], candidate_tokens: List[str]) -> Tup
     Tokens correspond often words, but also to:
     * abbreviations (like "Nr." or "Etg.")
     * numbers/years (like "1899")
-    * splitted words (line endings/beginnings)
+    * split words (line endings/beginnings)
     """
 
     _len_ref = len(reference_tokens)
@@ -256,7 +256,7 @@ def _setup_stopwords(word_mappings=STOPWORDS):
 
 
 def _ir_preprocess(gt_data, test_data, languages):
-    """Common Preprocessing for Information Retrival Metrics"""
+    """Common Preprocessing for Information Retrieval Metrics"""
     _setup_stopwords()
     if languages == None:
         languages = STOPWORDS_DEFAULT
@@ -264,7 +264,7 @@ def _ir_preprocess(gt_data, test_data, languages):
                       for _lang in languages
                       for _all_words in stopwords.words(_lang)]
                     )  
-    # propably feed with list strings
+    # probably feed with list strings
     if isinstance(gt_data, list):
         gt_data = ' '.join(gt_data)
     if isinstance(test_data, list):

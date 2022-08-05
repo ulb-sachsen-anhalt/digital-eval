@@ -58,7 +58,7 @@ def test_groundtruth_type_from_file_with_art1_in_name(
 
 def test_groundtruth_type_from_file_with_annx_in_name(
         page_gt_type_ann_filename):
-    '''check that gt-type "annoucement" can be extracted from file with "annx" in name'''
+    '''check that gt-type "announcement" can be extracted from file with "annx" in name'''
 
     ocr_data = OCRData(page_gt_type_ann_filename)
 
