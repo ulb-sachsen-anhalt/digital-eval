@@ -374,7 +374,7 @@ class BoundingBox:
 
     def intersection(self, other) -> bool:
         '''
-        Test if two Rectangles truely intersect (given by Tuples that represent their Points)
+        Test if two rectangles truly intersect (given by tuples that represent their points)
         cf. https://stackoverflow.com/questions/25068538/intersection-and-difference-of-two-rectangles
         '''
         x1 = max(min(self.p1[0], self.p2[0]), min(other.p1[0], other.p2[0]))

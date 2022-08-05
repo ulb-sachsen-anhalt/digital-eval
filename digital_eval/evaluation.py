@@ -280,7 +280,7 @@ def _map_page2013(e: ET.Element) -> Tuple[str, int, int, int, int]:
 
 def extract_from_geometric_data(elements: List[ET.Element], map_func) -> Tuple[int, int, int, int]:
     all_points = [map_func(e) for e in elements]
-    # comprehend all elements to get mininum and maximum
+    # comprehend all elements to get minimum and maximum
     all_x1 = [p[1] for p in all_points]
     all_y1 = [p[2] for p in all_points]
     all_x2 = [p[3] for p in all_points]
@@ -498,7 +498,7 @@ def review2(file_path, frame=None, oneliner=True) -> Tuple:
         _type = top_piece.type
         if _type:
             gt_type = _type
-        # explicite filter frame?
+        # explicit filter frame?
         if not frame:
             frame = top_piece.dimensions
         elif len(frame) == 2:
@@ -724,7 +724,7 @@ class Evaluator:
             raise RuntimeError(f"missing gt text from {path_g}!")
         
         # if text mode is enforced
-        # forget groundtruth coodinates
+        # forget groundtruth coordinates
         coords = None if self.text_mode else coords
 
         # read candidate data as text
