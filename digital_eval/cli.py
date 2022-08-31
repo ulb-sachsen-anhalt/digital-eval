@@ -19,11 +19,11 @@ EVAL_VERBOSITY = DEFAULT_VERBOSITY
 def _main(path_candidates, path_reference, verbosity, xtra):
 
     # basic validation
-    if not os.path.exists(path_candidates):
-        print(f'[ERROR] invalid input "{path_candidates}"! exit!')
+    if not os.path.isdir(path_candidates):
+        print(f'[ERROR] input "{path_candidates}": invalid directory! exit!')
         sys.exit(1)
-    if path_reference and not os.path.exists(path_reference):
-        print(f'[ERROR] invalid reference "{path_reference}"! exit!')
+    if path_reference and not os.path.isdir(path_reference):
+        print(f'[ERROR] reference "{path_reference}": invalid directory! exit!')
         sys.exit(1)
 
     # sanitize trailing slash
@@ -87,7 +87,10 @@ def _main(path_candidates, path_reference, verbosity, xtra):
 # MAIN #
 ########
 def main():
-    PARSER = argparse.ArgumentParser(description="Evaluate Digital Data")
+    PARSER = argparse.ArgumentParser(description="""
+        Evaluate large amounts of Digital Data, 
+        organized in directory structures.
+        """)
     PARSER.add_argument(
                         "candidates", help="Root Directory to inspect")
     PARSER.add_argument("-ref", "--reference", required=False,
