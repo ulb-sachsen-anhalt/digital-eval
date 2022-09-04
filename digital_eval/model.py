@@ -22,7 +22,7 @@ XML_NS = {'alto': 'http://www.loc.gov/standards/alto/ns-v3#',
 
 UNSET = 'n.a.'
 
-class PieceType(Enum):
+class PieceStage(Enum):
     # more hierarchically
     UNKNOWN = 0
     GLYPH = 1
@@ -31,7 +31,7 @@ class PieceType(Enum):
     REGION = 4
     PAGE = 4
 
-class PieceSubject(Enum):
+class PieceContent(Enum):
     # more layout
     UNKNOWN = 0
     PARAGRAPH = 1
@@ -62,8 +62,8 @@ class Piece:
 
     def __init__(self, id=UNSET):
         self.id = id
-        self.type = PieceType.PAGE
-        self.subject = PieceSubject.UNKNOWN
+        self.type = PieceStage.PAGE
+        self.subject = PieceContent.UNKNOWN
         self.data = None
         self._transcriptions = []
         self.parent = None
@@ -75,7 +75,7 @@ class Piece:
         return f"{self.id}:{self.transcription}"
 
     def _is_superstruct(self):
-        return self.type in [PieceType.PAGE, PieceType.REGION, PieceType.LINE]
+        return self.type in [PieceStage.PAGE, PieceStage.REGION, PieceStage.LINE]
 
     @property
     def transcription(self):
@@ -141,7 +141,7 @@ def _extract_alto_data(doc_root):
     _dimensions = [[0, 0], [_page_width, 0], [_page_width, _page_height], [0, _page_height]]
     top_piece = Piece(page_one.getAttribute('ID'))
     top_piece.dimensions = _dimensions
-    top_piece.type = PieceType.PAGE
+    top_piece.type = PieceStage.PAGE
     top_piece.subject = __get_piece_subject_alto(doc_root)
     # composed level
     _block_pieces = []
@@ -149,7 +149,7 @@ def _extract_alto_data(doc_root):
     if len(comp_blocks) > 0:
         for _comp_block in comp_blocks:
             comp_piece = Piece(_comp_block.getAttribute('ID'))
-            comp_piece.type = PieceType.REGION
+            comp_piece.type = PieceStage.REGION
             comp_piece.parent = top_piece
             comp_piece.dimensions = __extract_alto_dimensions(_comp_block)
             text_blocks = _comp_block.getElementsByTagName('TextBlock')
@@ -172,7 +172,7 @@ def _read_alto_blocks(block_elements, parent):
     _block_pieces = []
     for _block in block_elements:
         _block_piece = Piece(_block.getAttribute('ID'))
-        _block_piece.type = PieceType.REGION
+        _block_piece.type = PieceStage.REGION
         _lines = _block.getElementsByTagName('TextLine')
         if len(_lines) == 0:
             raise RuntimeError(f"TextBlock@ID={_block_piece.id} contains no lines!")
@@ -207,7 +207,7 @@ def _read_lines_alto(the_lines, parent):
     for _text_line in the_lines:
         _id = _text_line.getAttribute('ID')
         line_piece = Piece(_id)
-        line_piece.type = PieceType.LINE
+        line_piece.type = PieceStage.LINE
         text_strings = _text_line.getElementsByTagName('String')
         if len(text_strings) < 1:
             raise RuntimeError(f"No words in line {_id}!")
@@ -223,7 +223,7 @@ def _read_words_alto(text_strings, parent):
     for _text_string in text_strings:
         _id = _text_string.getAttribute('ID')
         word_piece = Piece(_id)
-        word_piece.type = PieceType.WORD
+        word_piece.type = PieceStage.WORD
         _content = _text_string.getAttribute('CONTENT')
         if not _content.strip():
             continue
@@ -254,7 +254,7 @@ def _extract_page_data(doc_root, ns=''):
     page_width = int(page_one.getAttribute('imageWidth'))
     page_height = int(page_one.getAttribute('imageHeight'))
     top_piece = Piece(page_one.getAttribute('imageFilename'))
-    top_piece.type = PieceType.PAGE
+    top_piece.type = PieceStage.PAGE
     top_piece.dimensions = [[0,0], [page_width,0], 
         [page_width, page_height], [0, page_height]]
     regions = doc_root.getElementsByTagName(ns+'TextRegion')
@@ -321,7 +321,7 @@ def __from_page_text_element(element, parent, ns) -> Piece:
     if not _content or not _content.strip():
         raise RuntimeError(f"{_local}@ID={_id} invalid txt content!")
     # only add content when not top-level piece
-    if _type == PieceType.WORD:
+    if _type == PieceStage.WORD:
         _piece.transcription = _content
     return _piece
 
@@ -330,11 +330,11 @@ def ___map_piece_type(element):
     _local = element.localName
     _name = UNSET
     if _local == 'Word':
-        _name = PieceType.WORD
+        _name = PieceStage.WORD
     elif _local == 'TextLine':
-        _name =  PieceType.LINE
+        _name =  PieceStage.LINE
     elif _local == 'TextRegion':
-        _name = PieceType.REGION
+        _name = PieceStage.REGION
     return(_name, _local)
 
 
@@ -421,7 +421,7 @@ class OCRToken(BoundingBox):
 
     @staticmethod
     def is_page_without_namespace(element):
-        return not ':' in element.nodeName
+        return ':' not in element.nodeName
 
     def calculate_points(self, element):
         if OCRToken.is_alto(element):
@@ -519,10 +519,10 @@ class OCRWordLine(OCRToken):
     @staticmethod
     def page_txts(element):
         unicodes = element.getElementsByTagName('pc:Unicode')
-        if not len(unicodes) > 0:
+        if len(unicodes) <= 0:
             return False
         children = unicodes[0].childNodes
-        if not len(children) > 0:
+        if len(children) <= 0:
             return False
         chars = children[0].nodeValue.strip()
         if len(chars)> 0:
@@ -531,7 +531,7 @@ class OCRWordLine(OCRToken):
     @staticmethod
     def page2013_txts(element):
         kids = element.childNodes
-        if not len(kids) > 0:
+        if len(kids) <= 0:
             return False
         text_equivs = [k for k in kids if k.localName == 'TextEquiv']
         if text_equivs and len(text_equivs) > 0:

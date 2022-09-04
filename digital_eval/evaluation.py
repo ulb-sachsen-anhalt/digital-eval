@@ -41,7 +41,8 @@ from .model import (
     OCRRegion,
     to_pieces,
     Piece,
-    PieceType,
+    PieceContent,
+    PieceStage,
 )
 
 
@@ -56,7 +57,7 @@ EVAL_EXTRA_IGNORE_GEOMETRY = 'ignore_geometry'
 NOT_SET = 'n.a.'
 
 
-def strip_outliers_from(data_tuples):
+def strip_outliers_from(data_tuples, fence_ratio=1.5):
     """Determine a data set's outliers by interquartile range (IQR)
     
     calculate data points 
@@ -70,7 +71,7 @@ def strip_outliers_from(data_tuples):
     Q3 = np.median([v for v in data_points if v > median])
     regulars = [data 
                 for data in data_tuples 
-                if data[1] >= (Q1 - 1.5*(Q3 - Q1)) and data[1] <= (Q1 + 1.5*(Q3 - Q1))]
+                if data[1] >= (Q1 - fence_ratio * (Q3 - Q1)) and data[1] <= (Q1 + fence_ratio * (Q3 - Q1))]
     return (regulars, Q1, Q3)
 
 
@@ -488,7 +489,7 @@ def ocr_to_text(file_path, coords=None, oneliner=False) -> Tuple:
         raise RuntimeError(f"{file_path}: {exc}") from exc
 
 
-def review2(file_path, frame=None, oneliner=True) -> Tuple:
+def ocr_file_to_text(file_path, frame=None, oneliner=True) -> Tuple:
     '''Wrap OCR-Data Comparison'''
 
     gt_type = NOT_SET
@@ -512,11 +513,11 @@ def review2(file_path, frame=None, oneliner=True) -> Tuple:
         the_lines = [l 
                      for r in top_piece.pieces 
                      for l in r.pieces 
-                     if l.transcription and l.type == PieceType.LINE]
+                     if l.transcription and l.type == PieceStage.LINE]
         if oneliner:
             return (gt_type, top_piece.transcription, len(the_lines))
         else:
-            raise RuntimeError("not implemented")
+            return (gt_type, [l.transcription for l in the_lines])
     except xml.parsers.expat.ExpatError as _:
         with open(file_path, mode='r', encoding='utf-8') as fhandle:
             text_lines = fhandle.readlines()
@@ -525,8 +526,6 @@ def review2(file_path, frame=None, oneliner=True) -> Tuple:
             return (gt_type, text_lines, len(text_lines))
     except RuntimeError as exc:
         raise RuntimeError(f"{file_path}: {exc}") from exc
-
-
 
 
 def filter_word_pieces(frame, current):
@@ -541,7 +540,7 @@ def filter_word_pieces(frame, current):
             _tmp_stack += _current.pieces
             _total_stack += _current.pieces
     # now pick words
-    _words = [_p for _p in _total_stack if _p.type == PieceType.WORD]
+    _words = [_p for _p in _total_stack if _p.type == PieceStage.WORD]
         
     # check for each word piece
     for _word in _words:

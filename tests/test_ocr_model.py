@@ -20,7 +20,7 @@ from digital_eval.evaluation import (
 
 from digital_eval.model import (
     to_pieces,
-    PieceType
+    PieceStage,
 )
 
 from .conftest import (
@@ -246,19 +246,25 @@ def _fixture_zd101():
     yield page_piece
 
 
-@pytest.mark.skip(reason='requires investigation, where those 36 points come from')
 def test_pieces_zd101_page_piece_dimension(zd101):
     """Check ALTO page piece spans only space
     from all child pieces, i.e. the regions
     """
 
-    assert zd101.dimensions == [
-        [802, 2100], [0, 0], [6633, 9944], [0, 9944]]
+    # explore dimensions
+    # 10 text_regions, 4 corners => 40 points
+    assert len(zd101.dimensions) == 40
+    # top left 1st region
+    assert [802, 2100] in zd101.dimensions
+    # top left 2nd region
+    assert [403, 2252] in zd101.dimensions
+    # bottom right latest region
+    assert [2313, 9545] in zd101.dimensions
 
 
 def test_pieces_zd101_page_bounding_box_dimension(zd101):
-    """check bounding box is reasonable
-    for a single column
+    """check if bounding box is reasonable
+    for single column
     
     * top_left: 401,2100
     * bottom_right: 2380, 9545
@@ -266,8 +272,8 @@ def test_pieces_zd101_page_bounding_box_dimension(zd101):
 
     _polygon = Polygon(zd101.dimensions)
 
-    assert _polygon
-    assert _polygon.bounds == (401.0, 2100.0 ,2380.0, 9545.0)
+    # all regions contained in this box
+    assert _polygon.bounds == (401.0, 2100.0, 2380.0, 9545.0)
 
 
 def test_pieces_zd101_region01_dimensions(zd101):
@@ -311,8 +317,8 @@ def test_pieces_type_with_contains_relation():
 
     # assert
     assert region1 in page_piece
-    assert region1.type == PieceType.REGION
+    assert region1.type == PieceStage.REGION
     assert line1 in region1
-    assert line1.type == PieceType.LINE
+    assert line1.type == PieceStage.LINE
     assert word1 in line1 and word1 in region1
-    assert word1.type == PieceType.WORD
+    assert word1.type == PieceStage.WORD

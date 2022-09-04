@@ -20,12 +20,14 @@ from digital_eval.evaluation import (
     OCRData,
     match_candidates,
     ocr_to_text,
+    ocr_file_to_text,
 )
 
 from digital_eval.model import (
     BoundingBox,
     OCRWord,
     OCRWordLine,
+    PieceStage,
 )
 
 from .conftest import (
@@ -88,6 +90,21 @@ def test_ocr_to_text_alto_candidate_with_coords():
     assert 'n.a.' == result[0]
     lines = result[1]
     assert 166 == len(lines)
+
+
+def test_ocr_file_to_text_alto_candidate_with_coords():
+    """Check lines from regular ALTO candidate"""
+
+    alto_path = './tests/resources/candidate/frk_alto/1667522809_J_0073_0512_01.xml'
+    p1 = (300, 375)
+    p2 = (6200, 3425)
+
+    # act
+    _gt_type, _as_lines = ocr_file_to_text(alto_path, frame=(p1, p2), oneliner=False)
+
+    # assert
+    assert _gt_type == PieceStage.REGION
+    assert 166 == len(_as_lines)
 
 
 def test_ocr_to_text_text_data_without_coords():
