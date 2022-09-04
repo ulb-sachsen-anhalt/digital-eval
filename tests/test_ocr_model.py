@@ -9,6 +9,10 @@ import shutil
 
 import pytest
 
+from shapely.geometry import (
+    Polygon
+)
+
 from digital_eval.evaluation import (
     OCRData,
     get_bbox_data,
@@ -199,60 +203,99 @@ def test_to_pieces_page_odem():
     assert line1_text == 'und erklaͤret die Schrift nicht nur al⸗'
     assert page_piece.pieces[2].pieces[0].transcription == line1_text
 
-@pytest.mark.skip("disabled")
-def test_is_in_basics():
+# @pytest.mark.skip("disabled")
+@pytest.fixture(name='odem01', scope='module')
+def _fixture_odem01():
     """Check basic behavior:
     * a piece shall contain all its pieces
     * a piece from different region shall not contain 
       pieces from other super-piece
     """
 
-    ocr_path = './tests/resources/page/urn+nbn+de+gbv+3+1-115907-p0042-0_ger.xml'
-
-    # act
+    ocr_path = f'{TEST_RES_DIR}/groundtruth/page/urn+nbn+de+gbv+3+1-115907-p0042-0_ger.gt.xml'
     page_piece = to_pieces(ocr_path)
+    yield page_piece
 
-    # assert
-    piece_region1 = page_piece.pieces[0]
-    piece_region3 = page_piece.pieces[2]
 
-    # regions 1 and region 3 are contained in page_piece
-    assert piece_region1 in page_piece
-    assert piece_region3 in page_piece
+def test_pieces_odem01_region_and_page(odem01):
+    """basics: sub-piece one is contained
+    in super-piece of total page"""
 
-    # region 1 is not in region 3 and vice versa
-    assert piece_region1 not in piece_region3
-    assert piece_region3 not in piece_region1
+    # we have only one sub-piece
+    # a single text region
+    assert len(odem01.pieces) == 1
+    piece_region1 = odem01.pieces[0]
 
-@pytest.mark.skip("disabled")
-def test_dimensions_alto_and_contains_relation():
-    """Check basic dimensions
-    * an ALTO page piece spans complete PrintSpace
+    # region 1 contained in page_piece
+    assert piece_region1 in odem01
+
+
+@pytest.mark.skip(reason='needs discussion')
+def test_pieces_odem01_page_not_in_region(odem01):
+    """Evidently can't a super-structure
+    *not* be contained in it's own child"""
+    
+    # top level pageregion 1 is not in region 3 and vice versa
+    assert odem01 not in odem01.pieces[0]
+
+
+@pytest.fixture(name="zd101")
+def _fixture_zd101():
+    ocr_path = './tests/resources/groundtruth/alto/1667522809_J_0073_0001_375x2050_2325x9550.xml'
+    page_piece = to_pieces(ocr_path)
+    yield page_piece
+
+
+@pytest.mark.skip(reason='requires investigation, where those 36 points come from')
+def test_pieces_zd101_page_piece_dimension(zd101):
+    """Check ALTO page piece spans only space
+    from all child pieces, i.e. the regions
+    """
+
+    assert zd101.dimensions == [
+        [802, 2100], [0, 0], [6633, 9944], [0, 9944]]
+
+
+def test_pieces_zd101_page_bounding_box_dimension(zd101):
+    """check bounding box is reasonable
+    for a single column
+    
+    * top_left: 401,2100
+    * bottom_right: 2380, 9545
+    """
+
+    _polygon = Polygon(zd101.dimensions)
+
+    assert _polygon
+    assert _polygon.bounds == (401.0, 2100.0 ,2380.0, 9545.0)
+
+
+def test_pieces_zd101_region01_dimensions(zd101):
+    """
     * a region piece has also dimension and is contained in page
     * a line piece has dimensions and is contained in region
     * a word piece has dimensions and is contained in line + region
     """
 
-    ocr_path = './tests/resources/alto/1667522809_J_0073_0001_375x2050_2325x9550.xml'
-
-    # act
-    page_piece = to_pieces(ocr_path)
-
-    # assert
-    assert page_piece.dimensions == [
-        [0, 0], [6633, 0], [6633, 9944], [0, 9944]]
-    region1 = page_piece.pieces[0]
+    assert len(zd101.pieces) == 10
+    region1 = zd101.pieces[0]
     line1 = region1.pieces[0]
-    word1 = line1.pieces[0]
-
     assert region1.dimensions == [
-        [2100, 802], [3199, 802], [3199, 925], [2100, 925]]
-    assert line1.dimensions == [[2100, 802], [
-        3199, 802], [3199, 925], [2100, 925]]
-    # even in this case line1 covers region1 completely
+        [802, 2100], [1901,2100], [1901,2223], [802,2223]]
+
+    # this region has only one line
+    assert len(region1.pieces) == 1
+    # which is completely same as region
+    assert line1.dimensions == [[802, 2100], 
+        [1901,2100], [1901, 2223], [802,2223]]
     assert region1.dimensions == line1.dimensions
-    assert word1.dimensions == [[2101, 802], [
-        2545, 802], [2545, 920], [2101, 920]]
+    # this line has two words
+    assert len(line1.pieces) == 2
+    word1 = line1.pieces[0]
+    # coords for word01 differ sligthly from line
+    assert word1.dimensions == [[802, 2101], 
+        [1246, 2101], [1246, 2219], [802, 2219]]
+    assert word1 in line1 and line1 in region1
 
 
 def test_pieces_type_with_contains_relation():
