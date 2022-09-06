@@ -21,7 +21,7 @@ from .metrics import (
 
 from .model import (
     Piece,
-    PieceStage,
+    PieceLevel,
     PieceContent,
     to_pieces,
     OCRToken,

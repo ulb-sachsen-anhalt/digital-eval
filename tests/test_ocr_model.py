@@ -20,7 +20,7 @@ from digital_eval.evaluation import (
 
 from digital_eval.model import (
     to_pieces,
-    PieceStage,
+    PieceLevel,
 )
 
 from .conftest import (
@@ -30,7 +30,7 @@ from .conftest import (
 
 @pytest.fixture(name='page_gt_type_art_filename')
 def create_alto_gt_type_article(tmp_path):
-    original_file = './tests/resources/groundtruth/page/1681877805_J_0075_0001.art.gt.xml'
+    original_file = f'{TEST_RES_DIR}/groundtruth/page/1681877805_J_0075_0001.art.gt.xml'
     tmp_filename = '1681877805_J_0075_0001.gt.art1.xml'
     tmp_alto = tmp_path / 'alto'
     tmp_alto.mkdir()
@@ -41,7 +41,7 @@ def create_alto_gt_type_article(tmp_path):
 
 @pytest.fixture(name='page_gt_type_ann_filename')
 def create_alto_gt_type_announcement(tmp_path):
-    original_file = './tests/resources/groundtruth/page/1681877805_J_0075_0001.art.gt.xml'
+    original_file = f'{TEST_RES_DIR}/groundtruth/page/1681877805_J_0075_0001.art.gt.xml'
     tmp_filename = '1681877805_J_0075_0001.gt.annx.xml'
     tmp_alto = tmp_path / 'alto'
     tmp_alto.mkdir()
@@ -77,13 +77,13 @@ def test_get_bbox_from_filename():
 
 
 def test_get_bbox_from_string_data():
-    file_path = './tests/resources/candidate/frk_alto/1667522809_J_0001_0768.xml'
+    file_path = f'{TEST_RES_DIR}/candidate/frk_alto/1667522809_J_0001_0768.xml'
     actual_bbox = get_bbox_data(file_path)
     assert ((61, 151), (7395, 10305)) == actual_bbox
 
 
 def test_get_bbox_from_ocrd_page():
-    ocr_path = './tests/resources/groundtruth/page/urn+nbn+de+gbv+3+1-115907-p0042-0_ger.gt.xml'
+    ocr_path = f'{TEST_RES_DIR}/groundtruth/page/urn+nbn+de+gbv+3+1-115907-p0042-0_ger.gt.xml'
 
     # act
     (p1, p2) = get_bbox_data(ocr_path)
@@ -101,7 +101,7 @@ def test_get_bbox_from_page2019():
     """
 
     # arrange
-    ocr_path = './tests/resources/groundtruth/page/page01.gt.xml'
+    ocr_path = f'{TEST_RES_DIR}/groundtruth/page/page01.gt.xml'
 
     # act
     (p1, p2) = get_bbox_data(ocr_path)
@@ -114,7 +114,7 @@ def test_get_bbox_from_page2019():
 
 
 def test_get_bbox_fails_file_missing():
-    file_path = './tests/resources/alto/gt/1667522809_J_0073_0002.xml'
+    file_path = f'{TEST_RES_DIR}/alto/gt/1667522809_J_0073_0002.xml'
     with pytest.raises(IOError) as exc:
         get_bbox_data(file_path)
     assert "not existing" in str(exc)
@@ -123,7 +123,7 @@ def test_get_bbox_fails_file_missing():
 def test_to_pieces_page_odem_transkribus_gt():
     """Ensure PAGE 2013 Transcribus Groundtruth works"""
 
-    ocr_path = './tests/resources/groundtruth/page/urn+nbn+de+gbv+3+1-115907-p0042-0_ger.gt.xml'
+    ocr_path = f'{TEST_RES_DIR}/groundtruth/page/urn+nbn+de+gbv+3+1-115907-p0042-0_ger.gt.xml'
 
     # act
     page_piece = to_pieces(ocr_path)
@@ -185,7 +185,7 @@ def test_to_pieces_altov3():
 def test_to_pieces_page_odem():
     """Ensure PAGE 2019 straight from OCR-D ODEM is usable"""
 
-    ocr_path = './tests/resources/candidate/frk_page/urn+nbn+de+gbv+3+1-115907-p0042-0_ger.xml'
+    ocr_path = f'{TEST_RES_DIR}/candidate/frk_page/urn+nbn+de+gbv+3+1-115907-p0042-0_ger.xml'
 
     # act
     page_piece = to_pieces(ocr_path)
@@ -230,18 +230,21 @@ def test_pieces_odem01_region_and_page(odem01):
     assert piece_region1 in odem01
 
 
-@pytest.mark.skip(reason='needs discussion')
 def test_pieces_odem01_page_not_in_region(odem01):
     """Evidently can't a super-structure
     *not* be contained in it's own child"""
     
-    # top level pageregion 1 is not in region 3 and vice versa
-    assert odem01 not in odem01.pieces[0]
+    # top level pageregion 1 is not contained in region 3
+    with pytest.raises(RuntimeError) as _rer:
+        odem01 not in odem01.pieces[0]
+
+    # assert
+    assert 'is higher/equal level than region0003' in _rer.value.args[0]
 
 
 @pytest.fixture(name="zd101")
 def _fixture_zd101():
-    ocr_path = './tests/resources/groundtruth/alto/1667522809_J_0073_0001_375x2050_2325x9550.xml'
+    ocr_path = f'{TEST_RES_DIR}/groundtruth/alto/1667522809_J_0073_0001_375x2050_2325x9550.xml'
     page_piece = to_pieces(ocr_path)
     yield page_piece
 
@@ -304,7 +307,7 @@ def test_pieces_zd101_region01_dimensions(zd101):
     assert word1 in line1 and line1 in region1
 
 
-def test_pieces_type_with_contains_relation():
+def test_pieces_contains_piece_relation():
     """Ensure PieceTypes and contains relations"""
 
     ocr_path = join(TEST_RES_DIR, 'groundtruth/alto/1667522809_J_0073_0001_375x2050_2325x9550.xml')
@@ -317,8 +320,27 @@ def test_pieces_type_with_contains_relation():
 
     # assert
     assert region1 in page_piece
-    assert region1.type == PieceStage.REGION
+    assert region1.level == PieceLevel.REGION
     assert line1 in region1
-    assert line1.type == PieceStage.LINE
+    assert line1.level == PieceLevel.LINE
     assert word1 in line1 and word1 in region1
-    assert word1.type == PieceStage.WORD
+    assert word1.level == PieceLevel.WORD
+
+
+def test_piece_hierarchy_bottom_up():
+    """Ensure behavior of pieces
+    hierarchy from bottom up"""
+
+    assert PieceLevel.WORD < PieceLevel.LINE
+    assert PieceLevel.LINE < PieceLevel.REGION
+    assert PieceLevel.WORD < PieceLevel.REGION
+    assert PieceLevel.REGION < PieceLevel.PAGE
+    assert PieceLevel.LINE < PieceLevel.PAGE
+    assert PieceLevel.WORD < PieceLevel.PAGE
+
+def test_piece_hierarchy_equality():
+    """The are all considere equal"""
+
+    assert PieceLevel.WORD == PieceLevel.WORD
+    assert PieceLevel.LINE == PieceLevel.LINE
+    assert PieceLevel.REGION == PieceLevel.REGION

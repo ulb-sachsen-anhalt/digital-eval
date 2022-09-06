@@ -42,7 +42,7 @@ from .model import (
     to_pieces,
     Piece,
     PieceContent,
-    PieceStage,
+    PieceLevel,
 )
 
 
@@ -457,6 +457,9 @@ def ocr_to_text(file_path, coords=None, oneliner=False) -> Tuple:
     * groundtruth type (if annotated)
     * groundtruth text (as string or list of lines)
     * number of text lines
+
+    DEPRECATED
+    
     """
 
     gt_type = NOT_SET
@@ -492,13 +495,15 @@ def ocr_to_text(file_path, coords=None, oneliner=False) -> Tuple:
 def ocr_file_to_text(file_path, frame=None, oneliner=True) -> Tuple:
     '''Wrap OCR-Data Comparison'''
 
-    gt_type = NOT_SET
+    _gt_type = NOT_SET
     try:
         top_piece = to_pieces(file_path)
         # optional groundtruth type
-        _type = top_piece.type
-        if _type:
-            gt_type = _type
+        _gt_type = _get_groundtruth_from_filename(file_path)
+        if not _gt_type:
+            _level = top_piece.level
+            if _level:
+                _gt_type = _level
         # explicit filter frame?
         if not frame:
             frame = top_piece.dimensions
@@ -513,22 +518,34 @@ def ocr_file_to_text(file_path, frame=None, oneliner=True) -> Tuple:
         the_lines = [l 
                      for r in top_piece.pieces 
                      for l in r.pieces 
-                     if l.transcription and l.type == PieceStage.LINE]
+                     if l.transcription and l.level == PieceLevel.LINE]
         if oneliner:
-            return (gt_type, top_piece.transcription, len(the_lines))
+            return (_gt_type, top_piece.transcription, len(the_lines))
         else:
-            return (gt_type, [l.transcription for l in the_lines])
+            return (_gt_type, [l.transcription for l in the_lines], len(the_lines))
     except xml.parsers.expat.ExpatError as _:
         with open(file_path, mode='r', encoding='utf-8') as fhandle:
             text_lines = fhandle.readlines()
             if oneliner:
                 text_lines = ' '.join([l.strip() for l in text_lines])
-            return (gt_type, text_lines, len(text_lines))
+            return (_gt_type, text_lines, len(text_lines))
     except RuntimeError as exc:
         raise RuntimeError(f"{file_path}: {exc}") from exc
 
 
-def filter_word_pieces(frame, current):
+def _get_groundtruth_from_filename(file_path):
+    _file_name = os.path.basename(file_path)
+    result = re.match(r'.*gt.(\w{3,}).xml$', _file_name)
+    if result:
+        return result[1]
+    else:
+        alternative = re.match(r'.*\.(\w{3,})\.gt\.xml$', _file_name)
+        if alternative:
+            return alternative[1]
+
+
+def filter_word_pieces(frame, current) -> int:
+    _filtered = 0
     _tmp_stack = []
     _total_stack = []
     # stack all items
@@ -540,12 +557,15 @@ def filter_word_pieces(frame, current):
             _tmp_stack += _current.pieces
             _total_stack += _current.pieces
     # now pick words
-    _words = [_p for _p in _total_stack if _p.type == PieceStage.WORD]
+    _words = [_p for _p in _total_stack if _p.level == PieceLevel.WORD]
         
     # check for each word piece
     for _word in _words:
         if _word not in frame:
+            _filtered += 1
             _uplete(_word)
+    return _filtered
+
 
 def _uplete(curr):
     if len(curr.pieces) == 0:
@@ -638,6 +658,13 @@ class Evaluator:
     """
 
     def __init__(self, root_candidates, verbosity=0, extras=None):
+        """initiate new Evaluator
+
+        Args:
+            root_candidates (string|Path): Root domain/path to search for candidates
+            verbosity (int, optional): Level of verbosity Defaults to 0.
+            extras (_type_, optional): Implementation dependend. Defaults to None.
+        """
         self.domain_candidate = root_candidates
         self.domain_reference = None
         self.evaluation_entries = []
