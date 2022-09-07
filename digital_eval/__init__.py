@@ -7,6 +7,7 @@ from .evaluation import (
     gather_candidates,
     Evaluator,
     report_stdout,
+    ocr_to_text,
 )
 
 from .metrics import (

@@ -21,7 +21,7 @@ from digital_eval.evaluation import (
     OCRData,
     match_candidates,
     ocr_to_text,
-    ocr_file_to_text,
+    piece_to_text,
     filter_word_pieces,
 )
 
@@ -93,7 +93,7 @@ def test_ocr_to_text_alto_candidate_with_coords():
     assert 166 == len(lines)
 
 
-def test_ocr_file_to_text_alto_candidate_with_coords():
+def test_piece_to_text_alto_candidate_with_coords():
     """Check lines from ALTO candidate"""
 
     alto_path = f'{TEST_RES_DIR}/candidate/frk_alto/1667522809_J_0073_0512_01.xml'
@@ -101,14 +101,14 @@ def test_ocr_file_to_text_alto_candidate_with_coords():
     p2 = (6200, 3425)
 
     # act
-    _gt_type, _as_lines, _ = ocr_file_to_text(alto_path, frame=(p1, p2), oneliner=False)
+    _gt_type, _as_lines, _ = piece_to_text(alto_path, frame=(p1, p2), oneliner=False)
 
     # assert
     assert _gt_type == PieceLevel.PAGE
     assert 166 == len(_as_lines)
 
 
-def test_ocr_to_oneliner_page_groundtruth():
+def test_piece_to_oneliner_page_groundtruth():
     """Check output for page newspaper groundtruth"""
 
     _path = f'{TEST_RES_DIR}/groundtruth/page/1667522809_J_0001_0002.art.gt.xml'
@@ -117,7 +117,7 @@ def test_ocr_to_oneliner_page_groundtruth():
 
     # act
     _gt_01, _ocr_01, _n_lines01 = ocr_to_text(_path, coords=(p1, p2), oneliner=True)
-    _gt_02, _ocr_02, _n_lines02 = ocr_file_to_text(_path, frame=(p1, p2), oneliner=True)
+    _gt_02, _ocr_02, _n_lines02 = piece_to_text(_path, frame=(p1, p2), oneliner=True)
 
     # assert
     assert _gt_01 == 'art'

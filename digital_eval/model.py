@@ -375,25 +375,19 @@ def ___map_piece_type(element):
 
 
 
-def filter_all(self, coords_start, coords_end):
-    all_lines = self.get_lines()
-    filter_box = BoundingBox(coords_start, coords_end)
-
-    def centroid(bbox):
-        x = bbox.p1[0] + int((bbox.p2[0] - bbox.p1[0]) / 2)
-        y = bbox.p1[1] + int((bbox.p2[1] - bbox.p1[1]) / 2)
-        return (x, y)
-
-    filter_lines = []
-    for line in all_lines:
-        new_line = OCRWordLine(line.id)
-        for word in line.words:
-            c = centroid(word)
-            if filter_box.contains(BoundingBox(c, c)):
-                new_line.add_word(word)
-        if new_line.words:
-            filter_lines.append(new_line)
-    return filter_lines
+# def filter_all(self, coords_start, coords_end):
+#     all_lines = self.get_lines()
+#     filter_box = BoundingBox(coords_start, coords_end)
+#     filter_lines = []
+#     for line in all_lines:
+#         new_line = OCRWordLine(line.id)
+#         for word in line.words:
+#             c = Polygon(([word.p1[0], word.p1[1]],[word.p2[0], word.p[1]],[word.p2[0], word.p2[1]],[word.p1[0], word.p2[1]]))
+#             if filter_box.contains(BoundingBox(c, c)):
+#                 new_line.add_word(word)
+#         if new_line.words:
+#             filter_lines.append(new_line)
+#     return filter_lines
 
 
 
@@ -560,9 +554,7 @@ class OCRWordLine(OCRToken):
         children = unicodes[0].childNodes
         if len(children) <= 0:
             return False
-        chars = children[0].nodeValue.strip()
-        if len(chars)> 0:
-            return chars
+        return children[0].nodeValue
 
     @staticmethod
     def page2013_txts(element):
@@ -575,16 +567,14 @@ class OCRWordLine(OCRToken):
             if unicodes:
                 first_node = unicodes[0].firstChild
                 if first_node:
-                    chars = first_node.nodeValue.strip()
-                    if OCRWordLine._contains_at_least_one_alpha(chars):
-                        return chars
+                    return first_node
 
-    @staticmethod
-    def _contains_at_least_one_alpha(chars):
-        return [c for c in chars if c.isalpha()]
+    # @staticmethod
+    # def _contains_at_least_one_alpha(chars):
+    #     return [c for c in chars if c.isalpha()]
 
-    def contains_text(self):
-        return len(self.words) > 0
+    # def contains_text(self):
+    #     return len(self.words) > 0
 
     def add_word(self, ocr_word: OCRWord):
         if not self.p1:

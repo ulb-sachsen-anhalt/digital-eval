@@ -338,9 +338,10 @@ def test_piece_hierarchy_bottom_up():
     assert PieceLevel.LINE < PieceLevel.PAGE
     assert PieceLevel.WORD < PieceLevel.PAGE
 
-def test_piece_hierarchy_equality():
+def test_piece_hierarchy_top_down():
     """The are all considere equal"""
 
-    assert PieceLevel.WORD == PieceLevel.WORD
-    assert PieceLevel.LINE == PieceLevel.LINE
-    assert PieceLevel.REGION == PieceLevel.REGION
+    assert PieceLevel.REGION > PieceLevel.LINE
+    assert PieceLevel.LINE > PieceLevel.WORD
+    assert PieceLevel.REGION > PieceLevel.WORD
+    assert PieceLevel.WORD > PieceLevel.GLYPH

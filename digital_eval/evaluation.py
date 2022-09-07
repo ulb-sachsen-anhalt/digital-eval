@@ -24,7 +24,11 @@ from pathlib import (
 
 import numpy as np
 
-from .metrics import (
+from shapely.geometry import (
+    Polygon
+)
+
+from digital_eval.metrics import (
     MetricCA,
     MetricLA,
     MetricWA,
@@ -34,7 +38,7 @@ from .metrics import (
     MetricFM,
 )
 
-from .model import (
+from digital_eval.model import (
     BoundingBox,
     OCRWord,
     OCRWordLine,
@@ -364,12 +368,12 @@ class OCRData:
                 text_strings = text_line.getElementsByTagName('String')
                 for text_string in text_strings:
                     word_id = text_string.getAttribute('ID')
-                    word_content = text_string.getAttribute('CONTENT')
-                    if not word_content.strip():
-                        if self.log_level > 1:
-                            print('[TRACE]({}) ignore empty word "{}"'.format(
-                                self.path_in, word_id))
-                        continue
+                    # word_content = text_string.getAttribute('CONTENT')
+                    # if not word_content.strip():
+                    #     if self.log_level > 1:
+                    #         print('[TRACE]({}) ignore empty word "{}"'.format(
+                    #             self.path_in, word_id))
+                    #     continue
                     ocr_word = OCRWord(word_id, text_string)
                     ocr_line.add_word(ocr_word)
                 if len(ocr_line.words) > 0:
@@ -404,11 +408,11 @@ class OCRData:
                 else:
                     ocr_line = OCRWordLine(line_id, text_line)
                 # final inspection
-                if not ocr_line or not ocr_line.contains_text():
-                    if self.log_level > 1:
-                        print('[TRACE]({}) ignore empty line "{}"'.format(
-                            self.path_in, line_id))
-                    continue
+                # if not ocr_line or not ocr_line.contains_text():
+                #     if self.log_level > 1:
+                #         print('[TRACE]({}) ignore empty line "{}"'.format(
+                #             self.path_in, line_id))
+                #     continue
                 ocr_block.add_line(ocr_line)
             self.blocks.append(ocr_block)
 
@@ -422,12 +426,6 @@ class OCRData:
     def filter_all(self, coords_start, coords_end):
         all_lines = self.get_lines()
         filter_box = BoundingBox(coords_start, coords_end)
-
-        def centroid(bbox):
-            x = bbox.p1[0] + int((bbox.p2[0] - bbox.p1[0]) / 2)
-            y = bbox.p1[1] + int((bbox.p2[1] - bbox.p1[1]) / 2)
-            return (x, y)
-
         filter_lines = []
         for line in all_lines:
             new_line = OCRWordLine(line.id)
@@ -436,7 +434,7 @@ class OCRData:
                     c = centroid(_word)
                     if filter_box.contains(BoundingBox(c, c)):
                         new_line.add_word(_word)
-                if new_line.words:
+                if len(new_line.words) > 0:
                     filter_lines.append(new_line)
             elif isinstance(line.words, str):
                 c = centroid(line)
@@ -450,6 +448,12 @@ class OCRData:
 
     def get_page_dimensions(self):
         return self.page_dimensions
+
+
+def centroid(bbox):
+    _polygon = Polygon(([bbox.p1[0], bbox.p1[1]],[bbox.p2[0], bbox.p1[1]],[bbox.p2[0], bbox.p2[1]],[bbox.p1[0], bbox.p2[1]]))
+    _polygon.centroid
+    return (_polygon.centroid.x, _polygon.centroid.y)
 
 
 def ocr_to_text(file_path, coords=None, oneliner=False) -> Tuple:
@@ -492,7 +496,7 @@ def ocr_to_text(file_path, coords=None, oneliner=False) -> Tuple:
         raise RuntimeError(f"{file_path}: {exc}") from exc
 
 
-def ocr_file_to_text(file_path, frame=None, oneliner=True) -> Tuple:
+def piece_to_text(file_path, frame=None, oneliner=True) -> Tuple:
     '''Wrap OCR-Data Comparison'''
 
     _gt_type = NOT_SET
@@ -657,7 +661,7 @@ class Evaluator:
         RuntimeError: if candidates or reference data missing
     """
 
-    def __init__(self, root_candidates, verbosity=0, extras=None):
+    def __init__(self, root_candidates, verbosity=0, extras=None, to_text_func=piece_to_text):
         """initiate new Evaluator
 
         Args:
@@ -673,13 +677,15 @@ class Evaluator:
         self.evaluation_results = []
         self.evaluation_map = {}
         self.text_mode = extras == EVAL_EXTRA_IGNORE_GEOMETRY
+        self.to_text_func = to_text_func
+        self.is_sequential = False
         self.metrics = [MetricCA(), MetricLA(), MetricWA(), MetricBoW(),
                         MetricPre(), MetricRec(), MetricFM()]
 
     def eval_all(self, entries: List[EvalEntry], sequential=False) -> None:
         """remove all paths where no groundtruth exists"""
 
-        if sequential:
+        if sequential or self.is_sequential:
             for e in entries:
                 if e.path_g:
                     try:
@@ -745,7 +751,7 @@ class Evaluator:
             print(f"[TRACE] token coordinates {coords[0]}, {coords[1]}")
 
         # load ground-thruth text
-        (gt_type, txt_gt, _) = ocr_to_text(path_g, oneliner=True)
+        (gt_type, txt_gt, _) = self.to_text_func(path_g, oneliner=True)
         if not txt_gt:
             raise RuntimeError(f"missing gt text from {path_g}!")
         
@@ -754,7 +760,7 @@ class Evaluator:
         coords = None if self.text_mode else coords
 
         # read candidate data as text
-        (_, txt_c, _) = ocr_to_text(path_c, coords, oneliner=True)
+        (_, txt_c, _) = self.to_text_func(path_c, coords, oneliner=True)
         if self.verbosity >= 2:
             _label_ref = os.path.basename(path_g)
             _label_can = os.path.basename(path_c)

@@ -10,14 +10,61 @@ from digital_eval import (
     gather_candidates,
     Evaluator,
     report_stdout,
+    ocr_to_text,
 )
 
 DEFAULT_VERBOSITY = 0
 EVAL_VERBOSITY = DEFAULT_VERBOSITY
 
 
-def _main(path_candidates, path_reference, verbosity, xtra):
+########
+# MAIN #
+########
+def main():
+    PARSER = argparse.ArgumentParser(description="""
+        Evaluate large amounts of Digital Data, 
+        organized in directory structures.
+        """)
+    PARSER.add_argument(
+        "candidates", 
+        help="Root Directory to inspect")
+    PARSER.add_argument("-ref", "--reference", 
+        required=False,
+        help="Root Reference directory for Groundtruth or alike (optional)")
+    PARSER.add_argument("-v", "--verbosity", 
+        action='count', 
+        default=DEFAULT_VERBOSITY,
+        required=False, help="""
+            Verbosity. 
+            To increase, append multiple 'v's (optional, default: '')
+            """)
+    PARSER.add_argument("-x", "--extra", 
+        required=False, 
+        help="""
+            pass additional information to evaluation, like
+            * 'ignore_geometry' 
+            compare only textual contents without respect to coords
+            """)
+    PARSER.add_argument("--legacy", 
+        help="enable legacy text functionality with custom, simple geometry", 
+        action='store_true',
+        required=False)
+    PARSER.add_argument("--sequential", 
+        help="supress parallel execution", 
+        action='store_true',
+        required=False)
+    PARSER.set_defaults(legacy=False)
+    PARSER.set_defaults(sequential=False)
 
+    ARGS = vars(PARSER.parse_args())
+    path_candidates = ARGS["candidates"]
+    path_reference = ARGS["reference"]
+    verbosity = ARGS["verbosity"]
+    is_legacy = ARGS["legacy"]
+    is_sequential = ARGS["sequential"]
+    xtra = ARGS["extra"]
+
+    # go on
     # basic validation
     if not os.path.isdir(path_candidates):
         print(f'[ERROR] input "{path_candidates}": invalid directory! exit!')
@@ -44,6 +91,10 @@ def _main(path_candidates, path_reference, verbosity, xtra):
 
     # create basic evaluator instance
     evaluator = Evaluator(path_candidates, verbosity, xtra)
+    if is_legacy:
+        evaluator.to_text_func = ocr_to_text
+    if is_sequential:
+        evaluator.is_sequential = True
     evaluator.domain_reference = path_reference
 
     # gather structure information
@@ -81,38 +132,6 @@ def _main(path_candidates, path_reference, verbosity, xtra):
 
     # serialize stdout report
     report_stdout(evaluator)
-
-
-########
-# MAIN #
-########
-def main():
-    PARSER = argparse.ArgumentParser(description="""
-        Evaluate large amounts of Digital Data, 
-        organized in directory structures.
-        """)
-    PARSER.add_argument(
-                        "candidates", help="Root Directory to inspect")
-    PARSER.add_argument("-ref", "--reference", required=False,
-                        help="Root Reference directory for Groundtruth or alike (optional)")
-    PARSER.add_argument("-v", "--verbosity", action='count', default=DEFAULT_VERBOSITY,
-                        required=False, help="""
-                        Verbosity. 
-                        To increase, append multiple 'v's (optional, default: '')
-                        """)
-    PARSER.add_argument("-x", "--extra", required=False, 
-                        help="""
-                        pass additional information to evaluation, like
-                        * 'ignore_geometry' 
-                        compare only textual contents without respect to coords
-                        """)
-
-    ARGS = vars(PARSER.parse_args())
-    path_candidates = ARGS["candidates"]
-    path_ref = ARGS["reference"]
-    verbosity = ARGS["verbosity"]
-    xtra = ARGS["extra"]
-    _main(path_candidates, path_ref, verbosity, xtra)
 
 
 if __name__ == "__main__":
