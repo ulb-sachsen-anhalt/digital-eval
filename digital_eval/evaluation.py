@@ -505,7 +505,7 @@ def piece_to_text(file_path, frame=None, oneliner=True) -> Tuple:
         # optional groundtruth type
         _gt_type = _get_groundtruth_from_filename(file_path)
         if not _gt_type:
-            _level = top_piece.level
+            _level = top_piece.subject
             if _level:
                 _gt_type = _level
         # explicit filter frame?

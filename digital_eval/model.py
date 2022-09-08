@@ -222,7 +222,7 @@ def __get_piece_subject_alto(doc_root):
         if label:
             _subject = label
         # new alto way
-        elif _subject is None:
+        else:
             gt_els = [e for e in gt_type_el if e.getAttribute(
                 'ID') == "ulb_groundtruth_type"]
             if len(gt_els) == 1:
