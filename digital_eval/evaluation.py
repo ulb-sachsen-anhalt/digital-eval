@@ -3,11 +3,12 @@
 
 import os
 import re
+import sys
+
 import xml.dom.minidom
 import xml.etree.ElementTree as ET
-from concurrent.futures import (
-    ProcessPoolExecutor
-)
+import concurrent.futures
+
 from datetime import (
     date
 )
@@ -55,6 +56,10 @@ EVAL_EXTRA_IGNORE_GEOMETRY = 'ignore_geometry'
 
 # mark unset values as 'not available'
 NOT_SET = 'n.a.'
+
+# how long evaluation shall take maximal
+# where "None" means "no timeout"
+EVAL_TIMEOUT = None
 
 
 def strip_outliers_from(data_tuples, fence_ratio=1.5):
@@ -228,6 +233,7 @@ def get_bbox_data(file_path):
         # rather brute force approach
         # to recognize OCR formats inside
         start_token = _handle.read(128)
+        _frame_points = None
         
         # switch by estimated ocr format
         if 'alto' in start_token:
@@ -254,12 +260,20 @@ def get_bbox_data(file_path):
             doc_root = xml.dom.minidom.parse(file_path).documentElement
             name_space = doc_root.namespaceURI
             root_element = ET.parse(file_path).getroot()
-            _xpr_coords = f'.//{{{name_space}}}TextLine/{{{name_space}}}Coords'
-            raw_elements = root_element.findall(_xpr_coords)
-            if not raw_elements:
-                raise RuntimeError(f"{file_path} missing {_xpr_coords} !")
-            return extract_from_geometric_data(raw_elements, _map_page2013)
-
+            # step one: read PAGE border coords
+            _xpr_page_borders = f'{{{name_space}}}Page/{{{name_space}}}Border/{{{name_space}}}Coords'
+            _page_coords = root_element.findall(_xpr_page_borders)
+            if len(_page_coords) > 0:
+                _frame_points = extract_from_geometric_data(_page_coords, _map_page2013)
+            # step two: if possible, go for sub-part geometry
+            _xpr_line_coords = f'.//{{{name_space}}}TextLine/{{{name_space}}}Coords'
+            _line_coords = root_element.findall(_xpr_line_coords)
+            if len(_line_coords) > 0:
+                _frame_points = extract_from_geometric_data(_line_coords, _map_page2013)
+            if _frame_points:
+                return _frame_points
+            else:
+                raise RuntimeError(f"{file_path} missing page/line coords!")
     return None
 
 
@@ -516,7 +530,7 @@ class Evaluator:
                         MetricPre(), MetricRec(), MetricFM()]
 
     def eval_all(self, entries: List[EvalEntry], sequential=False) -> None:
-        """remove all paths where no groundtruth exists"""
+        """evaluate all pairs groundtruth-candidate"""
 
         if sequential or self.is_sequential:
             for e in entries:
@@ -524,18 +538,23 @@ class Evaluator:
                     try:
                         self.eval_entry(e)
                     except Exception as exc:
-                        print(f"[WARN ] '{exc}'")
+                        print(f"[WARN ][{e.path_g}] {exc}")
         else:
             cpus = cpu_count()
             n_executors = cpus - 1 if cpus > 3 else 1
             if self.verbosity == 1:
                 print(f"[DEBUG] use {n_executors} executors ({cpus}) to create evaluation data")
             _entries = []
-            with ProcessPoolExecutor(max_workers=n_executors) as executor:
+            
+            with concurrent.futures.ProcessPoolExecutor(max_workers=n_executors) as executor:
                 try:
-                    _entries = list(executor.map(self._wrap_eval_entry, entries, timeout=30))
+                    _entries = list(executor.map(self._wrap_eval_entry, entries, timeout=EVAL_TIMEOUT))
+                except concurrent.futures.TimeoutError:
+                    print(f"[ERROR] takes longer than {EVAL_TIMEOUT}s to evaluate {len(entries)} entries!")
+                    sys.exit(1)
                 except Exception as err:
-                    print(f"[WARN ] '{err}' creating evaluation data")
+                    print(f"[ERROR] '{err}' creating evaluation data!")
+                    sys.exit(1)
             if _entries:
                 _not_nones = [e for e in _entries if e is not None]
                 if self.verbosity == 1:
@@ -568,7 +587,7 @@ class Evaluator:
             try:
                 return self.eval_entry(entry)
             except Exception as exc:
-                print(f"[WARN ] _wrap' {exc}'")
+                print(f"[WARN ][{entry.path_g}] _wrap {exc}")
 
     def eval_entry(self, entry: EvalEntry) -> EvalEntry:
         """Create evaluation entry for matching pair of 
@@ -586,7 +605,7 @@ class Evaluator:
         # load ground-thruth text
         (gt_type, txt_gt, _) = self.to_text_func(path_g, oneliner=True)
         if not txt_gt:
-            raise RuntimeError(f"missing gt text from {path_g}!")
+            print(f"[WARN ] {path_g} contains no text")
         
         # if text mode is enforced
         # forget groundtruth coordinates

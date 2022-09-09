@@ -122,7 +122,8 @@ class Piece:
     def transcription(self, transcription):
         """Set textual transcription representing this piece"""
         _transcription = PieceTranscription()
-        _transcription.text = transcription
+        if transcription is not None and len(transcription.strip()) > 0:
+            _transcription.text = transcription
         self._transcriptions.append(_transcription)
 
     def __contains__(self, other_piece) -> bool:
@@ -337,31 +338,55 @@ def _read_lines_page(page_lines, parent, ns) -> List:
 
 
 def __from_page_text_element(element, parent, ns) -> Piece:
-    """Most basic transformation from PAGE XML textual nodes"""
+    """transformation from PAGE XML textual nodes
+    to generic pieces with specific transkription.
+    
+    If on PAGE level Word creates word pieces, and
+    also inspects textual contents.
+
+    catches several *bad* data flavours regarding
+    coordinates, points and text content
+
+    * missing Coord node
+    * Coord exists, but misses attribute "points"
+    * Coord exists, attribute "points" exists, but 
+      contains less than 3 point-pairs, thous only
+      forms a line and not even a triangle
+    * missing TextEquiv node
+    * TextEquiv exists, but no Unicode child
+    * Unicode exists, but lacking any text content
+
+    """
     _id = element.getAttribute('id')
     _type, _local = ___map_piece_type(element)
     _piece = Piece(_id)
     _piece.level = _type
     _piece.parent = parent
+
     # inspect geometry
     _coords = [n for n in element.childNodes if n.localName == 'Coords']
     if len(_coords) < 1 or 'points' not in _coords[0].attributes:
         raise RuntimeError(f"{_local}@ID={_id} invalid coordinate data")
     _points = _coords[0].getAttribute('points').split()
-    if len(_points) < 4:
+    # invariant: at least want 3 points, otherwise polygon area == Zero
+    if len(_points) < 3:
         raise RuntimeError(f"{_local}@ID={_id} way too few points {_points}")
     _piece.dimensions = [[int(_point.split(',')[0]),int(_point.split(',')[1])] 
         for _point in _points]
+
     # pick text if on word level
     if _type == PieceLevel.WORD:
         _txt_eqs = [n for n in element.childNodes if n.localName == 'TextEquiv']
         if len(_txt_eqs) != 1:
             raise RuntimeError(f"{_local}@ID={_id} invalid txt node {_txt_eqs}")
-        _content = _txt_eqs[0].getElementsByTagName(ns+'Unicode')[0].firstChild.nodeValue
+        _first_unicode = _txt_eqs[0].getElementsByTagName(ns+'Unicode')[0]
+        if not _first_unicode.firstChild:
+            raise RuntimeError(f"{_local}@ID={_id} empty unicode node!")
+        _content = _first_unicode.firstChild.nodeValue
         if not _content or not _content.strip():
             raise RuntimeError(f"{_local}@ID={_id} invalid txt content!")
-        # only add content when not top-level piece
         _piece.transcription = _content
+    
     return _piece
 
 

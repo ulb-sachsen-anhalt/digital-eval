@@ -8,6 +8,9 @@ import unicodedata
 import pytest
 
 from digital_eval.metrics import (
+    MetricBoW,
+    MetricCA,
+    MetricLA,
     character_accuracy,
     bag_of_tokens,
     ir_fmeasure,
@@ -17,7 +20,7 @@ from digital_eval.metrics import (
     token_based,
 )
 
-def test_metric_normalization():
+def test_metric_unicode_normalization():
     """Normalization required
     raw1 has "á" as {U+00E0} 
     str2 has "á" as {U+0061}+{U+0301} 
@@ -51,6 +54,54 @@ def test_metric_calculate_correctness():
     (ccr, distance, _) = character_accuracy(str1, str2)
     assert 3 == distance
     assert 92.10 == pytest.approx(ccr, 0.001)
+
+
+def test_metric_characters_from_empty_gt():
+    """What happens when there's something reported"""
+
+    # arrange
+    _metric = MetricCA()
+    _metric.input_reference = ''
+    _metric.input_candidate = 'fthe lazy brown fox jumps ouer the hump'
+
+    # act
+    _metric.calc()
+
+    # assert
+    assert 39 == _metric.diff
+    assert 0 == _metric.value
+
+
+def test_metric_letter_from_empty_gt_and_empty_candidate():
+    """explore edit-distance"""
+
+    # arrange
+    _metric = MetricLA()
+    _metric.input_reference = ''
+    _metric.input_candidate = ''
+
+    # act
+    _metric.calc()
+
+    # assert
+    assert 0 == _metric.diff
+    assert 100 == _metric.value
+
+
+def test_metric_bow_from_empty_gt_and_empty_candidate():
+    """explore edit-distance"""
+
+    # arrange
+    _metric = MetricBoW()
+    _metric.input_reference = ''
+    _metric.input_candidate = ''
+
+    # act
+    _metric.calc()
+
+    # assert
+    assert 0 == _metric.diff
+    assert 100 == _metric.value
 
 
 def test_metric_bot_ident():

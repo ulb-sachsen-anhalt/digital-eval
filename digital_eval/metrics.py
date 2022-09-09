@@ -74,6 +74,8 @@ class Metric:
         First, normalize text on UTF-8 level
         """
 
+        # reference might be desired to be empty
+        # if self.input_reference:
         self.data_reference = unicodedata.normalize(UC_NORMALIZATION, self.input_reference)
         self.data_candidate = unicodedata.normalize(UC_NORMALIZATION, self.input_candidate)
 
@@ -236,7 +238,7 @@ def bag_of_tokens(reference_tokens: List[str], candidate_tokens: List[str]) -> T
     n_tokens_gt = len(reference_tokens)
     diff_tokens =_diff(reference_tokens, candidate_tokens)
     n_tokens_missed = len(diff_tokens)
-    hit_rate = 100 * (n_tokens_gt - len(diff_tokens)) / n_tokens_gt
+    hit_rate =_norm(n_tokens_gt, len(diff_tokens))
     _len_ref = len(reference_tokens)
     return (hit_rate, n_tokens_missed, _len_ref)
 
@@ -303,7 +305,18 @@ def ir_fmeasure(refrence_data, candidate_data) -> Tuple:
 
 
 def _norm(reference, errs, scale_by=100) -> float:
-    '''Normalize outcome based on specific reference into range 0 - 100'''
+    """
+    Normalize outcome in range 0 - 100
+
+    * if more differences than actual len reference => 0
+    * if both len reference and errs eq zero => 100
+      there was nothing to find and it did detect nothing 
+      (i.e. no false-positive for an image page) 
+    * otherwise align to len reference
+    """
+
     if (reference - errs) < 0:
         return 0
+    if reference == 0 and errs == 0:
+        return 100
     return scale_by * ((reference - errs) / reference)

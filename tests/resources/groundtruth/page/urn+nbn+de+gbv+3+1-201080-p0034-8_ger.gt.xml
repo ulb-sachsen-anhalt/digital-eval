@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<PcGts xmlns="http://schema.primaresearch.org/PAGE/gts/pagecontent/2013-07-15"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" pcGtsId="PAGE_01" xsi:schemaLocation="http://schema.primaresearch.org/PAGE/gts/pagecontent/2013-07-15 http://schema.primaresearch.org/PAGE/gts/pagecontent/2013-07-15/pagecontent.xsd">
+    <Metadata>
+        <Creator>OCR-D/core 2.26.0</Creator>
+        <Created>2021-12-03T22:38:20</Created>
+        <LastChange>2021-12-03T22:38:20</LastChange>
+        <Comments/>
+    </Metadata>
+    <Page imageFilename="MAX/urn+nbn+de+gbv+3+1-201080_urn+nbn+de+gbv+3+1-201080-p0034-8_ger.png" imageHeight="2598" imageWidth="2104" type="content">
+        <AlternativeImage comments="binarized" filename="OCR-D-BINPAGE/OCR-D-BINPAGE_01-BIN_sauvola-ms-split.png"/>
+        <AlternativeImage comments="binarized,cropped" filename="OCR-D-SEG-PAGE-ANYOCR/OCR-D-SEG-PAGE-ANYOCR_01.IMG-CROP.png"/>
+        <AlternativeImage comments="binarized,cropped,despeckled" filename="OCR-D-DENOISE-OCROPY/OCR-D-DENOISE-OCROPY_01.IMG-DESPECK.png"/>
+        <AlternativeImage comments="binarized,cropped,despeckled,deskewed" filename="OCR-D-DESKEW-OCROPY/OCR-D-DESKEW-OCROPY_01.IMG-DESKEW.png"/>
+        <AlternativeImage comments="binarized,cropped,despeckled,deskewed,recropped,binarized,clipped" filename="OCR-D-SEG-BLOCK-TESSERACT/OCR-D-SEG-BLOCK-TESSERACT_01.IMG-BIN.png"/>
+        <Border>
+            <Coords points="101,60 77,2497 1982,2506 2012,58"/>
+        </Border>
+        <ReadingOrder>
+            <OrderedGroup id="reading-order">
+                <RegionRefIndexed index="0" regionRef="region0003"/>
+            </OrderedGroup>
+        </ReadingOrder>
+        <ImageRegion id="region0003" orientation="0.0">
+            <Coords points="147,59 147,2497 1982,2506 2012,58"/>
+        </ImageRegion>
+        <SeparatorRegion id="region0000">
+            <Coords points="2008,319 1995,319 1995,1083 1999,1083"/>
+        </SeparatorRegion>
+        <SeparatorRegion id="region0001">
+            <Coords points="1533,2475 1930,2475 1930,2492 1533,2492"/>
+        </SeparatorRegion>
+        <SeparatorRegion id="region0002">
+            <Coords points="193,355 206,355 206,915 193,915"/>
+        </SeparatorRegion>
+    </Page>
+</PcGts>

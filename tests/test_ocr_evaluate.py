@@ -23,6 +23,7 @@ from digital_eval.evaluation import (
     ocr_to_text,
     piece_to_text,
     filter_word_pieces,
+    get_bbox_data,
 )
 
 from digital_eval.model import (
@@ -558,29 +559,6 @@ def test_handle_empty_candidate():
     assert eval_entry.metrics[6].value == 0.0
 
 
-def test_handle_exception_min_empty_slice():
-    """Handle evaluation exception: 
-        min() arg is an empty sequence
-        results from empty GT data
-    """
-
-    # arrange
-    path_gt = f'{TEST_RES_DIR}/groundtruth/page/urn+nbn+de+gbv+3+1-792620-p1008-8_ger.gt.xml'
-    eval_entry = EvalEntry('dummy_candidate')
-    eval_entry.path_g = path_gt
-
-    # act
-    evaluator = Evaluator('/data')
-    with pytest.raises(RuntimeError) as err:
-        evaluator.eval_entry(eval_entry)
-
-    # assert
-    # split error message and check specific tokens
-    assert 'urn+nbn+de+gbv+3+1-792620-p1008-8_ger.gt.xml' in err.value.args[0]
-    assert ' missing ' in err.value.args[0]
-    assert 'TextLine' in err.value.args[0]
-
-
 def test_handle_table_text_groundtruth():
     """Handle evaluation exception: 
         missing gt text from urn+nbn+de+gbv+3+1-126343-p0285-7_ger.gt.xml
@@ -599,3 +577,17 @@ def test_handle_table_text_groundtruth():
     # assert / legacy: 5.825 , actual 6.008
     _result_cca = eval_entry.metrics[0].value
     assert _result_cca > 5.7 and _result_cca < 6.1
+
+
+def test_get_box_from_empty_page():
+    """How to deal with empty PAGE"""
+
+    # arrange
+    _path_gt = f'{TEST_RES_DIR}/groundtruth/page/urn+nbn+de+gbv+3+1-201080-p0034-8_ger.gt.xml'
+
+    # act
+    _p1, _p2 = get_bbox_data(_path_gt)
+
+    # assert 
+    assert _p1 == (77, 58)
+    assert _p2 == (2012, 2506)
