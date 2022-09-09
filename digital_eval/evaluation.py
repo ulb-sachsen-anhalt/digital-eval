@@ -24,10 +24,6 @@ from pathlib import (
 
 import numpy as np
 
-from shapely.geometry import (
-    Polygon
-)
-
 from digital_eval.metrics import (
     MetricCA,
     MetricLA,
@@ -38,14 +34,13 @@ from digital_eval.metrics import (
     MetricFM,
 )
 
+from digital_eval.model_legacy import (
+    OCRData,
+)
+
 from digital_eval.model import (
-    BoundingBox,
-    OCRWord,
-    OCRWordLine,
-    OCRRegion,
     to_pieces,
     Piece,
-    PieceContent,
     PieceLevel,
 )
 
@@ -57,6 +52,7 @@ XML_NS = {'alto': 'http://www.loc.gov/standards/alto/ns-v3#',
 # just use textual information for evaluation
 # do *not* respect any geometrics
 EVAL_EXTRA_IGNORE_GEOMETRY = 'ignore_geometry'
+
 # mark unset values as 'not available'
 NOT_SET = 'n.a.'
 
@@ -293,169 +289,6 @@ def extract_from_geometric_data(elements: List[ET.Element], map_func) -> Tuple[i
     return ((min(all_x1), min(all_y1)), (max(all_x2), max(all_y2)))
 
 
-class OCRData:
-    ''''Represents Groundtruth Data Item'''
-
-    def __init__(self, path_in):
-        self.blocks = []
-        self.path_in = path_in
-        self.page_dimensions = None
-        self.type_data = None
-        self.type_groundtruth = NOT_SET
-        self._get_groundtruth_from_filename()
-        self.log_level = 0
-        self._read_data()
-
-    def set_log_level(self, log_level):
-        self.log_level = log_level
-
-    def _get_groundtruth_from_filename(self):
-        file_name = os.path.basename(self.path_in)
-        result = re.match(r'.*gt.(\w{3,}).xml$', file_name)
-        if result:
-            self.type_groundtruth = result[1]
-        else:
-            alternative = re.match(r'.*\.(\w{3,})\.gt\.xml$', file_name)
-            if alternative:
-                self.type_groundtruth = alternative[1]
-
-    def _read_data(self):
-        doc_root = xml.dom.minidom.parse(self.path_in).documentElement
-        if doc_root is None:
-            raise RuntimeError('invalid document root')
-        name_space = doc_root.getAttribute('xmlns')
-        if doc_root.localName == 'alto':
-            self._extract_alto_data(doc_root)
-        elif name_space == PAGE_2013:
-            self._extract_page_data(doc_root)
-        elif doc_root.localName == 'PcGts':
-            self._extract_page_data(doc_root, ns='pc:')
-        else:
-            raise RuntimeError(
-                'Unknown Data-Format "{}" in "{}"'.format(doc_root.localName, self.path_in))
-
-    def _extract_alto_data(self, doc_root):
-        # handle groundtruth type
-        gt_type_el = doc_root.getElementsByTagName('OtherTag')
-        if gt_type_el and len(gt_type_el) > 0:
-            # deprecated
-            label = gt_type_el[0].getAttribute('LABEL')
-            if label:
-                self.type_groundtruth = label
-            # new alto way
-            elif self.get_type_groundtruth is None:
-                gt_els = [e for e in gt_type_el if e.getAttribute(
-                    'ID') == "ulb_groundtruth_type"]
-                if len(gt_els) == 1:
-                    value = gt_els[0].getAttribute('VALUE')
-                    if value:
-                        self.type_groundtruth = value
-
-        # handle page dimension
-        page_one = doc_root.getElementsByTagName('Page')[0]
-        self.page_dimensions = (int(page_one.getAttribute(
-            'WIDTH')), int(page_one.getAttribute('HEIGHT')))
-        text_blocks = doc_root.getElementsByTagName('TextBlock')
-
-        # read block, lines-n-words
-        for text_block in text_blocks:
-            block_id = text_block.getAttribute('ID')
-            ocr_block = OCRRegion(block_id, text_block)
-            cured_lines = text_block.getElementsByTagName('TextLine')
-            for text_line in cured_lines:
-                line_id = text_line.getAttribute('ID')
-                ocr_line = OCRWordLine(line_id, text_line)
-                text_strings = text_line.getElementsByTagName('String')
-                for text_string in text_strings:
-                    word_id = text_string.getAttribute('ID')
-                    # word_content = text_string.getAttribute('CONTENT')
-                    # if not word_content.strip():
-                    #     if self.log_level > 1:
-                    #         print('[TRACE]({}) ignore empty word "{}"'.format(
-                    #             self.path_in, word_id))
-                    #     continue
-                    ocr_word = OCRWord(word_id, text_string)
-                    ocr_line.add_word(ocr_word)
-                if len(ocr_line.words) > 0:
-                    ocr_block.add_line(ocr_line)
-                else:
-                    if self.log_level > 1:
-                        print('[TRACE]({}) ignore empty line "{}"'.format(
-                            self.path_in, line_id))
-            self.blocks.append(ocr_block)
-
-    def _extract_page_data(self, doc_root, ns=''):
-        page_one = doc_root.getElementsByTagName(ns+'Page')[0]
-        self.page_dimensions = (int(page_one.getAttribute('imageWidth')), int(
-            page_one.getAttribute('imageHeight')))
-        blocks = doc_root.getElementsByTagName(ns+'TextRegion')
-        blocks.extend (doc_root.getElementsByTagName(ns+'TableRegion'))
-        for block in blocks:
-            block_id = block.getAttribute('id')
-            ocr_block = OCRRegion(block_id, block)
-            cured_lines = block.getElementsByTagName(ns+'TextLine')
-            for text_line in cured_lines:
-                line_id = text_line.getAttribute('id')
-                word_tokens = text_line.getElementsByTagName(ns+'Word')
-                # 1. inspect PAGE on word level
-                if len(word_tokens) > 0:
-                    ocr_line = OCRWordLine(line_id)
-                    for word_token in word_tokens:
-                        word_id = word_token.getAttribute('id')
-                        ocr_word = OCRWord(word_id, word_token)
-                        ocr_line.add_word(ocr_word)
-                # 2. inspect PAGE on line level
-                else:
-                    ocr_line = OCRWordLine(line_id, text_line)
-                # final inspection
-                # if not ocr_line or not ocr_line.contains_text():
-                #     if self.log_level > 1:
-                #         print('[TRACE]({}) ignore empty line "{}"'.format(
-                #             self.path_in, line_id))
-                #     continue
-                ocr_block.add_line(ocr_line)
-            self.blocks.append(ocr_block)
-
-    def get_lines(self) -> List[OCRWordLine]:
-        line_blocks = [block.get_lines() for block in self.blocks]
-        return [l for lines in line_blocks for l in lines]
-
-    def get_type_groundtruth(self) -> str:
-        return self.type_groundtruth
-
-    def filter_all(self, coords_start, coords_end):
-        all_lines = self.get_lines()
-        filter_box = BoundingBox(coords_start, coords_end)
-        filter_lines = []
-        for line in all_lines:
-            new_line = OCRWordLine(line.id)
-            if not isinstance(line.words, str):
-                for _word in line.words:
-                    c = centroid(_word)
-                    if filter_box.contains(BoundingBox(c, c)):
-                        new_line.add_word(_word)
-                if len(new_line.words) > 0:
-                    filter_lines.append(new_line)
-            elif isinstance(line.words, str):
-                c = centroid(line)
-                if filter_box.contains(BoundingBox(c, c)):
-                    filter_lines.append(line)
-        return filter_lines
-
-    def get_lines_text(self) -> List[str]:
-        the_lines = self.get_lines()
-        return [l.get_text() for l in the_lines]
-
-    def get_page_dimensions(self):
-        return self.page_dimensions
-
-
-def centroid(bbox):
-    _polygon = Polygon(([bbox.p1[0], bbox.p1[1]],[bbox.p2[0], bbox.p1[1]],[bbox.p2[0], bbox.p2[1]],[bbox.p1[0], bbox.p2[1]]))
-    _polygon.centroid
-    return (_polygon.centroid.x, _polygon.centroid.y)
-
-
 def ocr_to_text(file_path, coords=None, oneliner=False) -> Tuple:
     """Create representation which contains
     * groundtruth type (if annotated)
@@ -463,7 +296,7 @@ def ocr_to_text(file_path, coords=None, oneliner=False) -> Tuple:
     * number of text lines
 
     DEPRECATED
-    
+
     """
 
     gt_type = NOT_SET

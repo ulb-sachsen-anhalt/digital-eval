@@ -1,5 +1,5 @@
 #
-# required explicit API exports
+# provided API exports
 #
 from .evaluation import (
     Evaluator,
@@ -25,6 +25,9 @@ from .model import (
     PieceLevel,
     PieceContent,
     to_pieces,
+)
+
+from .model_legacy import (
     OCRToken,
     OCRWord,
     OCRWordLine,

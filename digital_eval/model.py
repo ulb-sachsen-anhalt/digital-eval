@@ -19,7 +19,8 @@ PAGE_2013 = 'http://schema.primaresearch.org/PAGE/gts/pagecontent/2013-07-15'
 XML_NS = {'alto': 'http://www.loc.gov/standards/alto/ns-v3#',
           'pg2013': PAGE_2013}
 
-
+# mark information as 'not available'
+# which *might* be set later on
 UNSET = 'n.a.'
 
 class PieceLevel(Enum):
@@ -35,12 +36,18 @@ class PieceLevel(Enum):
     SECTION = 8
 
     def __lt__(self, other_lvl):
+        if not isinstance(other_lvl, PieceLevel):
+            return False
         return self.value < other_lvl.value    
 
     def __gt__(self, other_lvl):
+        if not isinstance(other_lvl, PieceLevel):
+            return False       
         return self.value > other_lvl.value
 
     def __eq__(self, other_lvl):
+        if not isinstance(other_lvl, PieceLevel):
+            return False
         return self.value == other_lvl.value
 
 class PieceContent(Enum):
@@ -360,7 +367,7 @@ def __from_page_text_element(element, parent, ns) -> Piece:
 
 def ___map_piece_type(element):
     _local = element.localName
-    _name = UNSET
+    _name = PieceLevel.UNKNOWN
     if _local == 'Word':
         _name = PieceLevel.WORD
     elif _local == 'TextLine':
@@ -372,242 +379,3 @@ def ___map_piece_type(element):
     elif _local == 'TableCell':
         _name = PieceLevel.TABLE_CELL
     return(_name, _local)
-
-
-
-# def filter_all(self, coords_start, coords_end):
-#     all_lines = self.get_lines()
-#     filter_box = BoundingBox(coords_start, coords_end)
-#     filter_lines = []
-#     for line in all_lines:
-#         new_line = OCRWordLine(line.id)
-#         for word in line.words:
-#             c = Polygon(([word.p1[0], word.p1[1]],[word.p2[0], word.p[1]],[word.p2[0], word.p2[1]],[word.p1[0], word.p2[1]]))
-#             if filter_box.contains(BoundingBox(c, c)):
-#                 new_line.add_word(word)
-#         if new_line.words:
-#             filter_lines.append(new_line)
-#     return filter_lines
-
-
-
-
-##############################################################################################
-#############################################################################################
-############################################################################################
-###########################################################################################
-class BoundingBox:
-
-    def __init__(self, p1, p2):
-        self.p1 = p1
-        self.p2 = p2
-
-    def intersection(self, other) -> bool:
-        '''
-        Test if two rectangles truly intersect (given by tuples that represent their points)
-        cf. https://stackoverflow.com/questions/25068538/intersection-and-difference-of-two-rectangles
-        '''
-        x1 = max(min(self.p1[0], self.p2[0]), min(other.p1[0], other.p2[0]))
-        x2 = min(max(self.p1[0], self.p2[0]), max(other.p1[0], other.p2[0]))
-        y1 = max(min(self.p1[1], self.p2[1]), min(other.p1[1], other.p2[1]))
-        y2 = min(max(self.p1[1], self.p2[1]), max(other.p1[1], other.p2[1]))
-        if x1 < x2 and y1 < y2:
-            return (x2 - x1) * (y2 - y1)
-        else:
-            return 0
-
-    def enclose(self, other):
-        '''Create new BoundingBox that encapsulates self and other Box'''
-
-        x1 = min(self.p1[0], other.p1[0])
-        y1 = min(self.p1[1], other.p1[1])
-        x2 = max(self.p2[0], other.p2[0])
-        y2 = max(self.p2[1], other.p2[1])
-        return BoundingBox((x1, y1), (x2, y2))
-
-    def contains(self, other):
-        return self.p1[0] < other.p1[0] and self.p1[1] < other.p1[1] and self.p2[0] > other.p2[0] and self.p2[1] > other.p2[1]
-
-
-class OCRToken(BoundingBox):
-    '''Generic OCR Container that represents Data extracted from ALTO or PAGE'''
-
-    def __init__(self, identifier):
-        self.id = identifier
-        self.p1 = None
-        self.p2 = None
-        self.has_text = False
-
-    def get_id(self):
-        return self.id
-
-    @staticmethod
-    def is_alto(element):
-        return element.getAttribute('HPOS')
-
-    @staticmethod
-    def is_page(element):
-        return element.nodeName.startswith('pc:')
-
-    @staticmethod
-    def is_page_without_namespace(element):
-        return ':' not in element.nodeName
-
-    def calculate_points(self, element):
-        if OCRToken.is_alto(element):
-            hpos = int(element.getAttribute('HPOS'))
-            vpos = int(element.getAttribute('VPOS'))
-            self.p1 = (hpos, vpos)
-            _width = int(element.getAttribute('WIDTH'))
-            _height = int(element.getAttribute('HEIGHT'))
-            self.p2 = (self.p1[0] + _width, self.p1[1] + _height)
-        elif OCRToken.is_page(element):
-            coords = element.getElementsByTagName('pc:Coords')
-            if len(coords) > 0:
-                point_data = coords[0].getAttribute('points')
-                self.p1 = [int(c) for c in point_data.split(' ')[0].split(',')]
-                self.p2 = [int(c) for c in point_data.split(' ')[2].split(',')]
-        elif OCRToken.is_page_without_namespace(element):
-            coords = element.getElementsByTagName('Coords')
-            if len(coords) > 0:
-                point_data = coords[0].getAttribute('points')
-                if len(point_data.strip()) < 1:
-                    bad_id = dict(element.attributes.items())['id']
-                    raise RuntimeError(f"{bad_id} has empty Coords!")
-                if len(point_data.split(' ')) < 4:
-                    raise RuntimeError(f"{self.id} has no enough Coords points: {point_data}")
-                self.p1 = [int(c) for c in point_data.split(' ')[0].split(',')]
-                self.p2 = [int(c) for c in point_data.split(' ')[2].split(',')]
-        else:
-            raise RuntimeError('{}: Cannot extract geometric Data from "{}"!'.format(
-                element.getAttribute('ID'), self.id))
-
-
-class OCRWord(OCRToken):
-    '''Atomic OCR-Unit representing a word'''
-
-    def __init__(self, identifier, element):
-        super().__init__(identifier)
-        self.characters = None
-        if element.localName == 'String':
-            self._read_alto_string(element)
-        if element.localName == 'Word':
-            self._read_page_word(element)
-        self.calculate_points(element)
-
-    def _read_alto_string(self, element):
-        self.characters = element.getAttribute('CONTENT')
-
-    def _read_page_word(self, element):
-        text_equivs = [node 
-                      for node in element.childNodes
-                      if node.localName == 'TextEquiv']
-        if len(text_equivs) == 1:
-            try:
-                txt_data = [coded.childNodes[0].data 
-                            for coded in text_equivs[0].childNodes
-                            if coded.localName == 'Unicode']
-                self.characters = txt_data[0]
-            except IndexError as exc:
-                p_word = text_equivs[0].parentNode
-                raise RuntimeError(f"{p_word.getAttribute('id')} misses text: {exc.args[0]}")
-
-    def get_characters(self):
-        return self.characters
-
-    def __repr__(self):
-        return '{}'.format(self.characters)
-
-
-class OCRWordLine(OCRToken):
-    '''Represents an aligned collection of Words'''
-
-    def __init__(self, identifier, element=None):
-        super().__init__(identifier)
-        self.words = []
-        if element:
-            self.calculate_points(element)
-            self.has_text = True
-            page_txts = None
-            if OCRToken.is_page(element):
-                page_txts = OCRWordLine.page_txts(element)
-            elif OCRToken.is_page_without_namespace(element):
-                page_txts = OCRWordLine.page2013_txts(element)
-            if not page_txts:
-                self.has_text = False
-            else:
-                self.words = page_txts
-
-    def __repr__(self):
-        _width = 0
-        _height = 0
-        if self.p1 and self.p2:
-            _width = abs(self.p2[0] - self.p1[0])
-            _height = abs(self.p2[1] - self.p1[1])
-        return '[{}][{}:{}]{}-{} "{}"'.format(self.get_id(), _width, _height, self.p1, self.p2, self.get_text())
-
-    @staticmethod
-    def page_txts(element):
-        unicodes = element.getElementsByTagName('pc:Unicode')
-        if len(unicodes) <= 0:
-            return False
-        children = unicodes[0].childNodes
-        if len(children) <= 0:
-            return False
-        return children[0].nodeValue
-
-    @staticmethod
-    def page2013_txts(element):
-        kids = element.childNodes
-        if len(kids) <= 0:
-            return False
-        text_equivs = [k for k in kids if k.localName == 'TextEquiv']
-        if text_equivs and len(text_equivs) > 0:
-            unicodes = text_equivs[0].getElementsByTagName('Unicode')
-            if unicodes:
-                first_node = unicodes[0].firstChild
-                if first_node:
-                    return first_node
-
-    # @staticmethod
-    # def _contains_at_least_one_alpha(chars):
-    #     return [c for c in chars if c.isalpha()]
-
-    # def contains_text(self):
-    #     return len(self.words) > 0
-
-    def add_word(self, ocr_word: OCRWord):
-        if not self.p1:
-            self.p1 = ocr_word.p1
-        if not self.p2:
-            self.p2 = ocr_word.p2
-
-        new_box = self.enclose(ocr_word)
-        self.p1 = new_box.p1
-        self.p2 = new_box.p2
-        self.words.append(ocr_word)
-
-    def get_text(self) -> List[str]:
-        line = ' '.join([word.get_characters()
-                         for word in self.words if isinstance(word, OCRWord)])
-        if not line:
-            line = self.words
-        return line
-
-
-class OCRRegion(OCRToken):
-    '''Logical Collection of Lines'''
-
-    def __init__(self, identifier, element):
-        super().__init__(identifier)
-        self.lines = []
-        self.calculate_points(element)
-
-    def get_lines(self) -> List[OCRWordLine]:
-        return self.lines
-
-    def add_line(self, ocr_line: OCRWordLine):
-        self.lines.append(ocr_line)
-
-    def __repr__(self) -> str:
-        return '[{}]{}-{} "{}"'.format(self.get_id(), self.p1, self.p2, len(self.get_lines()))

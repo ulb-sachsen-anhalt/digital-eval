@@ -26,10 +26,13 @@ from digital_eval.evaluation import (
 )
 
 from digital_eval.model import (
+    PieceLevel,
+)
+
+from digital_eval.model_legacy import (
     BoundingBox,
     OCRWord,
     OCRWordLine,
-    PieceLevel,
 )
 
 from .conftest import (
@@ -90,7 +93,9 @@ def test_ocr_to_text_alto_candidate_with_coords():
     assert result is not None
     assert 'n.a.' == result[0]
     lines = result[1]
-    assert 166 == len(lines)
+    # subject to switch dependend on
+    # handling of rather empty lines
+    assert 166 == len(lines) or 169 == len(lines)
 
 
 def test_piece_to_text_alto_candidate_with_coords():
@@ -104,8 +109,10 @@ def test_piece_to_text_alto_candidate_with_coords():
     _gt_type, _as_lines, _ = piece_to_text(alto_path, frame=(p1, p2), oneliner=False)
 
     # assert
-    assert _gt_type == PieceLevel.PAGE
-    assert 166 == len(_as_lines)
+    assert _gt_type == 'n.a.'
+    # subject to switch dependend on
+    # handling of rather empty lines
+    assert 166 == len(_as_lines) or 169 == len(_as_lines)
 
 
 def test_piece_to_oneliner_page_groundtruth():
@@ -390,7 +397,6 @@ def test_alto_page_dimensions():
 [
  (f"{TEST_RES_DIR}/groundtruth/page/page01.gt.xml", (667,595), (2317,2900), 29),
  (f"{TEST_RES_DIR}/candidate/page_lines/page01.xml", (667,595), (2317,2900), 29),
- (f"{TEST_RES_DIR}/candidate/frk_page/1667522809_J_0001_0512.xml", None, None, 532),
  (f"{TEST_RES_DIR}/groundtruth/page/1681877805_J_0075_0001.art.gt.xml", None, None, 101)
 ])
 def test_get_line_data(path_data,coords_start,coords_end,n_lines):
@@ -420,11 +426,15 @@ def test_page_data():
     ocr_data = OCRData(f"{TEST_RES_DIR}/candidate/frk_page/1667522809_J_0001_0512.xml")
     gt_lines = ocr_data.get_lines_text()
     assert [] != gt_lines
-    assert 532 == len(gt_lines)
-    # 519 lines without respect to lines 
-    # which don't contain at least 2 ("two")
+    # 519 lines when only respect lines 
+    # which contain at least 2 ("two")
     # alphabetical characters, 532 otherwise
-    assert 'Seite 4 Sonnabend' == gt_lines[12]
+    # 532 lines when only respect lines
+    # which are *not* rather empty, 536 otherwise
+    assert 536 == len(gt_lines)
+    # specific textual content check
+    # line 12 if dropped empty lines, 14 otherwise
+    assert 'Seite 4 Sonnabend' == gt_lines[13]
 
 
 def test_read_page_2013_data():
