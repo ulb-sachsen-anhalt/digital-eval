@@ -8,6 +8,10 @@ from xml.dom.minidom import (
     parseString,
 )
 
+from xml.etree.ElementTree import (
+    ParseError
+)
+
 import pytest
 
 from pytest import (
@@ -218,7 +222,7 @@ def test_evaluate_single_alto_candidate_with_page_groundtruth(tmp_path):
     assert 1 == defaults[1] # number of data points
     # metric raw
     assert 37.19 == pytest.approx(defaults[2], rel=1e-3)
-    # metric with stripped outlier (no outlier, of course!)
+    # metric with stripped outliers (no outlier, of course!)
     assert 0 == result.n_outlier
     assert not result.cleared_result
     # reference size chars
@@ -593,3 +597,24 @@ def test_get_box_from_empty_page():
     # assert 
     assert _p1 == (77, 58)
     assert _p2 == (2012, 2506)
+
+
+def test_handle_exception_invalid_alto_xml():
+    """Handle invalid XML data
+
+    ALTO data got corrupted by copying it around
+    (the latest rows simply missing)
+    """
+
+    # arrange
+    path_gt =  f'{TEST_RES_DIR}/candidate/frk_alto/1667522809_J_0001_0256_corrupt.xml'
+    eval_entry = EvalEntry('dummy_candidate')
+    eval_entry.path_g = path_gt
+
+    # act
+    evaluator = Evaluator('dummy_path')
+    with pytest.raises(ParseError) as err:
+        evaluator.eval_entry(eval_entry)
+
+    # assert
+    assert 'no element found' in err.value.args[0]

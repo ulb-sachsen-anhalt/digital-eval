@@ -157,7 +157,10 @@ def to_pieces(path_in):
 
 
 def _read_data(path_in):
-    doc_root = xml.dom.minidom.parse(path_in).documentElement
+    try:
+        doc_root = xml.dom.minidom.parse(path_in).documentElement
+    except Exception as _exc:
+        raise RuntimeError(f"corrupt XML '{path_in}!")
     if doc_root is None:
         raise RuntimeError('invalid document root')
     name_space = doc_root.getAttribute('xmlns')

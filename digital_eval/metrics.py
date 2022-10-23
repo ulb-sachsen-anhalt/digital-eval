@@ -71,11 +71,22 @@ DIGITS = DIGITS + '\u06f0' + '\u06f1' + '\u06f2' + '\u06f3' + '\u06f4' + '\u06f5
 WHITESPACE_TRANSLATOR =str.maketrans('','', WHITESPACES)
 PUNCT_TRANLATOR = str.maketrans('', '', PUNCTUATIONS)
 DIGIT_TRANSLATOR = str.maketrans('', '', DIGITS)
-TRANSLATE_WHITESPACES = lambda s: s.translate(WHITESPACE_TRANSLATOR)
-TRANSLATE_PUNCTS = lambda s : s.translate(PUNCT_TRANLATOR)
-TRANSLATE_DIGITS = lambda s : s.translate(DIGIT_TRANSLATOR)
-TOKENIZER = lambda s: s.split() if isinstance(s, str) else s
-TOKENIZER_SET = lambda s : set(sorted(TOKENIZER(s)))
+
+def filter_whitespaces(a_str) -> str:
+    return a_str.translate(WHITESPACE_TRANSLATOR)
+
+def filter_puncts(a_str) -> str:
+    return a_str.translate(PUNCT_TRANLATOR)
+
+def filter_digits(a_str) -> str:
+    return a_str.translate(DIGIT_TRANSLATOR)
+
+def tokenize(a_str) -> List[str]:
+    return a_str.split() if isinstance(a_str, str) else a_str
+
+def tokenize_to_sorted_set(a_str) -> Set[str]:
+    return set(sorted(tokenize(a_str)))
+
 
 #
 # information retrieval (nltk)
@@ -99,8 +110,15 @@ def get_stopwords(nltk_mappings=NLTK_STOPWORDS, languages=None) -> Set[str]:
                       for _all_words in stopwords.words(_lang)]
                     )  
     return _stopwords
+
 def strip_languages_stopwords(tokens, languages):
     return tokens - get_stopwords(languages=languages)
+
+def strip_stopwords_for(languages):
+    return partial(strip_languages_stopwords, languages=languages)
+
+def partial_languages(langs):
+    return partial(strip_languages_stopwords, languages=langs)
 
 
 class Metric:
@@ -143,8 +161,7 @@ class Metric:
 
     @property
     def value(self):
-        """Evaluate lazy but only one time
-        return cached result and round it
+        """Evaluate each time and round
         with desired precision afterwards"""
 
         if self._value is None:
@@ -166,7 +183,7 @@ class MetricCA(Metric):
         super().__init__()
         self.label = 'CCA'
         self.name = 'Character Accuracy'
-        self.preprocessings = [TRANSLATE_WHITESPACES]
+        self.preprocessings = [filter_whitespaces]
 
     def _calc(self):
         self._value, self.diff, self.n_ref = edit_distance(self._data_reference, self._data_candidate)
@@ -178,7 +195,7 @@ class MetricLA(Metric):
         super().__init__()
         self.label = 'CLA'
         self.name = 'Letter Accuracy'
-        self.preprocessings = [TRANSLATE_WHITESPACES, TRANSLATE_PUNCTS, TRANSLATE_DIGITS]
+        self.preprocessings = [filter_whitespaces, filter_puncts, filter_digits]
 
     def _calc(self):
         self._value, self.diff, self.n_ref = edit_distance(self._data_reference, self._data_candidate)
@@ -190,7 +207,7 @@ class MetricWA(Metric):
         super().__init__()
         self.label = 'WWA'
         self.name = 'Word Token Accuracy'
-        self.preprocessings = [TOKENIZER]
+        self.preprocessings = [tokenize]
     
     def _calc(self):
         self._value, self.diff, self.n_ref = edit_distance(self._data_reference, self._data_candidate)
@@ -202,7 +219,7 @@ class MetricBoW(Metric):
         super().__init__()
         self.label = 'WBoW'
         self.name = 'Bag of Words'
-        self.preprocessings = [TOKENIZER]
+        self.preprocessings = [tokenize]
 
     def _calc(self):
         self._value, self.diff, self.n_ref = bag_of_tokens(self._data_reference, self._data_candidate)
@@ -214,8 +231,8 @@ class MetricIR(Metric):
         self.label = 'IRPre'
         self.name = 'IR Precision'
         self.languages = languages
-        self.preprocessings = [TOKENIZER_SET, 
-            partial(strip_languages_stopwords, languages=self.languages)
+        self.preprocessings = [tokenize_to_sorted_set, 
+            partial_languages(self.languages)
         ]
 
     def _calc(self):

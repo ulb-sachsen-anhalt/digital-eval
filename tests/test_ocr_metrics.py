@@ -123,13 +123,13 @@ def test_metric_characters_from_empty_gt():
     # arrange
     _metric = MetricCA()
     _metric.reference = ''
-    _metric.candidate = 'fthe lazy brown fox jumps ouer the hump'
+    _metric.candidate = THE_LAZY_FOX
 
     # assert
     assert 0 == _metric.value
-    assert 32 == _metric.diff
+    assert 31 == _metric.diff
     # ensure whitespaces being dropped
-    assert 'fthelazybrownfoxjumpsouerthehump' == _metric._data_candidate
+    assert 'thelazybrownfoxjumpsoverthehump' == _metric._data_candidate
 
 
 def test_metric_letter_from_empty_gt_and_empty_candidate():
