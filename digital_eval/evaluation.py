@@ -621,14 +621,16 @@ class Evaluator:
 
         # fill metrics with life
         for _m in self.metrics:
-             _m.input_reference = txt_gt
-             _m.input_candidate = txt_c
-             _m.calc()
+             _m.reference = txt_gt
+             _m.candidate = txt_c
+            # ATTENZIONE! inital access to this attribute 
+            # triggers preprocessing and calculation!
+             _m.value
              if self.verbosity >= 2:
                 _label_ref = os.path.basename(path_g)
                 _label_can = os.path.basename(path_c)
-                print(f'[TRACE][{_label_ref}][{_m.label}] REFERENCE :: "{_m.data_reference}"')
-                print(f'[TRACE][{_label_can}][{_m.label}] CANDIDATE :: "{_m.data_candidate}"')
+                print(f'[TRACE][{_label_ref}][{_m.label}] REFERENCE :: "{_m._data_reference}"')
+                print(f'[TRACE][{_label_can}][{_m.label}] CANDIDATE :: "{_m._data_candidate}"')
 
         # enrich entry with metrics and
         # normalized data type (i.e., art or ann or ...)
@@ -695,6 +697,10 @@ class Evaluator:
                 continue
             for ee in self.evaluation_entries:
                 path_key = f"{ee.metrics[_metrics_index].label}@{root_base}"
+                # ATTENZIONE! works only when forehand
+                # the *real* attribute has been accessed 
+                # *at least one time*
+                # kept this way for testing reasons
                 metric_value = ee.metrics[_metrics_index].value
                 metric_gt_refs = ee.metrics[_metrics_index].n_ref
                 dir_o = os.path.dirname(ee.path_c)

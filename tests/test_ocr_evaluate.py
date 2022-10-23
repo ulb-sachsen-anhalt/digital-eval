@@ -217,12 +217,12 @@ def test_evaluate_single_alto_candidate_with_page_groundtruth(tmp_path):
     assert 'CCA@1667522809_J_0001' == defaults[0]
     assert 1 == defaults[1] # number of data points
     # metric raw
-    assert 39.12 == pytest.approx(defaults[2], rel=1e-3)
+    assert 37.19 == pytest.approx(defaults[2], rel=1e-3)
     # metric with stripped outlier (no outlier, of course!)
     assert 0 == result.n_outlier
     assert not result.cleared_result
     # reference size chars
-    assert 5440 == defaults[4]
+    assert 4662 == defaults[4]
 
 
 def test_evaluate_page_groundtruth_with_itself(tmp_path):
@@ -260,7 +260,7 @@ def test_evaluate_page_groundtruth_with_itself(tmp_path):
     assert 1 == defaults[1] # number of data points
     assert 100.00 == pytest.approx(defaults[2], rel=1e-3)
     # reference size chars
-    assert 5440 == defaults[4]
+    assert 4662 == defaults[4]
 
 
 def test_evaluate_set_with_5_entries(tmp_path):
@@ -284,23 +284,23 @@ def test_evaluate_set_with_5_entries(tmp_path):
     evaluator = Evaluator(path_dir_c)
     evaluator.domain_reference = path_dir_gt
     _metric_ca1 = MetricCA()
-    _metric_ca1.value = 95.70
+    _metric_ca1._value = 95.70
     _metric_ca1.n_ref = 810
     _metric_ca2 = MetricCA()
-    _metric_ca2.value = 96.53
+    _metric_ca2._value = 96.53
     _metric_ca2.n_ref = 675
     _metric_ca3 = MetricCA()
-    _metric_ca3.value = 94.91
+    _metric_ca3._value = 94.91
     _metric_ca3.n_ref = 1395
     _metric_ca4 = MetricCA()
-    _metric_ca4.value = 94.40
+    _metric_ca4._value = 94.40
     _metric_ca4.n_ref = 1466
     # outlier !
     _metric_ca5 = MetricCA()
-    _metric_ca5.value = 86.44
+    _metric_ca5._value = 86.44
     _metric_ca5.n_ref = 1520
     _metric_ca6 = MetricCA()
-    _metric_ca6.value = 93.44
+    _metric_ca6._value = 93.44
     _metric_ca6.n_ref = 1520
 
     entry1 = EvalEntry(path_dir_c / 'eng' / 'urn+nbn+de+gbv+3+1-135654-p0403-5_eng.xml')
@@ -560,8 +560,10 @@ def test_handle_empty_candidate():
 
 
 def test_handle_table_text_groundtruth():
-    """Handle evaluation exception: 
-        missing gt text from urn+nbn+de+gbv+3+1-126343-p0285-7_ger.gt.xml
+    """Handle evaluation properly with very
+    poor candidate data from ocr-ing a table
+     
+    legacy: "missing gt text from urn+nbn+de+gbv+3+1-126343-p0285-7_ger.gt.xml"
     """
 
     # arrange
@@ -572,11 +574,11 @@ def test_handle_table_text_groundtruth():
 
     # act
     evaluator = Evaluator('/data')
-    evaluator.eval_entry(eval_entry)
+    evaluator._wrap_eval_entry(eval_entry)
 
-    # assert / legacy: 5.825 , actual 6.008
+    # assert / legacy: 5.825 , actual 4.0
     _result_cca = eval_entry.metrics[0].value
-    assert _result_cca > 5.7 and _result_cca < 6.1
+    assert _result_cca > 3.9 and _result_cca < 4.1
 
 
 def test_get_box_from_empty_page():
