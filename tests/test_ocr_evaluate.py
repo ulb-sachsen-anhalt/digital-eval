@@ -20,7 +20,7 @@ from pytest import (
 
 from digital_eval.evaluation import (
     EvalEntry,
-    MetricCA,
+    MetricChars,
     Evaluator,
     OCRData,
     match_candidates,
@@ -29,6 +29,7 @@ from digital_eval.evaluation import (
     filter_word_pieces,
     get_bbox_data,
 )
+from digital_eval.metrics import MetricIRFM, MetricIRPre, MetricIRRec
 
 from digital_eval.model import (
     PieceLevel,
@@ -198,6 +199,7 @@ def test_evaluate_single_alto_candidate_with_page_groundtruth(tmp_path):
     gt_domain = tmp_path / 'groundtruth' / '1667522809_J_0001'
     gt_domain.mkdir(parents=True)
     evaluator = Evaluator(eval_domain)
+    evaluator.metrics = [MetricChars()]
     # required for directory-like aggregation
     evaluator.domain_reference = gt_domain
     _candidate_src = os.path.join(f'{TEST_RES_DIR}/candidate/frk_alto/1667522809_J_0001_0002.xml')
@@ -218,7 +220,7 @@ def test_evaluate_single_alto_candidate_with_page_groundtruth(tmp_path):
     # assert
     assert 5 == len(defaults)
     # metric label
-    assert 'CCA@1667522809_J_0001' == defaults[0]
+    assert 'Cs@1667522809_J_0001' == defaults[0]
     assert 1 == defaults[1] # number of data points
     # metric raw
     assert 37.19 == pytest.approx(defaults[2], rel=1e-3)
@@ -240,6 +242,7 @@ def test_evaluate_page_groundtruth_with_itself(tmp_path):
     gt_domain = tmp_path / 'groundtruth' / '1667522809_J_0001'
     gt_domain.mkdir(parents=True)
     evaluator = Evaluator(eval_domain)
+    evaluator.metrics = [MetricChars()]
     evaluator.domain_reference = gt_domain
     _candidate_src = os.path.join(f'{TEST_RES_DIR}/groundtruth/page/1667522809_J_0001_0002.art.gt.xml')
     _candidate_dst = str(eval_domain / '1667522809_J_0001_0002.xml')
@@ -260,7 +263,7 @@ def test_evaluate_page_groundtruth_with_itself(tmp_path):
     # assert
     assert 5 == len(defaults)
     # metric label
-    assert 'CCA@1667522809_J_0001' == defaults[0]
+    assert 'Cs@1667522809_J_0001' == defaults[0]
     assert 1 == defaults[1] # number of data points
     assert 100.00 == pytest.approx(defaults[2], rel=1e-3)
     # reference size chars
@@ -278,6 +281,9 @@ def test_evaluate_set_with_5_entries(tmp_path):
     please note:
         in tests it turned out it needs more than 5 data points / aggregation stage
         to measure the impact of the outlier (here: 1/6 with CA 86,447) 
+
+    also note the somehow hacky way of setting the numbers of the reference data
+    by injecting wacky test strings - only size matters
     """
     
     # arrange
@@ -287,25 +293,25 @@ def test_evaluate_set_with_5_entries(tmp_path):
     path_dir_c.mkdir(parents=True)
     evaluator = Evaluator(path_dir_c)
     evaluator.domain_reference = path_dir_gt
-    _metric_ca1 = MetricCA()
+    _metric_ca1 = MetricChars()
     _metric_ca1._value = 95.70
-    _metric_ca1.n_ref = 810
-    _metric_ca2 = MetricCA()
+    _metric_ca1.reference = 't' * 810
+    _metric_ca2 = MetricChars()
     _metric_ca2._value = 96.53
-    _metric_ca2.n_ref = 675
-    _metric_ca3 = MetricCA()
+    _metric_ca2.reference = 't' * 675
+    _metric_ca3 = MetricChars()
     _metric_ca3._value = 94.91
-    _metric_ca3.n_ref = 1395
-    _metric_ca4 = MetricCA()
+    _metric_ca3.reference = 't' * 1395
+    _metric_ca4 = MetricChars()
     _metric_ca4._value = 94.40
-    _metric_ca4.n_ref = 1466
+    _metric_ca4.reference = 't' * 1466
     # outlier !
-    _metric_ca5 = MetricCA()
+    _metric_ca5 = MetricChars()
     _metric_ca5._value = 86.44
-    _metric_ca5.n_ref = 1520
-    _metric_ca6 = MetricCA()
+    _metric_ca5.reference = 't' * 1520
+    _metric_ca6 = MetricChars()
     _metric_ca6._value = 93.44
-    _metric_ca6.n_ref = 1520
+    _metric_ca6.reference = 't' * 1520
 
     entry1 = EvalEntry(path_dir_c / 'eng' / 'urn+nbn+de+gbv+3+1-135654-p0403-5_eng.xml')
     entry1.path_g =  str(path_dir_gt / 'eng' /'urn+nbn+de+gbv+3+1-135654-p0403-5_eng.gt.xml')
@@ -536,7 +542,7 @@ def test_handle_exception_invalid_literal_for_int():
     assert 'too few points' in err.value.args[0] or 'empty Coords' in err.value.args[0]
 
 
-def test_handle_empty_candidate():
+def test_handle_empty_candidate_information_retrival():
     """Handle evaluation exception: 
         unsupported format string passed to NoneType.__format__
         results from complete failing candidate text
@@ -548,19 +554,20 @@ def test_handle_empty_candidate():
     path_cd = f'{TEST_RES_DIR}/candidate/frk_page/urn+nbn+de+gbv+3+1-138193-p0904-0_ger.xml'
     eval_entry = EvalEntry(path_cd)
     eval_entry.path_g = path_gt
+    evaluator = Evaluator('/data')
+    evaluator.metrics = [MetricIRPre(), MetricIRRec(), MetricIRFM()]
+    evaluator.verbosity = 1
 
     # act
-    evaluator = Evaluator('/data')
-    evaluator.verbosity = 1
     evaluator.eval_entry(eval_entry)
 
     # assert
-    assert eval_entry.metrics[4].label == 'IRPre'
-    assert eval_entry.metrics[4].value == 0.0
-    assert eval_entry.metrics[5].label == 'IRRec'
-    assert eval_entry.metrics[5].value == 0.0
-    assert eval_entry.metrics[6].label == 'IRFM'
-    assert eval_entry.metrics[6].value == 0.0
+    assert eval_entry.metrics[0].label == 'IRPre'
+    assert eval_entry.metrics[0].value == 0.0
+    assert eval_entry.metrics[1].label == 'IRRec'
+    assert eval_entry.metrics[1].value == 0.0
+    assert eval_entry.metrics[2].label == 'IRFM'
+    assert eval_entry.metrics[2].value == 0.0
 
 
 def test_handle_table_text_groundtruth():
@@ -578,6 +585,7 @@ def test_handle_table_text_groundtruth():
 
     # act
     evaluator = Evaluator('/data')
+    evaluator.metrics = [MetricChars()]
     evaluator._wrap_eval_entry(eval_entry)
 
     # assert / legacy: 5.825 , actual 4.0

@@ -11,13 +11,13 @@ from .evaluation import (
 )
 
 from .metrics import (
-    MetricCA,
-    MetricLA,
-    MetricWA,
+    MetricChars,
+    MetricLetters,
+    MetricWords,
     MetricBoW,
-    MetricPre,
-    MetricRec,
-    MetricFM,
+    MetricIRPre,
+    MetricIRRec,
+    MetricIRFM,
 )
 
 from .model import (

@@ -11,10 +11,22 @@ from digital_eval import (
     Evaluator,
     report_stdout,
     ocr_to_text,
+    MetricChars,
+    MetricLetters,
+    MetricWords,
+    MetricBoW,
+    MetricIRPre,
+    MetricIRRec,
+    MetricIRFM
 )
 
+# script constants
 DEFAULT_VERBOSITY = 0
 EVAL_VERBOSITY = DEFAULT_VERBOSITY
+# DEFAULT_OCR_METRICS = 'MetricCA,MetricLA,MetricWA,MetricBoW'
+DEFAULT_OCR_METRICS = [MetricChars(), MetricLetters(), MetricWords(), MetricBoW()]
+DEFAULT_OCR_METRIC_PREPROCESSINGS = ''
+DEFAULT_OCR_METRIC_POSTPROCESSINGS = ''
 
 
 ########
@@ -31,6 +43,9 @@ def main():
     PARSER.add_argument("-ref", "--reference", 
         required=False,
         help="Root Reference directory for Groundtruth or alike (optional)")
+    PARSER.add_argument("-cfg", "--configuration-file", 
+        required=False,
+        help="Path to configuration INI-file (optional)")
     PARSER.add_argument("-v", "--verbosity", 
         action='count', 
         default=DEFAULT_VERBOSITY,
@@ -58,6 +73,7 @@ def main():
 
     ARGS = vars(PARSER.parse_args())
     path_candidates = ARGS["candidates"]
+    path_cfg = ARGS["configuration_file"]
     path_reference = ARGS["reference"]
     verbosity = ARGS["verbosity"]
     is_legacy = ARGS["legacy"]
@@ -71,6 +87,9 @@ def main():
         sys.exit(1)
     if path_reference and not os.path.isdir(path_reference):
         print(f'[ERROR] reference "{path_reference}": invalid directory! exit!')
+        sys.exit(1)
+    if path_cfg and not os.path.isfile(path_cfg):
+        print(f'[ERROR] configuration file invalid: "{path_cfg}"! exit!')
         sys.exit(1)
 
     # sanitize trailing slash
@@ -91,6 +110,10 @@ def main():
 
     # create basic evaluator instance
     evaluator = Evaluator(path_candidates, verbosity, xtra)
+    # set metrics
+    # MetricCA(), MetricLA(), MetricWA(), MetricBoW(), MetricPre(), MetricRec(), MetricFM()
+    evaluator.metrics = DEFAULT_OCR_METRICS
+    
     if is_legacy:
         evaluator.to_text_func = ocr_to_text
     if is_sequential:

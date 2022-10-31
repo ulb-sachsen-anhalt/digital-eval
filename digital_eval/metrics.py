@@ -72,17 +72,22 @@ WHITESPACE_TRANSLATOR =str.maketrans('','', WHITESPACES)
 PUNCT_TRANLATOR = str.maketrans('', '', PUNCTUATIONS)
 DIGIT_TRANSLATOR = str.maketrans('', '', DIGITS)
 
+
 def filter_whitespaces(a_str) -> str:
     return a_str.translate(WHITESPACE_TRANSLATOR)
+
 
 def filter_puncts(a_str) -> str:
     return a_str.translate(PUNCT_TRANLATOR)
 
+
 def filter_digits(a_str) -> str:
     return a_str.translate(DIGIT_TRANSLATOR)
 
+
 def tokenize(a_str) -> List[str]:
     return a_str.split() if isinstance(a_str, str) else a_str
+
 
 def tokenize_to_sorted_set(a_str) -> Set[str]:
     return set(sorted(tokenize(a_str)))
@@ -111,30 +116,88 @@ def get_stopwords(nltk_mappings=NLTK_STOPWORDS, languages=None) -> Set[str]:
                     )  
     return _stopwords
 
+
 def strip_languages_stopwords(tokens, languages):
     return tokens - get_stopwords(languages=languages)
+
 
 def strip_stopwords_for(languages):
     return partial(strip_languages_stopwords, languages=languages)
 
-def partial_languages(langs):
-    return partial(strip_languages_stopwords, languages=langs)
+
+def normalize_unicode(input_str: str, uc_norm_by=UC_NORMALIZATION) -> str: 
+    """Apply basic unicode normalization
+    """
+
+    if uc_norm_by is not None:
+        input_str = unicodedata.normalize(UC_NORMALIZATION, input_str)
+    return input_str
 
 
-class Metric:
-    """Basic definition of a Metric"""
+def transform_string(the_content):
+    """Perform recent character transformations"""
 
-    def __init__(self, precision=2, normalization=UC_NORMALIZATION, preprocessings=None) -> None:
+    punct_translator = str.maketrans('', '', PUNCTUATIONS)
+    digit_translator = str.maketrans('', '', DIGITS)
+    the_content = the_content.translate(punct_translator)
+    the_content = the_content.translate(digit_translator)
+    return the_content
+
+
+def align_difference_to_reference(the_obj) -> float:
+    """calculate ratio of reference number and metric value
+    in range between 0 .. 1.0
+
+    Respect following corner cases:
+
+    * if more errors than references => 0
+    * if both references and errors eq zero => 1
+      means: nothing to find and it did detect nothing 
+      (i.e. no false-positives) 
+    * otherwise subtract errors and align diff to reference 
+    """
+
+    diffs = the_obj.diff
+    n_refs = len(the_obj._data_reference)
+    if (n_refs - diffs) < 0:
+        return 0
+    if n_refs == 0 and diffs == 0:
+        return 1.0
+    elif n_refs > 0:
+        return (n_refs - diffs) / n_refs
+
+
+def norm_to_scale(value, scale_by) -> float:
+    """
+    Normalize outcome in range 0 - scale_bound
+    """
+
+    return value * scale_by
+
+
+def norm_percentual(value):
+    return partial(norm_to_scale, scale_by=100)(value)
+
+
+class OCRDifferenceMetric:
+    """Basic definition of a OCRDifferenceMetric"""
+
+    def __init__(self, precision=2, normalization=UC_NORMALIZATION, 
+        preprocessings=None, align_func=align_difference_to_reference,
+        postprocessings=None) -> None:
         self.precision = precision
         self._value = None
         self.diff = None
-        self.n_ref = 0
-        self.label = None
+        self._label = None
         self.name = None
         self.unicode_normalization = normalization
-        self.preprocessings = None
+        self.preprocessings = []
         if isinstance(preprocessings, list):
             self.preprocessings = preprocessings
+        self.align_func = align_func
+        self.postprocessings = [norm_percentual]
+        if isinstance(postprocessings, list):
+            self.postprocessings = postprocessings
         self.input_reference = None
         self.input_candidate = None
         self._data_reference = None
@@ -160,6 +223,14 @@ class Metric:
         self._data_candidate = normalize_unicode(value)
 
     @property
+    def label(self):
+        return self._label
+
+    @property
+    def n_ref(self):
+        return len(self._data_reference)
+
+    @property
     def value(self):
         """Evaluate each time and round
         with desired precision afterwards"""
@@ -170,204 +241,170 @@ class Metric:
                     self._data_reference = _pre(self._data_reference)
                     self._data_candidate = _pre(self._data_candidate)
             self._calc()
+            if self.align_func:
+                self._value = self.align_func(self)
+            else:
+                self._value = self.diff
+            if self.postprocessings:
+                for _post in self.postprocessings:
+                    self._value = _post(self._value)
         return round(self._value, self.precision)
 
     def _calc(self):
-        """Calculate metric value
-        First, normalize text on UTF-8 level
-        """
+        """Calculate metric's value
+        remember this needs further refinement"""
+        raise NotImplementedError
 
-class MetricCA(Metric):
+
+class MetricChars(OCRDifferenceMetric):
 
     def __init__(self):
         super().__init__()
-        self.label = 'CCA'
-        self.name = 'Character Accuracy'
+        self._label = 'Cs'
+        self.name = 'Characters'
         self.preprocessings = [filter_whitespaces]
+        self.postprocessings = [norm_percentual]
 
     def _calc(self):
-        self._value, self.diff, self.n_ref = edit_distance(self._data_reference, self._data_candidate)
+        self.diff = edit_distance(self._data_reference, self._data_candidate)
 
 
-class MetricLA(Metric):
+class MetricLetters(OCRDifferenceMetric):
 
     def __init__(self):
         super().__init__()
-        self.label = 'CLA'
-        self.name = 'Letter Accuracy'
+        self._label = 'Ls'
+        self.name = 'Letters'
         self.preprocessings = [filter_whitespaces, filter_puncts, filter_digits]
 
     def _calc(self):
-        self._value, self.diff, self.n_ref = edit_distance(self._data_reference, self._data_candidate)
+        self.diff = edit_distance(self._data_reference, self._data_candidate)
 
 
-class MetricWA(Metric):
+class MetricWords(OCRDifferenceMetric):
 
     def __init__(self):
         super().__init__()
-        self.label = 'WWA'
-        self.name = 'Word Token Accuracy'
+        self._label = 'Ws'
+        self.name = 'WordTokens'
         self.preprocessings = [tokenize]
     
     def _calc(self):
-        self._value, self.diff, self.n_ref = edit_distance(self._data_reference, self._data_candidate)
+        self.diff = edit_distance(self._data_reference, self._data_candidate)
 
 
-class MetricBoW(Metric):
+class MetricBoW(OCRDifferenceMetric):
 
     def __init__(self):
         super().__init__()
-        self.label = 'WBoW'
-        self.name = 'Bag of Words'
+        self._label = 'BoWs'
+        self.name = 'BagOfWords'
         self.preprocessings = [tokenize]
 
     def _calc(self):
-        self._value, self.diff, self.n_ref = bag_of_tokens(self._data_reference, self._data_candidate)
+        self.diff = bag_of_tokens(self._data_reference, self._data_candidate)
 
-class MetricIR(Metric):
+
+class MetricIR(OCRDifferenceMetric):
 
     def __init__(self, languages=None):
         super().__init__()
-        self.label = 'IRPre'
-        self.name = 'IR Precision'
         self.languages = languages
         self.preprocessings = [tokenize_to_sorted_set, 
-            partial_languages(self.languages)
+            strip_stopwords_for(self.languages)
         ]
+        # no aligning required, we rely on nltk
+        self.align_func = None
+        # no percentual value
+        self.postprocessings = []
 
     def _calc(self):
         """to remind that this class needs further refinement"""
         raise NotImplementedError
 
 
-class MetricPre(MetricIR):
+class MetricIRPre(MetricIR):
 
     def __init__(self, languages=None):
         super().__init__(languages)
-        self.label = 'IRPre'
-        self.name = 'IR Precision'
+        self._label = 'IRPre'
+        self.name = 'IRPrecision'
 
     def _calc(self):
-        self._value, self.n_ref = ir_precision(self._data_reference, self._data_candidate)
+        self.diff = ir_precision(self._data_reference, self._data_candidate)
 
 
-class MetricRec(MetricIR):
+class MetricIRRec(MetricIR):
 
     def __init__(self, languages=None):
         super().__init__(languages)
-        self.label = 'IRRec'
-        self.name = 'IR Recall'
+        self._label = 'IRRec'
+        self.name = 'IRRecall'
 
     def _calc(self):
-        self._value, self.n_ref = ir_recall(self._data_reference, self._data_candidate)
+        self.diff = ir_recall(self._data_reference, self._data_candidate)
 
 
-class MetricFM(MetricIR):
+class MetricIRFM(MetricIR):
 
     def __init__(self, languages=None):
         super().__init__(languages)
-        self.label = 'IRFM'
-        self.name = 'IR F-Measure'
+        self._label = 'IRFM'
+        self.name = 'IRFMeasure'
 
     def _calc(self):
-        self._value, self.n_ref = ir_fmeasure(self._data_reference, self._data_candidate)
+        self.diff = ir_fmeasure(self._data_reference, self._data_candidate)
 
 
-def normalize_unicode(input_str: str, uc_norm_by=UC_NORMALIZATION) -> str: 
-    """Apply basic unicode normalization
-    """
-
-    if uc_norm_by is not None:
-        input_str = unicodedata.normalize(UC_NORMALIZATION, input_str)
-    return input_str
-
-
-def transform_string(the_content):
-    """Perform recent character transformations"""
-
-    punct_translator = str.maketrans('', '', PUNCTUATIONS)
-    digit_translator = str.maketrans('', '', DIGITS)
-    the_content = the_content.translate(punct_translator)
-    the_content = the_content.translate(digit_translator)
-    return the_content
-
-
-def edit_distance(reference_data, candidate_data) -> Tuple[float, int, int]:
+def edit_distance(reference_data, candidate_data) -> int:
     """Calculate edit distance with levenshtein-distance.
-    Afterwards, normalize result to reference data
+    as sum of edit operations required to get from
+    candidate to reference string / token_list
     
     Works with characters and word-like tokens, where
     tokens correspond also to:
     * abbreviations  (like "Nr." or "Etg.")
     * numbers/years  (like "1899")
     * split-up words (line endings/beginnings)
-
     """
 
-    distance = levenshtein(reference_data, candidate_data)
-    _len_ref = len(reference_data)
-    _result = _norm(len(reference_data), distance)
-    return (_result, distance, _len_ref)
+    return levenshtein(reference_data, candidate_data)
 
 
-def bag_of_tokens(reference_tokens: List[str], candidate_tokens: List[str]) -> Tuple[float, int, int]:
+def bag_of_tokens(reference_tokens: List[str], candidate_tokens: List[str]) -> int:
     """Calculate intersection/difference
     between reference and candidate token list
     """
 
-    n_tokens_gt = len(reference_tokens)
-    diff_tokens =_diff(reference_tokens, candidate_tokens)
-    n_tokens_missed = len(diff_tokens)
-    hit_rate =_norm(n_tokens_gt, len(diff_tokens))
-    _len_ref = len(reference_tokens)
-    return (hit_rate, n_tokens_missed, _len_ref)
+    return len(_diff(reference_tokens, candidate_tokens))
 
 
 def _diff(gt_tokens, cd_tokens) -> List[str]:
     return list((Counter(gt_tokens) - Counter(cd_tokens)).elements())
 
 
-def ir_precision(reference_data, candidate_data) -> Tuple:
+def ir_precision(reference_data, candidate_data) -> float:
     """Calculate Precision for given languages"""
     
     _prec = precision(reference_data, candidate_data) 
     # nltk actually handles this inconsistently ...
     if _prec == None:
         _prec = 0.0
-    return (_prec, len(reference_data))
+    return _prec
 
 
-def ir_recall(reference_data, candidate_data) -> Tuple:
+def ir_recall(reference_data, candidate_data) -> float:
     """Calculate Recall for given languages"""
     
     # here nltk reports 0.0 if nothing recalled
-    _rec = recall(reference_data, candidate_data)
-    return (_rec, len(reference_data))
+    return recall(reference_data, candidate_data)
 
 
-def ir_fmeasure(reference_data, candidate_data) -> Tuple:
+def ir_fmeasure(reference_data, candidate_data) -> float:
     """Calculate F-Measure for given languages"""
     
     _fm = f_measure(reference_data, candidate_data)
     # required since nltk actually handles this inconsistently ...
     if _fm == None:
         _fm = 0.0
-    return (_fm, len(reference_data))
-
-
-def _norm(reference, errs, scale_by=100) -> float:
-    """
-    Normalize outcome in range 0 - 100
-
-    * if more differences than actual len reference => 0
-    * if both len reference and errs eq zero => 100
-      there was nothing to find and it did detect nothing 
-      (i.e. no false-positive for an image page) 
-    * otherwise align to len reference
-    """
-
-    if (reference - errs) < 0:
-        return 0
-    if reference == 0 and errs == 0:
-        return 100
-    return scale_by * ((reference - errs) / reference)
+    return _fm

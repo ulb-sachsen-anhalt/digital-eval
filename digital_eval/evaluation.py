@@ -26,13 +26,13 @@ from pathlib import (
 import numpy as np
 
 from digital_eval.metrics import (
-    MetricCA,
-    MetricLA,
-    MetricWA,
+    MetricChars,
+    MetricLetters,
+    MetricWords,
     MetricBoW,
-    MetricPre,
-    MetricRec,
-    MetricFM,
+    MetricIRPre,
+    MetricIRRec,
+    MetricIRFM,
 )
 
 from digital_eval.model_legacy import (
@@ -526,8 +526,7 @@ class Evaluator:
         self.text_mode = extras == EVAL_EXTRA_IGNORE_GEOMETRY
         self.to_text_func = to_text_func
         self.is_sequential = False
-        self.metrics = [MetricCA(), MetricLA(), MetricWA(), MetricBoW(),
-                        MetricPre(), MetricRec(), MetricFM()]
+        self.metrics = []
 
     def eval_all(self, entries: List[EvalEntry], sequential=False) -> None:
         """evaluate all pairs groundtruth-candidate"""
@@ -691,11 +690,11 @@ class Evaluator:
 
         # aggregate on each directory
         for _metrics_index in by_metrics:
-            # if we do not have all these different metrics set, 
-            # do of course not aggregate by non-existing index!
-            if _metrics_index > len(self.evaluation_entries[0].metrics):
-                continue
             for ee in self.evaluation_entries:
+                # if we do not have all these different metrics set, 
+                # do of course not aggregate by non-existing index!
+                if _metrics_index >= len(self.evaluation_entries[0].metrics):
+                    continue
                 path_key = f"{ee.metrics[_metrics_index].label}@{root_base}"
                 # ATTENZIONE! works only when forehand
                 # the *real* attribute has been accessed 
