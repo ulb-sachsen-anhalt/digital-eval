@@ -562,11 +562,11 @@ def test_handle_empty_candidate_information_retrival():
     evaluator.eval_entry(eval_entry)
 
     # assert
-    assert eval_entry.metrics[0].label == 'IRPre'
+    assert eval_entry.metrics[0].label == 'Pre'
     assert eval_entry.metrics[0].value == 0.0
-    assert eval_entry.metrics[1].label == 'IRRec'
+    assert eval_entry.metrics[1].label == 'Rec'
     assert eval_entry.metrics[1].value == 0.0
-    assert eval_entry.metrics[2].label == 'IRFM'
+    assert eval_entry.metrics[2].label == 'FM'
     assert eval_entry.metrics[2].value == 0.0
 
 

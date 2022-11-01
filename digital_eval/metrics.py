@@ -189,7 +189,6 @@ class OCRDifferenceMetric:
         self._value = None
         self.diff = None
         self._label = None
-        self.name = None
         self.unicode_normalization = normalization
         self.preprocessings = []
         if isinstance(preprocessings, list):
@@ -274,7 +273,6 @@ class MetricLetters(OCRDifferenceMetric):
     def __init__(self):
         super().__init__()
         self._label = 'Ls'
-        self.name = 'Letters'
         self.preprocessings = [filter_whitespaces, filter_puncts, filter_digits]
 
     def _calc(self):
@@ -286,7 +284,6 @@ class MetricWords(OCRDifferenceMetric):
     def __init__(self):
         super().__init__()
         self._label = 'Ws'
-        self.name = 'WordTokens'
         self.preprocessings = [tokenize]
     
     def _calc(self):
@@ -298,7 +295,6 @@ class MetricBoW(OCRDifferenceMetric):
     def __init__(self):
         super().__init__()
         self._label = 'BoWs'
-        self.name = 'BagOfWords'
         self.preprocessings = [tokenize]
 
     def _calc(self):
@@ -327,8 +323,7 @@ class MetricIRPre(MetricIR):
 
     def __init__(self, languages=None):
         super().__init__(languages)
-        self._label = 'IRPre'
-        self.name = 'IRPrecision'
+        self._label = 'Pre'
 
     def _calc(self):
         self.diff = ir_precision(self._data_reference, self._data_candidate)
@@ -338,8 +333,7 @@ class MetricIRRec(MetricIR):
 
     def __init__(self, languages=None):
         super().__init__(languages)
-        self._label = 'IRRec'
-        self.name = 'IRRecall'
+        self._label = 'Rec'
 
     def _calc(self):
         self.diff = ir_recall(self._data_reference, self._data_candidate)
@@ -349,8 +343,7 @@ class MetricIRFM(MetricIR):
 
     def __init__(self, languages=None):
         super().__init__(languages)
-        self._label = 'IRFM'
-        self.name = 'IRFMeasure'
+        self._label = 'FM'
 
     def _calc(self):
         self.diff = ir_fmeasure(self._data_reference, self._data_candidate)
