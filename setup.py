@@ -27,7 +27,7 @@ setup(
     tests_require=tests_require,
     entry_points={
         'console_scripts': [
-            'digital-eval=digital_eval.cli:main',
+            'digital-eval=digital_eval.cli:start',
         ]
     },
 )

@@ -26,6 +26,7 @@ from digital_eval import (
 
 # script constants
 DEFAULT_VERBOSITY = 0
+VERBOSITY = DEFAULT_VERBOSITY
 EVAL_VERBOSITY = DEFAULT_VERBOSITY
 DEFAULT_OCR_METRICS = 'Cs,Ls'
 DEFAULT_OCR_METRIC_PREPROCESSINGS = ''
@@ -62,16 +63,15 @@ def _initialize_metrics(the_metrics) -> List:
 ########
 # MAIN #
 ########
-def main():
+def _main(path_candidates, path_reference, metrics, xtra, is_legacy=False, is_sequential=False):
 
     # create basic evaluator instance
     evaluator = Evaluator(path_candidates, VERBOSITY, xtra)
     evaluator.metrics = _initialize_metrics(metrics)
     
-    if IS_LEGACY:
+    if is_legacy:
         evaluator.to_text_func = ocr_to_text
-    if IS_SEQUENTIAL:
-        evaluator.IS_SEQUENTIAL = True
+    evaluator.is_sequential = is_sequential
     evaluator.domain_reference = path_reference
 
     # gather structure information
@@ -111,7 +111,7 @@ def main():
     report_stdout(evaluator)
 
 
-if __name__ == "__main__":
+def start():
     PARSER = argparse.ArgumentParser(description="""
         Evaluate large amounts of Digital Data, 
         organized in directory structures.
@@ -122,9 +122,6 @@ if __name__ == "__main__":
     PARSER.add_argument("-ref", "--reference", 
         required=False,
         help="Root Reference directory for Groundtruth or alike (optional)")
-    PARSER.add_argument("-cfg", "--configuration-file", 
-        required=False,
-        help="Path to configuration INI-file (optional)")
     PARSER.add_argument("-v", "--VERBOSITY", 
         action='count', 
         default=DEFAULT_VERBOSITY,
@@ -157,7 +154,7 @@ if __name__ == "__main__":
     ARGS = vars(PARSER.parse_args())
     path_candidates = ARGS["candidates"]
     path_reference = ARGS["reference"]
-    PATH_CONFIG = ARGS["configuration_file"]
+    global VERBOSITY
     VERBOSITY = ARGS["VERBOSITY"]
     IS_LEGACY = ARGS["legacy"]
     IS_SEQUENTIAL = ARGS["sequential"]
@@ -171,9 +168,6 @@ if __name__ == "__main__":
         sys.exit(1)
     if path_reference and not os.path.isdir(path_reference):
         print(f'[ERROR] reference "{path_reference}": invalid directory! exit!')
-        sys.exit(1)
-    if PATH_CONFIG and not os.path.isfile(PATH_CONFIG):
-        print(f'[ERROR] configuration file invalid: "{PATH_CONFIG}"! exit!')
         sys.exit(1)
 
     # sanitize trailing slash
@@ -193,4 +187,8 @@ if __name__ == "__main__":
         print(f'[DEBUG] called with {args}')
     
     # here we go
-    main()
+    _main(path_candidates, path_reference, metrics, xtra, is_legacy=IS_LEGACY, is_sequential=IS_SEQUENTIAL)
+
+
+if __name__ == "__main__":
+    start()
