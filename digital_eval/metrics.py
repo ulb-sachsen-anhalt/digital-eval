@@ -129,7 +129,7 @@ def normalize_unicode(input_str: str, uc_norm_by=UC_NORMALIZATION) -> str:
     """
 
     if uc_norm_by is not None:
-        input_str = unicodedata.normalize(UC_NORMALIZATION, input_str)
+        input_str = unicodedata.normalize(uc_norm_by, input_str)
     return input_str
 
 

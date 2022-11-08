@@ -295,23 +295,23 @@ def test_evaluate_set_with_5_entries(tmp_path):
     evaluator.domain_reference = path_dir_gt
     _metric_ca1 = MetricChars()
     _metric_ca1._value = 95.70
-    _metric_ca1.reference = 't' * 810
+    _metric_ca1._data_reference = 't' * 810
     _metric_ca2 = MetricChars()
     _metric_ca2._value = 96.53
-    _metric_ca2.reference = 't' * 675
+    _metric_ca2._data_reference = 't' * 675
     _metric_ca3 = MetricChars()
     _metric_ca3._value = 94.91
-    _metric_ca3.reference = 't' * 1395
+    _metric_ca3._data_reference = 't' * 1395
     _metric_ca4 = MetricChars()
     _metric_ca4._value = 94.40
-    _metric_ca4.reference = 't' * 1466
+    _metric_ca4._data_reference = 't' * 1466
     # outlier !
     _metric_ca5 = MetricChars()
     _metric_ca5._value = 86.44
-    _metric_ca5.reference = 't' * 1520
+    _metric_ca5._data_reference = 't' * 1520
     _metric_ca6 = MetricChars()
     _metric_ca6._value = 93.44
-    _metric_ca6.reference = 't' * 1520
+    _metric_ca6._data_reference = 't' * 1520
 
     entry1 = EvalEntry(path_dir_c / 'eng' / 'urn+nbn+de+gbv+3+1-135654-p0403-5_eng.xml')
     entry1.path_g =  str(path_dir_gt / 'eng' /'urn+nbn+de+gbv+3+1-135654-p0403-5_eng.gt.xml')

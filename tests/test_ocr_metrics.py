@@ -412,7 +412,7 @@ def test_ir_metrics_precision_german():
     and very nice candidate precision"""
 
     # arrange
-    prec = MetricIRPre(['german'])
+    prec = MetricIRPre(languages=['german'])
     prec.reference = IR_REFERENCE_TEXT_GERMAN
     prec.candidate = IR_CANDIDATE_TEXT_GERMAN
 
@@ -425,7 +425,7 @@ def test_ir_metrics_recall_german():
     and very nice candidate recall"""
 
     # arrange
-    rec = MetricIRRec(['german'])
+    rec = MetricIRRec(languages=['german'])
     rec.reference = IR_REFERENCE_TEXT_GERMAN
     rec.candidate = IR_CANDIDATE_TEXT_GERMAN
 
@@ -438,7 +438,7 @@ def test_ir_metrics_precision_german_poor_candidate():
     and rather poor candidate"""
 
     # arrange
-    p = MetricIRPre(['german'])
+    p = MetricIRPre(languages=['german'])
     p.reference = IR_CANDIDATE_TEXT_GERMAN
     p.candidate = IR_REFERENCE_TEXT_GERMAN_POOR
 
@@ -451,7 +451,7 @@ def test_ir_metrics_recall_german_poor_candidate():
     and rather poor candidate"""
 
     # arrange
-    r = MetricIRRec(['german'])
+    r = MetricIRRec(languages=['german'])
     r.reference = IR_CANDIDATE_TEXT_GERMAN
     r.candidate = IR_REFERENCE_TEXT_GERMAN_POOR
 
