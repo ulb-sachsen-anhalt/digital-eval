@@ -11,7 +11,6 @@ import string
 from typing import (
     List, 
     Set,
-    Tuple, 
 )
 
 import unicodedata
@@ -269,6 +268,7 @@ class OCRDifferenceMetric:
     def reference(self, value):
         self.input_reference = value
         self._data_reference = normalize_unicode(value, self.unicode_normalization)
+        self._value = None
 
     @property
     def candidate(self):
@@ -278,6 +278,7 @@ class OCRDifferenceMetric:
     def candidate(self, value):
         self.input_candidate = value
         self._data_candidate = normalize_unicode(value)
+        self._value = None
 
     @property
     def label(self):

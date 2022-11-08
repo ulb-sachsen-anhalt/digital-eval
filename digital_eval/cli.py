@@ -36,7 +36,9 @@ EVAL_VERBOSITY = DEFAULT_VERBOSITY
 DEFAULT_CALCULCATION = 'acc'
 CALC_DICT = {
     'acc' : accuracy_for,
-    'err' :error_for, 
+    'accuracy' : accuracy_for,
+    'err' : error_for, 
+    'error' : error_for,
 }
 DEFAULT_UTF8_NORM = UC_NORMALIZATION
 
@@ -69,7 +71,8 @@ def _initialize_metrics(the_metrics, norm, calc) -> List:
         return [METRIC_DICT[m](normalization=norm, calc_func=CALC_DICT[calc]) 
                 for m in _tokens]
     except KeyError as _err:
-        _msg = f"Unknown Metric with label '{_err.args[0]}' requested.\nPlease use one of the following labels: '{','.join(METRIC_DICT.keys())}'."
+        _keys = ','.join(METRIC_DICT.keys()) + ','.join(CALC_DICT.keys())
+        _msg = f"Unknown: '{_err.args[0]}'.\nPlease use one of the following keys: '{_keys}'."
         print(_msg)
         sys.exit(1)
 
@@ -83,6 +86,8 @@ def _main(path_candidates, path_reference, metrics, utf8norm, calc, xtra, is_leg
     evaluator = Evaluator(path_candidates, VERBOSITY, xtra)
     evaluator.metrics = _initialize_metrics(metrics, norm=utf8norm, calc=calc)
     evaluator.calc = calc
+    if VERBOSITY >= 1:
+        print(f"[DEBUG] text normalized using '{utf8norm}' calculate '{calc}' metric values for '{metrics}'")
     
     if is_legacy:
         evaluator.to_text_func = ocr_to_text
@@ -123,7 +128,8 @@ def _main(path_candidates, path_reference, metrics, utf8norm, calc, xtra, is_leg
     # results = evaluator.get_results()
 
     # serialize stdout report
-    report_stdout(evaluator)
+    if VERBOSITY >= 0:
+        report_stdout(evaluator, VERBOSITY)
 
 
 def start():
@@ -161,9 +167,10 @@ def start():
         required=False,
         help="legacy evaluation with naive rectangular geometry (optional; default: 'False')", 
         )
-    PARSER.add_argument("--utf8norm",
+    PARSER.add_argument("--utf8",
+        default=DEFAULT_UTF8_NORM,
         required=False,
-        help=f"UTF-8 Unicode Python Normalization (optional; default: '{DEFAULT_UTF8_NORM}')",
+        help=f"UTF-8 Unicode Python Normalization (optional; default: '{DEFAULT_UTF8_NORM}'; available: 'NFC','NFKC','NFD','NFKD')",
         )
     PARSER.add_argument("--sequential", 
         action='store_true',
@@ -187,7 +194,7 @@ def start():
     xtra = ARGS["extra"]
     metrics = ARGS["metrics"]
     calc = ARGS["calc"]
-    utf8norm = ARGS["utf8norm"]
+    utf8norm = ARGS["utf8"]
 
     # go on
     # basic validation

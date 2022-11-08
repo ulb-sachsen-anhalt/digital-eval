@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 """OCR Evaluation Module"""
 
+import copy
 import os
 import re
 import sys
@@ -527,23 +528,19 @@ class Evaluator:
         self.to_text_func = to_text_func
         self.is_sequential = False
         self.metrics = []
+        self.evaluation_report = {}
 
     def eval_all(self, entries: List[EvalEntry], sequential=False) -> None:
         """evaluate all pairs groundtruth-candidate"""
 
+        _entries = []
         if sequential or self.is_sequential:
-            for e in entries:
-                if e.path_g:
-                    try:
-                        self.eval_entry(e)
-                    except Exception as exc:
-                        print(f"[WARN ][{e.path_g}] {exc}")
+            _entries = [self._wrap_eval_entry(e) for e in entries]
         else:
             cpus = cpu_count()
             n_executors = cpus - 1 if cpus > 3 else 1
             if self.verbosity == 1:
                 print(f"[DEBUG] use {n_executors} executors ({cpus}) to create evaluation data")
-            _entries = []
             
             with concurrent.futures.ProcessPoolExecutor(max_workers=n_executors) as executor:
                 try:
@@ -554,30 +551,19 @@ class Evaluator:
                 except Exception as err:
                     print(f"[ERROR] '{err}' creating evaluation data!")
                     sys.exit(1)
-            if _entries:
-                _not_nones = [e for e in _entries if e is not None]
-                if self.verbosity == 1:
-                    print(f"[DEBUG] processed {len(_entries)}, omitted {len(_entries) - len(_not_nones)} empty results")
-                self.evaluation_entries = _not_nones
-        
-        # report
-        self.evaluation_entries = sorted(self.evaluation_entries, key=lambda e: e.path_c)
-        if self.verbosity >= 1:
-            for _eval_entry in self.evaluation_entries:
-                try:
-                    image_name = os.path.basename(_eval_entry.path_c)
-                    _type = _eval_entry.gt_type
-                    if '+' in image_name and '_' in image_name:
-                        _tkns = image_name.split('_')
-                        image_name = _tkns[0].replace('+',':') + '_' + _tkns[1]
-                    if '.xml' in image_name:
-                        image_name = image_name.replace('.xml', '')
-                    gt_label = f"({_type[:3]})" if _type and _type != NOT_SET else ''
-                    print(f'[DEBUG] [{image_name}]{gt_label} [{_eval_entry}]')
-                except Exception as exc:
-                    print(f'[WARN ] {exc}')
-        
 
+        # review evaluation results
+        if _entries:
+            _not_nones = [e for e in _entries if e is not None]
+            if self.verbosity == 1:
+                print(f"[DEBUG] processed {len(_entries)}, omitted {len(_entries) - len(_not_nones)} empty results")
+            self.evaluation_entries = _not_nones
+        
+        self.evaluation_entries = sorted(self.evaluation_entries, key=lambda e: e.path_c)
+        # detail report
+        self.evaluation_report['candidates'] = [self._generate_report_candidate(e) 
+                                                for e in self.evaluation_entries]
+        
     def _wrap_eval_entry(self, entry: EvalEntry):
         """Wrapper for creation of evaluation data
         to be used in common process-pooling"""
@@ -618,29 +604,42 @@ class Evaluator:
             print(f'[TRACE][{_label_ref}] RAW GROUNDTRUTH :: "{txt_gt}"')
             print(f'[TRACE][{_label_can}] RAW CANDIDATE   :: "{txt_c}"')
 
-        # fill metrics with life
+        # evaluate metric copies
+        _current_metrics = []
         for _m in self.metrics:
-             _m.reference = txt_gt
-             _m.candidate = txt_c
+            _curr = copy.copy(_m)
+            _curr.reference = txt_gt
+            _curr.candidate = txt_c
             # ATTENZIONE! inital access to this attribute 
             # triggers preprocessing and calculation!
-             _m.value
-             if self.verbosity >= 2:
+            _curr.value
+            _current_metrics.append(_curr)
+            if self.verbosity >= 2:
                 _label_ref = os.path.basename(path_g)
                 _label_can = os.path.basename(path_c)
-                print(f'[TRACE][{_label_ref}][{_m.label}] REFERENCE :: "{_m._data_reference}"')
-                print(f'[TRACE][{_label_can}][{_m.label}] CANDIDATE :: "{_m._data_candidate}"')
+                print(f'[TRACE][{_label_ref}][{_curr.label}] REFERENCE :: "{_curr._data_reference}"')
+                print(f'[TRACE][{_label_can}][{_curr.label}] CANDIDATE :: "{_curr._data_candidate}"')
 
         # enrich entry with metrics and
-        # normalized data type (i.e., art or ann or ...)
+        # normalize data type (i.e., art or ann or ...)
         _normed_gt_type = _normalize_gt_type(str(gt_type))
         entry.gt_type = _normed_gt_type
-        entry.metrics = self.metrics
-        self.evaluation_entries.append(entry)
-
-        # necessary to return values
-        # due actual process pool mapping
+        entry.metrics = _current_metrics
         return entry
+
+    def _generate_report_candidate(self, the_entry):
+        try:
+            image_name = os.path.basename(the_entry.path_c)
+            _type = the_entry.gt_type
+            if '+' in image_name and '_' in image_name:
+                _tkns = image_name.split('_')
+                image_name = _tkns[0].replace('+',':') + '_' + _tkns[1]
+            if '.xml' in image_name:
+                image_name = image_name.replace('.xml', '')
+            gt_label = f"({_type[:3]})" if _type and _type != NOT_SET else ''
+            return f'[{image_name}]{gt_label} [{the_entry}]'
+        except Exception as exc:
+            print(f'[WARN ] {exc}')
 
     def _add(self, evaluation_result: EvaluationResult):
         self.evaluation_results.append(evaluation_result)
@@ -737,9 +736,13 @@ class Evaluator:
         return self.evaluation_results
 
 
-def report_stdout(evaluator: Evaluator):
+def report_stdout(evaluator: Evaluator, verbosity):
     """Generate report data on stdout"""
 
+    if verbosity >= 1:
+        if 'candidates' in evaluator.evaluation_report:
+            for _c in evaluator.evaluation_report['candidates']:
+                print(f'[DEBUG] {_c}')
     results = evaluator.get_results()
     _path_can = evaluator.domain_candidate
     _path_ref = evaluator.domain_reference
