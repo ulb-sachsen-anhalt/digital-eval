@@ -144,19 +144,48 @@ def transform_string(the_content):
     return the_content
 
 
-def align_difference_to_reference(the_obj) -> float:
-    """calculate ratio of reference number and metric value
-    in range between 0 .. 1.0
+class DigitalEvalMetricException(Exception):
+
+    def __init__(self, *args: object) -> None:
+        super().__init__(*args)
+
+
+def _inspect_calculation_object(an_object):
+    if not isinstance(an_object, OCRDifferenceMetric):
+        _msg = f"{an_object} is no instance of {OCRDifferenceMetric}!"
+        raise DigitalEvalMetricException(_msg)
+    try:
+        _diff = an_object.diff
+        _ref = an_object.n_ref
+        if _diff is None or _diff < 0:
+            raise DigitalEvalMetricException(f"invalid diff: {_diff}!")
+        if _ref is None or _ref < 0:
+            raise DigitalEvalMetricException(f"invalid ref: {_ref}!")
+    except AttributeError as _ae:
+        raise DigitalEvalMetricException(_ae.args[0])
+    
+
+def accuracy_for(the_obj) -> float:
+    """Calculate accuracy as ratio of
+    correct items, with correct items
+    being expected items minus 
+    number of differences.
 
     Respect following corner cases:
-
-    * if more errors than references => 0
-    * if both references and errors eq zero => 1
+    * if less correct items than differences => 0
+    * if both correct items and differences eq zero => 1
       means: nothing to find and it did detect nothing 
       (i.e. no false-positives) 
-    * otherwise subtract errors and align diff to reference 
+
+    Args:
+        the_obj (object): object containing information 
+        about reference data and difference
+
+    Returns:
+        float: accuracy in range 0.0 - 1.0
     """
 
+    _inspect_calculation_object(the_obj)
     diffs = the_obj.diff
     n_refs = len(the_obj._data_reference)
     if (n_refs - diffs) < 0:
@@ -165,6 +194,36 @@ def align_difference_to_reference(the_obj) -> float:
         return 1.0
     elif n_refs > 0:
         return (n_refs - diffs) / n_refs
+
+
+def error_for(the_obj) -> float:
+    """Calculate error as ratio of
+    difference and number of 
+    expected items.
+
+    Respect following corner cases:
+    * if less expected items than differences => 0
+    * if both expected items and differences eq zero => 1
+      means: nothing to find and detected nothing 
+      (i.e. no false-positives) 
+
+    Args:
+        the_obj (object): object containing information 
+        about reference data and difference
+
+    Returns:
+        float: error in range 0.0 - 1.0
+    """
+
+    _inspect_calculation_object(the_obj)
+    diffs = the_obj.diff
+    n_refs = len(the_obj._data_reference)
+    if (n_refs - diffs) < 0:
+        return 0
+    if n_refs == 0 and diffs == 0:
+        return 1.0
+    elif n_refs > 0:
+        return diffs / n_refs
 
 
 def norm_to_scale(value, scale_by) -> float:
@@ -182,9 +241,8 @@ def norm_percentual(value):
 class OCRDifferenceMetric:
     """Basic definition of a OCRDifferenceMetric"""
 
-    def __init__(self, precision=2, normalization=UC_NORMALIZATION, 
-        preprocessings=None, align_func=align_difference_to_reference,
-        postprocessings=None) -> None:
+    def __init__(self, precision, normalization, calc_func,
+        preprocessings=None, postprocessings=None) -> None:
         self.precision = precision
         self._value = None
         self.diff = None
@@ -193,7 +251,7 @@ class OCRDifferenceMetric:
         self.preprocessings = []
         if isinstance(preprocessings, list):
             self.preprocessings = preprocessings
-        self.align_func = align_func
+        self.calc_func = calc_func
         self.postprocessings = [norm_percentual]
         if isinstance(postprocessings, list):
             self.postprocessings = postprocessings
@@ -227,7 +285,15 @@ class OCRDifferenceMetric:
 
     @property
     def n_ref(self):
+        if not hasattr(self, '_data_reference') or self._data_reference is None:
+            raise DigitalEvalMetricException("invalid reference data!")
         return len(self._data_reference)
+
+    @n_ref.setter
+    def n_ref(self, value):
+        """Exists only for testing purposes"""
+
+        self._data_reference = 't' * value
 
     @property
     def value(self):
@@ -239,9 +305,9 @@ class OCRDifferenceMetric:
                 for _pre in self.preprocessings:
                     self._data_reference = _pre(self._data_reference)
                     self._data_candidate = _pre(self._data_candidate)
-            self._calc()
-            if self.align_func:
-                self._value = self.align_func(self)
+            self._forward()
+            if self.calc_func:
+                self._value = self.calc_func(self)
             else:
                 self._value = self.diff
             if self.postprocessings:
@@ -249,7 +315,7 @@ class OCRDifferenceMetric:
                     self._value = _post(self._value)
         return round(self._value, self.precision)
 
-    def _calc(self):
+    def _forward(self):
         """Calculate metric's value
         remember this needs further refinement"""
         raise NotImplementedError
@@ -257,95 +323,103 @@ class OCRDifferenceMetric:
 
 class MetricChars(OCRDifferenceMetric):
 
-    def __init__(self):
-        super().__init__()
+    def __init__(self, precision=2, normalization=UC_NORMALIZATION, calc_func=accuracy_for,
+        preprocessings=None, postprocessings=None):
+        super().__init__(precision, normalization, calc_func, preprocessings, postprocessings)
         self._label = 'Cs'
         self.name = 'Characters'
         self.preprocessings = [filter_whitespaces]
         self.postprocessings = [norm_percentual]
 
-    def _calc(self):
+    def _forward(self):
         self.diff = edit_distance(self._data_reference, self._data_candidate)
 
 
 class MetricLetters(OCRDifferenceMetric):
 
-    def __init__(self):
-        super().__init__()
+    def __init__(self, precision=2, normalization=UC_NORMALIZATION, calc_func=accuracy_for,
+        preprocessings=None, postprocessings=None):
+        super().__init__(precision, normalization, calc_func, preprocessings, postprocessings)
         self._label = 'Ls'
         self.preprocessings = [filter_whitespaces, filter_puncts, filter_digits]
 
-    def _calc(self):
+    def _forward(self):
         self.diff = edit_distance(self._data_reference, self._data_candidate)
 
 
 class MetricWords(OCRDifferenceMetric):
 
-    def __init__(self):
-        super().__init__()
+    def __init__(self, precision=2, normalization=UC_NORMALIZATION, calc_func=accuracy_for,
+        preprocessings=None, postprocessings=None):
+        super().__init__(precision, normalization, calc_func, preprocessings, postprocessings)
         self._label = 'Ws'
         self.preprocessings = [tokenize]
     
-    def _calc(self):
+    def _forward(self):
         self.diff = edit_distance(self._data_reference, self._data_candidate)
 
 
 class MetricBoW(OCRDifferenceMetric):
 
-    def __init__(self):
-        super().__init__()
+    def __init__(self, precision=2, normalization=UC_NORMALIZATION, calc_func=accuracy_for,
+        preprocessings=None, postprocessings=None):
+        super().__init__(precision, normalization, calc_func, preprocessings, postprocessings)
         self._label = 'BoWs'
         self.preprocessings = [tokenize]
 
-    def _calc(self):
+    def _forward(self):
         self.diff = bag_of_tokens(self._data_reference, self._data_candidate)
 
 
 class MetricIR(OCRDifferenceMetric):
 
-    def __init__(self, languages=None):
-        super().__init__()
+    def __init__(self, precision=2, normalization=UC_NORMALIZATION, calc_func=accuracy_for,
+        preprocessings=None, postprocessings=None, languages=None):
+        super().__init__(precision, normalization, calc_func, preprocessings, postprocessings)
         self.languages = languages
         self.preprocessings = [tokenize_to_sorted_set, 
             strip_stopwords_for(self.languages)
         ]
         # no aligning required, we rely on nltk
-        self.align_func = None
+        self.calc_func = None
         # no percentual value
         self.postprocessings = []
 
-    def _calc(self):
+    def _forward(self):
         """to remind that this class needs further refinement"""
         raise NotImplementedError
 
 
 class MetricIRPre(MetricIR):
 
-    def __init__(self, languages=None):
-        super().__init__(languages)
+    def __init__(self, precision=2, normalization=UC_NORMALIZATION, calc_func=accuracy_for,
+        preprocessings=None, postprocessings=None, languages=None):
+        super().__init__(precision, normalization, calc_func, preprocessings, postprocessings, languages)
         self._label = 'Pre'
 
-    def _calc(self):
+    def _forward(self):
         self.diff = ir_precision(self._data_reference, self._data_candidate)
 
 
 class MetricIRRec(MetricIR):
 
-    def __init__(self, languages=None):
-        super().__init__(languages)
+    def __init__(self, precision=2, normalization=UC_NORMALIZATION, calc_func=accuracy_for,
+        preprocessings=None, postprocessings=None, languages=None):
+        super().__init__(precision, normalization, calc_func, preprocessings, postprocessings, languages)
         self._label = 'Rec'
 
-    def _calc(self):
+    def _forward(self):
         self.diff = ir_recall(self._data_reference, self._data_candidate)
 
 
 class MetricIRFM(MetricIR):
 
-    def __init__(self, languages=None):
-        super().__init__(languages)
+    def __init__(self, precision=2, normalization=UC_NORMALIZATION, calc_func=accuracy_for,
+        preprocessings=None, postprocessings=None, languages=None):
+        super().__init__(precision, normalization, calc_func, preprocessings, postprocessings, languages)
         self._label = 'FM'
 
-    def _calc(self):
+    def _forward(self):
         self.diff = ir_fmeasure(self._data_reference, self._data_candidate)
 
 

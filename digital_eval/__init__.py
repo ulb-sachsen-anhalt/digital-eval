@@ -11,6 +11,9 @@ from .evaluation import (
 )
 
 from .metrics import (
+    accuracy_for,
+    error_for,
+    UC_NORMALIZATION,
     MetricChars,
     MetricLetters,
     MetricWords,

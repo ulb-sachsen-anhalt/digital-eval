@@ -15,6 +15,9 @@ from digital_eval import (
     Evaluator,
     report_stdout,
     ocr_to_text,
+    UC_NORMALIZATION,
+    accuracy_for,
+    error_for,
     MetricChars,
     MetricLetters,
     MetricWords,
@@ -28,6 +31,16 @@ from digital_eval import (
 DEFAULT_VERBOSITY = 0
 VERBOSITY = DEFAULT_VERBOSITY
 EVAL_VERBOSITY = DEFAULT_VERBOSITY
+
+# calculations
+DEFAULT_CALCULCATION = 'acc'
+CALC_DICT = {
+    'acc' : accuracy_for,
+    'err' :error_for, 
+}
+DEFAULT_UTF8_NORM = UC_NORMALIZATION
+
+# metrics
 DEFAULT_OCR_METRICS = 'Cs,Ls'
 DEFAULT_OCR_METRIC_PREPROCESSINGS = ''
 DEFAULT_OCR_METRIC_POSTPROCESSINGS = ''
@@ -50,10 +63,11 @@ METRIC_DICT = {
 }
 
 
-def _initialize_metrics(the_metrics) -> List:
+def _initialize_metrics(the_metrics, norm, calc) -> List:
     _tokens = the_metrics.split(',')
     try:
-        return [METRIC_DICT[m]() for m in _tokens]
+        return [METRIC_DICT[m](normalization=norm, calc_func=CALC_DICT[calc]) 
+                for m in _tokens]
     except KeyError as _err:
         _msg = f"Unknown Metric with label '{_err.args[0]}' requested.\nPlease use one of the following labels: '{','.join(METRIC_DICT.keys())}'."
         print(_msg)
@@ -63,11 +77,12 @@ def _initialize_metrics(the_metrics) -> List:
 ########
 # MAIN #
 ########
-def _main(path_candidates, path_reference, metrics, xtra, is_legacy=False, is_sequential=False):
+def _main(path_candidates, path_reference, metrics, utf8norm, calc, xtra, is_legacy=False, is_sequential=False):
 
     # create basic evaluator instance
     evaluator = Evaluator(path_candidates, VERBOSITY, xtra)
-    evaluator.metrics = _initialize_metrics(metrics)
+    evaluator.metrics = _initialize_metrics(metrics, norm=utf8norm, calc=calc)
+    evaluator.calc = calc
     
     if is_legacy:
         evaluator.to_text_func = ocr_to_text
@@ -118,36 +133,47 @@ def start():
         """)
     PARSER.add_argument(
         "candidates", 
-        help="Root Directory to inspect")
+        help="Root Directory to inspect"
+        )
     PARSER.add_argument("-ref", "--reference", 
         required=False,
-        help="Root Reference directory for Groundtruth or alike (optional)")
+        help="Root Reference directory for Groundtruth or alike (optional)"
+        )
     PARSER.add_argument("-v", "--VERBOSITY", 
         action='count', 
         default=DEFAULT_VERBOSITY,
-        required=False, help="""
-            Verbosity. 
-            To increase, append multiple 'v's (optional, default: '')
-            """)
-    _METRICS_KEYS = ','.join(METRIC_DICT.keys())
-    PARSER.add_argument("-m", "--metrics",
+        required=False, 
+        help=f"Verbosity flag. To increase, append multiple 'v's (optional; default: '{DEFAULT_VERBOSITY}')"
+        )
+    PARSER.add_argument("--calc", 
+        default=DEFAULT_CALCULCATION,
+        required=False,
+        help=f"Calculation to perform (optional; default: '{DEFAULT_CALCULCATION}'; available: '{','.join(CALC_DICT.keys())}')"
+        )
+    # metrics
+    PARSER.add_argument("--metrics",
         default=DEFAULT_OCR_METRICS,
-        required=False, help=f"comma separated list of metrics, for example \"-m Ls,Ws\" for Letter and Words related metrics.\nDefaults: {DEFAULT_OCR_METRICS}.\nSee: {_METRICS_KEYS} for further information")
+        required=False, 
+        help=f"List of metrics to use (optional, default: '{DEFAULT_OCR_METRICS}'; available: '{','.join(METRIC_DICT.keys())}')"
+        )
     PARSER.add_argument("--legacy", 
-        help="enable legacy text functionality with custom, simple geometry", 
         action='store_true',
-        required=False)
+        required=False,
+        help="legacy evaluation with naive rectangular geometry (optional; default: 'False')", 
+        )
+    PARSER.add_argument("--utf8norm",
+        required=False,
+        help=f"UTF-8 Unicode Python Normalization (optional; default: '{DEFAULT_UTF8_NORM}')",
+        )
     PARSER.add_argument("--sequential", 
-        help="execute calculation sequentially (optional, default: False)", 
         action='store_true',
-        required=False)
+        required=False,
+        help="Execute calculations sequentially (optional; default: 'False')", 
+        )
     PARSER.add_argument("-x", "--extra", 
         required=False, 
-        help="""
-            pass additional information to evaluation, like
-            * 'ignore_geometry' 
-            compare only textual contents without respect to coords
-            """)
+        help="pass additional information to evaluation, like 'ignore_geometry' (compare only text, ignore coords)"
+        )
     PARSER.set_defaults(legacy=False)
     PARSER.set_defaults(sequential=False)
 
@@ -160,6 +186,8 @@ def start():
     IS_SEQUENTIAL = ARGS["sequential"]
     xtra = ARGS["extra"]
     metrics = ARGS["metrics"]
+    calc = ARGS["calc"]
+    utf8norm = ARGS["utf8norm"]
 
     # go on
     # basic validation
@@ -187,7 +215,7 @@ def start():
         print(f'[DEBUG] called with {args}')
     
     # here we go
-    _main(path_candidates, path_reference, metrics, xtra, is_legacy=IS_LEGACY, is_sequential=IS_SEQUENTIAL)
+    _main(path_candidates, path_reference, metrics, utf8norm, calc, xtra, is_legacy=IS_LEGACY, is_sequential=IS_SEQUENTIAL)
 
 
 if __name__ == "__main__":

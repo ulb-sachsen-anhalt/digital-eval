@@ -8,6 +8,7 @@ import unicodedata
 import pytest
 
 from digital_eval.metrics import (
+    UC_NORMALIZATION,
     MetricChars,
     MetricLetters,
     MetricWords,
@@ -15,10 +16,11 @@ from digital_eval.metrics import (
     MetricIRPre,
     MetricIRRec,
     MetricIRFM,
-    UC_NORMALIZATION,
+    DigitalEvalMetricException,
     normalize_unicode,
     edit_distance,
-    align_difference_to_reference,
+    accuracy_for,
+    error_for,
     norm_percentual,
     bag_of_tokens,
 )
@@ -109,7 +111,71 @@ def test_metric_unicode_normalization_textual_metric():
     assert 2 == c.diff
 
 
-def test_metric_calculate_correctness():
+@pytest.mark.parametrize(["n_reference", "difference", "value"],
+    [(1000,  150, 0.85),
+     (1000, 1001,  0.0),
+     (   0,    0,  1.0)])
+def test_caluculate_accuracy(difference, n_reference, value):
+    """Behavior for accuracy of common values"""
+
+    # arrange
+    the_obj = MetricLetters()
+    the_obj.n_ref = n_reference
+    the_obj.diff = difference
+
+    # actsert
+    assert accuracy_for(the_obj) == value
+
+
+@pytest.mark.parametrize(["n_reference", "difference", "value"],
+    [(1000,  100, 0.1),
+     (1000, 1001, 0.0),
+     (   0,    0, 1.0)])
+def test_caluculate_error(difference, n_reference, value):
+    """Behavior for error rate of common values"""
+
+    # arrange
+    the_obj = MetricLetters()
+    the_obj.n_ref = n_reference
+    the_obj.diff = difference
+
+    # actsert
+    assert error_for(the_obj) == value
+
+
+def test_calculate_from_invalid_diff_raises_custom_exception():
+    """Provoke custom exception in rather academic scenario"""
+
+    # arrange
+    the_errornous = MetricChars()
+    the_errornous.n_ref = 100
+    the_errornous.diff = -10
+
+    # act
+    with pytest.raises(DigitalEvalMetricException) as exc:
+        accuracy_for(the_errornous)
+
+    # assert
+    assert 'invalid diff: -10!' == exc.value.args[0]
+
+
+def test_calculate_from_invalid_reference_raises_custom_exception():
+    """Provoke custom exception when missing reference data"""
+
+    # arrange
+    the_errornous = MetricChars()
+    the_errornous._data_reference = None
+    the_errornous.diff = 10
+
+    # act
+    with pytest.raises(DigitalEvalMetricException) as exc:
+        accuracy_for(the_errornous)
+
+    # assert
+    assert 'invalid reference data!' == exc.value.args[0]
+
+
+def test_metric_calculate_character_edit_distance():
     """explore edit-distance"""
     str1 = 'sthe lazy brown fox jumps overthe hump'
     str2 = 'fthe lazy brown fox jumps ouer the hump'
@@ -438,7 +504,7 @@ def test_metrics_token_based_more_tc_than_gt():
     m = MetricWords()
     m.diff = delta
     m._data_reference = gt.split()
-    aligned = align_difference_to_reference(m)
+    aligned = accuracy_for(m)
 
     # assert
     assert 3 == delta
@@ -473,7 +539,7 @@ def test_metrics_token_based_same_length_but_final_differ():
     m = MetricWords()
     m.diff = diff
     m._data_reference = _gt_tokenized
-    aligned = align_difference_to_reference(m)
+    aligned = accuracy_for(m)
     normed = norm_percentual(aligned)
     
     # assert
