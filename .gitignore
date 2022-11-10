@@ -4,6 +4,9 @@
 # ignore python venv
 venv
 
+# ignore build dir
+dist
+
 # ingore python caches
 **/__pycache__/**
 
