@@ -5,6 +5,8 @@ import argparse
 import os
 import sys
 
+import datetime as dt
+
 from typing import (
     List
 )
@@ -63,6 +65,17 @@ METRIC_DICT = {
     'IRFMeasure' : MetricIRFM,
     'FM' : MetricIRFM,
 }
+
+
+def _get_info():
+    here = os.path.abspath(os.path.dirname(__file__))
+    _v = ''
+    _t = ''
+    _fp = os.path.join(here, 'VERSION')
+    with open(_fp) as fp:
+        _v = fp.read()
+    _t = dt.datetime.fromtimestamp(os.stat(_fp).st_mtime).strftime("%Y-%m-%d")
+    return f'v{_v}/{_t}'
 
 
 def _initialize_metrics(the_metrics, norm, calc) -> List:
@@ -133,9 +146,9 @@ def _main(path_candidates, path_reference, metrics, utf8norm, calc, xtra, is_leg
 
 
 def start():
-    PARSER = argparse.ArgumentParser(description="""
+    PARSER = argparse.ArgumentParser(description=f"""
         Evaluate large amounts of Digital Data, 
-        organized in directory structures.
+        organized in directory structures. ({_get_info()})
         """)
     PARSER.add_argument(
         "candidates", 
