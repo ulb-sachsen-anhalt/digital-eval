@@ -2,63 +2,51 @@
 
 ![example workflow](https://github.com/ulb-sachsen-anhalt/digital-eval/actions/workflows/python-app.yml/badge.svg)
 
-Python3 Tool to evaluate outcomes from mass digitalization workflows.
+Python3 Tool to report evaluation outcomes from mass digitalization workflows.
 
 ## Features
 
-* textual metrics based on characters or words plus common Information Retrieval
-* groundtruth formats: ALTO, PAGE or plain text
-* candidate formats: ALTO, PAGE or plain text
-* match groundtruth and candidates by filename beginnings
-* sum up evaluation on domain range (with multiple subdomains)
-* speedup with parallel execution depending on available cores
-* use geometric information to evaluate only specific frame (i.e. specific column or region from large page) of candidate (required ALTO or PAGE format)
-
-## Usage
+* match automatically groundtruth (i.e. reference data) and candidates by filename
+* use geometric information to evaluate only specific frame (i.e. specific column or region from large page) of candidates (requires ALTO or PAGE format)
+* aggregate evaluation outcome on domain range (with multiple subdomains)
+* choose from textual metrics based on characters or words plus common Information Retrieval
+* choose between accuracy / error rate and different UTF-8 Python norms
+* formats: ALTO, PAGE or plain text for both groundtruth and candidates
+* speedup with parallel execution
 
 ## Installation
 
 ```bash
-# clone local
-git clone <repository-url> <local-dir>
-
-# enable virtual python environment (linux)
-# and install libraries
-python3 -m venv venv
-. venv/bin/activate
-pip install -U pip
-pip install -r requirements.txt
-
-# install and run
-pip install .
-digital-eval --help
+pip install digital-eval
 ```
+
+## Usage
 
 ### Metrics
 
-#### Character based Metrics
+Calculate similarity (`acc`) or difference (`err`) ratios between single reference/groundtruth and test/candidate item.  
 
-* Character Accuracy (CCA): calculate similarity of candidate and reference groundtruth with edit-distance
-* Letter Accuracy (CLA): respect only alphabetical characters, i.e. no whitespaces, interpunctuations or numbers (arabic and persian)
+#### Edit-Distance based
 
-#### Word based Metrics
+Character-based text string minus whitechars (`Cs`, `Characters`) or Letter-based (`Ls`, `Letters`) minus whites, punctuation and digits.
+Word/Token-based edit-distance of single tokens identified by whitespaces.
 
-* Word Accuracy (WWA): like CCA, but on "word"-level ("word" means each whitespace separated token, therefore also numbers, abbreviations, etc.)
-* Bag of Words (WBoW): no respect to "word" order, calculate intersection between candidate and groundtruth reference
+#### Set based
 
-#### Information Retrieval
+Calculate union of sets of tokens/words (`BoW`, `BagOfWords`).
+Operate on sets of tokens/words with respect to language specific stopwords using [nltk](https://www.nltk.org/)-framework for:
 
-Operate on sets of "words" with respect to language specific stopwords using [nltk](https://www.nltk.org/)-framework.
+* Precision (`IRPre`, `Pre`, `Precision`): How many tokens from candidate are in groundtruth reference?
+* Recall (`IRRec`, `Rec`, `Recall`): How many tokens from groundtruth reference should candidate include?
+* F-Measure (`IRFMeasure`, `FM`): weighted ratio Precision / Recall
 
-* Precision (IRPre): How many tokens from candidate are also in groundtruth reference?
-* Recall (IRRec): How many tokens from groundtruth reference should candidate include?
-* F-Measure (IRFM): weighted mean Precision / Recall
+### UTF-8 Normalisations
+
+Use standard Python Implementation of UTF-8 normalizations; default: `NFKD`.
 
 ### Statistics
 
-Statistics are calculated via [numpy](https://numpy.org/) and include arithmetic mean, median and an outlier detection using interquartile range.
-
-For each metric statistics are calculated based on the specific groundtruth reference (ref) for each metric, i.e. characters, letters, tokens or a set of tokens.
+Statistics calculated via [numpy](https://numpy.org/) include arithmetic mean, median and outlier detection with interquartile range and are based on the specific groundtruth/reference (ref) for each metric, i.e. char, letters or tokens.
 
 ### Evaluate treelike structures
 
@@ -75,7 +63,7 @@ candidate root/
 │         └── <page-01>.xml
 ```
 
-Now call via: 
+Now call via:
 
 ```bash
 digital-eval <path-candidate-root>/domain/ -ref <path-groundtruth>/domain/
@@ -89,22 +77,35 @@ Structured OCR is considered to contain valid geometrical and textual data on wo
 
 Inconsistent OCR Groundtruth with empty texts (ALTO String elements missing CONTENT or PAGE without TextEquiv) or invalid geometrical coordinates (less than 3 points or even empty) will lead to evaluation errors if geometry must be respected.
 
+## Development
+
+```bash
+# clone local
+git clone <repository-url> <local-dir>
+cd <local-dir>
+
+# enable virtual python environment (linux)
+# and install libraries
+python3 -m venv venv
+. venv/bin/activate
+python -m pip install -U pip
+python -m pip install -r requirements.txt
+
+# install
+pip install .
+
+# optional:
+# install additional development dependencies
+pip install -r tests/test_requirements.txt
+pytest -v
+
+# run
+digital-eval --help
+```
+
 ## Contribute
 
 Contributions, suggestions and proposals welcome!
-
-### Development
-
-```bash
-# install additional development dependencies
-pip install -r tests/test_requirements.txt
-
-# install in editable mode
-pip install -e .
-
-# run tests
-pytest -v
-```
 
 ## Licence
 
