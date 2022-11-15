@@ -147,8 +147,7 @@ def _main(path_candidates, path_reference, metrics, utf8norm, calc, xtra, is_leg
 
 def start():
     PARSER = argparse.ArgumentParser(description=f"""
-        Evaluate large amounts of Digital Data, 
-        organized in directory structures. ({_get_info()})
+        Evaluate Mass Digital Data. ({_get_info()})
         """)
     PARSER.add_argument(
         "candidates", 

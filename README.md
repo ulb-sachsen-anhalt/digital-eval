@@ -79,6 +79,8 @@ Inconsistent OCR Groundtruth with empty texts (ALTO String elements missing CONT
 
 ## Development
 
+Plattform: Intel(R) Core(TM) i5-6500 CPU@3.20GHz, 16GB RAM, Ubuntu 20.04 LTS, Python 3.8.
+
 ```bash
 # clone local
 git clone <repository-url> <local-dir>
