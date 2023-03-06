@@ -6,14 +6,13 @@ import os
 
 import datetime as dt
 
-
 # script constants
 DEFAULT_VERBOSITY = 0
 VERBOSITY = DEFAULT_VERBOSITY
 EVAL_VERBOSITY = DEFAULT_VERBOSITY
 
 
-def _get_info():
+def get_info():
     here = os.path.abspath(os.path.dirname(__file__))
     _v = ''
     _t = ''
@@ -24,42 +23,45 @@ def _get_info():
     return f'v{_v}/{_t}'
 
 
-def _main(path_input_ocr, **kwargs):
+def main(path_input_ocr, **kwargs):
     """Determine main workflow"""
 
     print(f"{path_input_ocr} with {kwargs}")
 
 
 def start():
-    PARSER = argparse.ArgumentParser(description=f"""
-        Evaluate Mass Digital Data. ({_get_info()})
+    arg_parser: argparse.ArgumentParser = argparse.ArgumentParser(
+        description=f"""
+        Evaluate Mass Digital Data. ({get_info()})
         """)
-    PARSER.add_argument(
-        "input_ocr", 
+    arg_parser.add_argument(
+        "input_ocr",
         help="Path of OCR-Data to process"
-        )
-    PARSER.add_argument("-f","--frame", 
+    )
+    arg_parser.add_argument(
+        "-f", "--frame",
         required=False,
         help=f"Frame to slice words/lines/regions from input OCR-Data"
-        )
-    PARSER.add_argument("-v", "--verbosity", 
-        action='count', 
+    )
+    arg_parser.add_argument(
+        "-v", "--verbosity",
+        action='count',
         default=DEFAULT_VERBOSITY,
-        required=False, 
+        required=False,
         help=f"Verbosity flag. To increase, append multiple 'v's (optional; default: '{DEFAULT_VERBOSITY}')"
-        )
-    
-    ARGS = vars(PARSER.parse_args())
-    path_input_ocr = ARGS["input_ocr"]
+    )
+
+    args = vars(arg_parser.parse_args())
+    path_input_ocr = args["input_ocr"]
     # TODO
     # fail-fast: check if given input path is valid
-    del ARGS["input_ocr"]
-    
-    global VERBOSITY
-    VERBOSITY = ARGS["verbosity"]
-    del ARGS["verbosity"]
+    del args["input_ocr"]
 
-    _main(path_input_ocr, **ARGS)
+    global VERBOSITY
+    VERBOSITY = args["verbosity"]
+    del args["verbosity"]
+
+    main(path_input_ocr, **args)
 
 
 if __name__ == "__main__":
