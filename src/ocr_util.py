@@ -2,13 +2,12 @@
 """OCR Utils"""
 
 import argparse
-import sys
-from argparse import _SubParsersAction, ArgumentParser
-from typing import Any, Union, Final
+from typing import Final
 
-from FrameFilterAltoV3 import FrameFilterAltoV3
-from datatypes import Point2DList, Point2D
-from Util import Util
+from ocr_util.datatypes import Point2D, Point2DList
+from ocr_util.Util import Util
+from ocr_util.FrameFilterAltoV3 import FrameFilterAltoV3
+
 
 # script constants
 
@@ -78,9 +77,8 @@ def start() -> None:
             points=points,
             verbosity=verbosity
         )
-    filter_result: str = frame_filter.process()
-
-    print('filter_result', filter_result)
+        filter_result: str = frame_filter.process()
+        print('filter_result', filter_result)
 
 
 if __name__ == "__main__":

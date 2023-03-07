@@ -1,4 +1,4 @@
-from datatypes import Point2D
+from .datatypes import Point2D
 
 
 class Util:

@@ -4,7 +4,7 @@ from typing import Final, Mapping, List, Tuple
 import numpy as np
 from lxml import etree
 
-from datatypes import Point2DList, Tuple2D
+from .datatypes import Point2DList, Tuple2D
 
 
 class FrameFilterAltoV3:
@@ -12,7 +12,7 @@ class FrameFilterAltoV3:
     __FILTER_ALTO_ELS: Final[List[str]] = ['TextBlock', 'Illustration', 'GraphicalElement']
     __DELETE_ALTO_ELS: Final[List[str]] = ['SP']
 
-    def __init__(self, path_alto_in: str, points: Point2DList, path_alto_out: str, verbosity: int = 0):
+    def __init__(self, path_alto_in: str, points: Point2DList, path_alto_out: str = None, verbosity: int = 0):
         self.verbosity = verbosity
         self.__path_alto_in: str = path_alto_in
         self.__path_alto_out: str = path_alto_out
@@ -23,6 +23,10 @@ class FrameFilterAltoV3:
         self.__doc_root = None
         start_msg: str = f'filter strs from {path_alto_in} between {points}'
         print('[INFO] ' + start_msg)
+
+    #
+    def get_out_path(self) -> str:
+        return self.__path_out
 
     def process(self) -> str:
         return self.__process_rectangle()
