@@ -1,19 +1,18 @@
 # -*- coding: utf-8 -*-
 """Model Module"""
 
+import xml.dom.minidom
 from enum import (
     Enum
 )
+from pathlib import PurePath
 from typing import (
-    List, 
+    List, Optional, Dict,
 )
-
-import xml.dom.minidom
 
 from shapely.geometry import (
     Polygon
 )
-
 
 PAGE_2013 = 'http://schema.primaresearch.org/PAGE/gts/pagecontent/2013-07-15'
 XML_NS = {'alto': 'http://www.loc.gov/standards/alto/ns-v3#',
@@ -21,7 +20,8 @@ XML_NS = {'alto': 'http://www.loc.gov/standards/alto/ns-v3#',
 
 # mark information as 'not available'
 # which *might* be set later on
-UNSET = 'n.a.'
+UNSET: str = 'n.a.'
+
 
 class PieceLevel(Enum):
     # more hierarchically
@@ -38,17 +38,18 @@ class PieceLevel(Enum):
     def __lt__(self, other_lvl):
         if not isinstance(other_lvl, PieceLevel):
             return False
-        return self.value < other_lvl.value    
+        return self.value < other_lvl.value
 
     def __gt__(self, other_lvl):
         if not isinstance(other_lvl, PieceLevel):
-            return False       
+            return False
         return self.value > other_lvl.value
 
     def __eq__(self, other_lvl):
         if not isinstance(other_lvl, PieceLevel):
             return False
         return self.value == other_lvl.value
+
 
 class PieceContent(Enum):
     # more layout
@@ -63,6 +64,7 @@ class PieceContent(Enum):
     ANNOUNCEMENT = 7
     ADVERTISEMENT = 8
 
+
 class PieceTranscription:
 
     def __init__(self):
@@ -70,40 +72,43 @@ class PieceTranscription:
         self.text = ''
         self.confidence = 0.0
 
+
 class PieceData:
 
     def __init__(self):
         self.mime_type = UNSET
         self.data = None
 
+
 class Piece:
     """Piece base composition for analytical purposes"""
 
-    def __init__(self, id=UNSET):
-        self.id = id
-        self.level = PieceLevel.PAGE
-        self.subject = PieceContent.UNKNOWN
-        self.data = None
-        self._transcriptions = []
-        self.parent = None
-        self.custom = {}
-        self.dimensions = []
-        self.pieces = []
+    def __init__(self, identifier: str = UNSET):
+        self.id: str = identifier
+        self.file_path: Optional[PurePath] = None
+        self.level: PieceLevel = PieceLevel.PAGE
+        self.subject: PieceContent = PieceContent.UNKNOWN
+        self.data: PieceData = Optional[None]
+        self._transcriptions: List = []
+        self.parent: Piece = Optional[None]
+        self.custom: Dict = {}
+        self.dimensions: List = []
+        self.pieces: List = []
 
     def __repr__(self) -> str:
         return f"{self.id}:{self.transcription}"
 
     def _is_superstruct(self):
         return self.level in [
-            PieceLevel.PAGE, 
-            PieceLevel.REGION, 
+            PieceLevel.PAGE,
+            PieceLevel.REGION,
             PieceLevel.LINE,
             PieceLevel.TABLE,
             PieceLevel.TABLE_CELL,
-            ]
+        ]
 
     @property
-    def transcription(self):
+    def transcription(self) -> str:
         """Get textual content as sequential textual string,
         with the order corresponding to it's _previous and
         next properties.
@@ -115,11 +120,11 @@ class Piece:
             return self._transcriptions[0].text
         elif not self._transcriptions and self._is_superstruct():
             return ' '.join([_p.transcription
-                for _p in self.pieces])
+                             for _p in self.pieces])
         raise RuntimeError(f"ID={self.id}: Can't get text_content for {self.id}!")
 
     @transcription.setter
-    def transcription(self, transcription):
+    def transcription(self, transcription: str) -> None:
         """Set textual transcription representing this piece"""
         _transcription = PieceTranscription()
         if transcription is not None and len(transcription.strip()) > 0:
@@ -149,14 +154,14 @@ class Piece:
         return self_hull.contains(other_shape.centroid)
 
 
-def to_pieces(path_in):
+def to_pieces(path_in) -> Piece:
     """Transform given input in various formats 
     into internal Piece-Representation"""
 
     return _read_data(path_in)
 
 
-def _read_data(path_in):
+def _read_data(path_in: str) -> Piece:
     try:
         doc_root = xml.dom.minidom.parse(path_in).documentElement
     except Exception as _exc:
@@ -164,23 +169,26 @@ def _read_data(path_in):
     if doc_root is None:
         raise RuntimeError('invalid document root')
     name_space = doc_root.getAttribute('xmlns')
+    piece: Optional[Piece]
     if doc_root.localName == 'alto':
-        return _extract_alto_data(doc_root)
+        piece = _extract_alto_data(doc_root)
     elif name_space == PAGE_2013:
-       return  _extract_page_data(doc_root)
+        piece = _extract_page_data(doc_root)
     elif doc_root.localName == 'PcGts':
-        return _extract_page_data(doc_root, ns='pc:')
+        piece = _extract_page_data(doc_root, ns='pc:')
     else:
         raise RuntimeError(
             'Unknown Data-Format "{}" in "{}"'.format(doc_root.localName, path_in))
+    piece.file_path = PurePath(path_in)
+    return piece
 
 
-def _extract_alto_data(doc_root):
+def _extract_alto_data(doc_root) -> Piece:
     page_one = doc_root.getElementsByTagName('Page')[0]
     _page_width = int(page_one.getAttribute('WIDTH'))
     _page_height = int(page_one.getAttribute('HEIGHT'))
     _dimensions = [[0, 0], [_page_width, 0], [_page_width, _page_height], [0, _page_height]]
-    top_piece = Piece(page_one.getAttribute('ID'))
+    top_piece: Piece = Piece(page_one.getAttribute('ID'))
     top_piece.dimensions = _dimensions
     top_piece.level = PieceLevel.PAGE
     top_piece.subject = __get_piece_subject_alto(doc_root)
@@ -195,7 +203,7 @@ def _extract_alto_data(doc_root):
             comp_piece.dimensions = __extract_alto_dimensions(_comp_block)
             text_blocks = _comp_block.getElementsByTagName('TextBlock')
             if len(text_blocks) < 1:
-                raise RuntimeError(f"Empty ALTO {doc_root} - no blocks!")       
+                raise RuntimeError(f"Empty ALTO {doc_root} - no blocks!")
             comp_piece.pieces = _read_alto_blocks(text_blocks, comp_piece)
             _block_pieces.append(comp_piece)
     else:
@@ -277,7 +285,7 @@ def _read_words_alto(text_strings, parent):
 
 def __extract_alto_dimensions(el, prefer_box=True):
     if not prefer_box:
-        _shape = [ n for n in el.getChildren() if n.localName == 'Shape']
+        _shape = [n for n in el.getChildren() if n.localName == 'Shape']
         if len(_shape) == 1:
             # TODO: handle ALTO Shape
             pass
@@ -286,21 +294,21 @@ def __extract_alto_dimensions(el, prefer_box=True):
         _top = int(el.getAttribute('VPOS'))
         _height = int(el.getAttribute('HEIGHT'))
         _width = int(el.getAttribute('WIDTH'))
-        return [[_left,_top], [_left + _width, _top], 
+        return [[_left, _top], [_left + _width, _top],
                 [_left + _width, _top + _height], [_left, _top + _height]]
     raise RuntimeError(f"{el.localName}@ID={el.getAttribute('ID')}: Can't calculate dimensions")
 
 
-def _extract_page_data(doc_root, ns=''):
-    page_one = doc_root.getElementsByTagName(ns+'Page')[0]
+def _extract_page_data(doc_root, ns='') -> Piece:
+    page_one = doc_root.getElementsByTagName(ns + 'Page')[0]
     page_width = int(page_one.getAttribute('imageWidth'))
     page_height = int(page_one.getAttribute('imageHeight'))
     top_piece = Piece(page_one.getAttribute('imageFilename'))
     top_piece.level = PieceLevel.PAGE
-    top_piece.dimensions = [[0,0], [page_width,0], 
-        [page_width, page_height], [0, page_height]]
-    regions = doc_root.getElementsByTagName(ns+'TextRegion')
-    regions.extend(doc_root.getElementsByTagName(ns+'TableCell')) 
+    top_piece.dimensions = [[0, 0], [page_width, 0],
+                            [page_width, page_height], [0, page_height]]
+    regions = doc_root.getElementsByTagName(ns + 'TextRegion')
+    regions.extend(doc_root.getElementsByTagName(ns + 'TableCell'))
     # no regions is considered to be reasonable
     # don't raise exception, it's an empty page
     if len(regions) < 1:
@@ -311,7 +319,7 @@ def _extract_page_data(doc_root, ns=''):
     for region in regions:
         _piece = __from_page_text_element(region, top_piece, ns)
         # go into details
-        page_lines = region.getElementsByTagName(ns+'TextLine')
+        page_lines = region.getElementsByTagName(ns + 'TextLine')
         if len(page_lines) > 0:
             _piece.pieces = _read_lines_page(page_lines, _piece, ns)
         _piece.parent = top_piece
@@ -326,7 +334,7 @@ def _read_lines_page(page_lines, parent, ns) -> List:
     line_pieces = []
     for page_line in page_lines:
         line_piece = __from_page_text_element(page_line, parent, ns)
-        word_tokens = page_line.getElementsByTagName(ns+'Word')
+        word_tokens = page_line.getElementsByTagName(ns + 'Word')
         line_piece.parent = parent
         # inspect PAGE on word level, if set
         if len(word_tokens) > 0:
@@ -374,22 +382,22 @@ def __from_page_text_element(element, parent, ns) -> Piece:
     # invariant: at least want 3 points, otherwise polygon area == Zero
     if len(_points) < 3:
         raise RuntimeError(f"{_local}@ID={_id} way too few points {_points}")
-    _piece.dimensions = [[int(_point.split(',')[0]),int(_point.split(',')[1])] 
-        for _point in _points]
+    _piece.dimensions = [[int(_point.split(',')[0]), int(_point.split(',')[1])]
+                         for _point in _points]
 
     # pick text if on word level
     if _type == PieceLevel.WORD:
         _txt_eqs = [n for n in element.childNodes if n.localName == 'TextEquiv']
         if len(_txt_eqs) != 1:
             raise RuntimeError(f"{_local}@ID={_id} invalid txt node {_txt_eqs}")
-        _first_unicode = _txt_eqs[0].getElementsByTagName(ns+'Unicode')[0]
+        _first_unicode = _txt_eqs[0].getElementsByTagName(ns + 'Unicode')[0]
         if not _first_unicode.firstChild:
             raise RuntimeError(f"{_local}@ID={_id} empty unicode node!")
         _content = _first_unicode.firstChild.nodeValue
         if not _content or not _content.strip():
             raise RuntimeError(f"{_local}@ID={_id} invalid txt content!")
         _piece.transcription = _content
-    
+
     return _piece
 
 
@@ -399,11 +407,11 @@ def ___map_piece_type(element):
     if _local == 'Word':
         _name = PieceLevel.WORD
     elif _local == 'TextLine':
-        _name =  PieceLevel.LINE
+        _name = PieceLevel.LINE
     elif _local == 'TextRegion':
         _name = PieceLevel.REGION
     elif _local == 'TableRegion':
         _name = PieceLevel.TABLE
     elif _local == 'TableCell':
         _name = PieceLevel.TABLE_CELL
-    return(_name, _local)
+    return (_name, _local)
