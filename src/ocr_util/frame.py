@@ -1,10 +1,46 @@
 import os
-from typing import Final, Mapping, List, Tuple
+import re
+from pathlib import Path
+from typing import Final, Mapping, Match
+from typing import NamedTuple, Tuple, List
 
 import numpy as np
 from lxml import etree
+from shapely import Polygon
+from shapely.geometry import Point
 
-from .datatypes import Point2DList, Tuple2D
+Tuple2D = Tuple[float, float]
+
+
+class Point2D(NamedTuple):
+    x: float
+    y: float
+
+    def to_tuple(self) -> Tuple2D:
+        return self.x, self.y
+
+
+Point2DList = List[Point2D]
+
+
+class Util:
+
+    @staticmethod
+    def str_to_point_2d(point_str: str) -> Point2D:
+        x_str: str
+        y_str: str
+        x_str, y_str = point_str.split(',')
+        x = float(x_str)
+        y = float(y_str)
+        return Point2D(x, y)
+
+
+class Point2D(NamedTuple):
+    x: float
+    y: float
+
+    def to_tuple(self) -> Tuple2D:
+        return self.x, self.y
 
 
 class FrameFilterAltoV3:
@@ -280,3 +316,36 @@ class FrameFilterAltoV3:
         top_left: Tuple2D = (min_x, min_y)
         bottom_right: Tuple2D = (max_x, max_y)
         return top_left, bottom_right
+
+
+class FrameFilter:
+    __POINT_LIST_PATTERN: str = r'^(?:(?:-?\d+(?:\.\d+)?),(?:-?\d+(?:\.\d+)?)\ ?)+$'
+
+    @staticmethod
+    def __str_to_polygon(points_list: str) -> Polygon:
+        match: Match = re.match(FrameFilter.__POINT_LIST_PATTERN, points_list)
+        points_str: str = match.string
+        point_strs_arr: List[str] = points_str.split(' ')
+        points_arr: List[Point] = list(map(FrameFilter.__str_to_point, point_strs_arr))
+        return Polygon(points_arr)
+
+    @staticmethod
+    def __str_to_point(point_str: str) -> Point:
+        x_str: str
+        y_str: str
+        x_str, y_str = point_str.split(',')
+        x = float(x_str)
+        y = float(y_str)
+        return Point(x, y)
+
+    def __init__(self, ocr_path_in: str, points_list: str):
+        self.__ocr_path_in: Path = Path(ocr_path_in)
+        self.__polygon: Polygon = FrameFilter.__str_to_polygon(points_list)
+
+    @property
+    def ocr_file_path(self) -> Path:
+        return self.__ocr_path_in
+
+    @property
+    def polygon(self) -> Polygon:
+        return self.__polygon

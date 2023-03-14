@@ -4,10 +4,8 @@
 import argparse
 from typing import Final
 
-from ocr_util.datatypes import Point2D, Point2DList
-from ocr_util.Util import Util
-from ocr_util.FrameFilterAltoV3 import FrameFilterAltoV3
-
+from digital_eval import Piece
+from ocr_util import Point2D, Util, Point2DList, FrameFilterAltoV3
 
 # script constants
 
