@@ -4,20 +4,17 @@
 from os.path import (
     join,
 )
-
-import shutil
+from pathlib import PurePath
 
 import pytest
-
 from shapely.geometry import (
     Polygon
 )
 
 from digital_eval.model import (
     to_pieces,
-    PieceLevel,
+    PieceLevel, Piece,
 )
-
 from .conftest import (
     TEST_RES_DIR,
 )
@@ -106,6 +103,7 @@ def test_to_pieces_page_odem():
     assert line1_text == 'und erklaͤret die Schrift nicht nur al⸗'
     assert page_piece.pieces[2].pieces[0].transcription == line1_text
 
+
 # @pytest.mark.skip("disabled")
 @pytest.fixture(name='odem01', scope='module')
 def _fixture_odem01():
@@ -136,7 +134,7 @@ def test_pieces_odem01_region_and_page(odem01):
 def test_pieces_odem01_page_not_in_region(odem01):
     """Evidently can't a super-structure
     *not* be contained in it's own child"""
-    
+
     # top level pageregion 1 is not contained in region 3
     with pytest.raises(RuntimeError) as _rer:
         odem01 not in odem01.pieces[0]
@@ -193,20 +191,20 @@ def test_pieces_zd101_region01_dimensions(zd101):
     region1 = zd101.pieces[0]
     line1 = region1.pieces[0]
     assert region1.dimensions == [
-        [802, 2100], [1901,2100], [1901,2223], [802,2223]]
+        [802, 2100], [1901, 2100], [1901, 2223], [802, 2223]]
 
     # this region has only one line
     assert len(region1.pieces) == 1
     # which is completely same as region
-    assert line1.dimensions == [[802, 2100], 
-        [1901,2100], [1901, 2223], [802,2223]]
+    assert line1.dimensions == [[802, 2100],
+                                [1901, 2100], [1901, 2223], [802, 2223]]
     assert region1.dimensions == line1.dimensions
     # this line has two words
     assert len(line1.pieces) == 2
     word1 = line1.pieces[0]
     # coords for word01 differ sligthly from line
-    assert word1.dimensions == [[802, 2101], 
-        [1246, 2101], [1246, 2219], [802, 2219]]
+    assert word1.dimensions == [[802, 2101],
+                                [1246, 2101], [1246, 2219], [802, 2219]]
     assert word1 in line1 and line1 in region1
 
 
@@ -241,6 +239,7 @@ def test_piece_hierarchy_bottom_up():
     assert PieceLevel.LINE < PieceLevel.PAGE
     assert PieceLevel.WORD < PieceLevel.PAGE
 
+
 def test_piece_hierarchy_top_down():
     """The are all considere equal"""
 
@@ -248,3 +247,10 @@ def test_piece_hierarchy_top_down():
     assert PieceLevel.LINE > PieceLevel.WORD
     assert PieceLevel.REGION > PieceLevel.WORD
     assert PieceLevel.WORD > PieceLevel.GLYPH
+
+
+def test_piece_file_path():
+    ocr_path: str = f'{TEST_RES_DIR}/groundtruth/alto/1667522809_J_0073_0001_375x2050_2325x9550.xml'
+    page_piece: Piece = to_pieces(ocr_path)
+
+    assert isinstance(page_piece.file_path, PurePath)
