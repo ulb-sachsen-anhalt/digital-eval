@@ -2,9 +2,14 @@
 import os
 import shutil
 import xml.dom.minidom as minidom
+from pathlib import Path
+from typing import List
 
 import pytest
+from shapely import Polygon
 
+from digital_eval import Piece
+from ocr_util import FrameFilter
 from src.ocr_util import FrameFilterAltoV3, Point2D
 
 RES_ROOT = os.path.join('tests', 'resources', 'frames')
@@ -110,3 +115,15 @@ def test_filter_0001_0260(xml_fixture):
     # ensure proper double quotes - not direct possible, but see if it gets
     # parsed
     assert len(text_blocks[0].getElementsByTagName('String')) == 84
+
+
+def test_frame_filter(xml_fixture):
+    path: str = xml_fixture['0768']
+    points_str: str = '2892,2480 5072,2480 5072,5148 2892,5148.123'
+    frame_filter: FrameFilter = FrameFilter(path, points_str)
+
+    piece: Piece = frame_filter.process()
+
+    assert isinstance(piece, Piece)
+    assert isinstance(frame_filter.polygon, Polygon)
+    assert isinstance(frame_filter.ocr_file_path, Path)

@@ -1,13 +1,16 @@
 import os
 import re
+from copy import deepcopy
 from pathlib import Path
-from typing import Final, Mapping, Match
+from typing import Final, Mapping, Match, Optional
 from typing import NamedTuple, Tuple, List
 
 import numpy as np
 from lxml import etree
 from shapely import Polygon
 from shapely.geometry import Point
+
+from digital_eval import Piece, to_pieces, PieceLevel
 
 Tuple2D = Tuple[float, float]
 
@@ -338,9 +341,34 @@ class FrameFilter:
         y = float(y_str)
         return Point(x, y)
 
+    @staticmethod
+    def __is_polygon_in_piece(polygon: Polygon, piece: Piece) -> bool:
+        piece_conv_hull: Polygon = Polygon(piece.dimensions).convex_hull
+        return piece_conv_hull.contains(polygon.centroid)
+
+    @staticmethod
+    def __calculate_dimensions(piece: Piece) -> List[List[float]]:
+        min_x: Optional[float] = None
+        min_y: Optional[float] = None
+        max_x: Optional[float] = None
+        max_y: Optional[float] = None
+        for point in piece.dimensions:
+            point_x: float = point[0]
+            point_y: float = point[0]
+            if min_x is None or point_x < min_x:
+                min_x = point_x
+            if min_y is None or point_y < min_y:
+                min_y = point_y
+            if max_x is None or point_x > max_x:
+                max_x = point_x
+            if max_y is None or point_y > max_y:
+                max_y = point_y
+        return [[min_x, min_y], [max_x, min_y], [max_x, max_y], [min_x, max_y]]
+
     def __init__(self, ocr_path_in: str, points_list: str):
         self.__ocr_path_in: Path = Path(ocr_path_in)
         self.__polygon: Polygon = FrameFilter.__str_to_polygon(points_list)
+        self.__piece_orig: Piece = to_pieces(ocr_path_in)
 
     @property
     def ocr_file_path(self) -> Path:
@@ -349,3 +377,22 @@ class FrameFilter:
     @property
     def polygon(self) -> Polygon:
         return self.__polygon
+
+    def process(self) -> Optional[Piece]:
+        piece_result: Piece = deepcopy(self.__piece_orig)
+        self.__process_piece(piece_result)
+        return piece_result
+
+    def __process_piece(self, piece: Piece) -> bool:
+        if len(piece.pieces) > 0:
+            for child_piece in piece.pieces:
+                if not self.__process_piece(child_piece):
+                    piece.pieces.remove(child_piece)
+        if piece.level > PieceLevel.GLYPH:
+            if len(piece.pieces) == 0:
+                return False
+            piece.dimensions = FrameFilter.__calculate_dimensions(piece)
+            return True
+        if piece.level != PieceLevel.GLYPH:
+            raise Exception(f'Unknown Level: {piece.level}')
+        return FrameFilter.__is_polygon_in_piece(self.polygon, piece)
