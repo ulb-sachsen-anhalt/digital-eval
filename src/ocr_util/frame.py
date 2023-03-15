@@ -10,7 +10,7 @@ from lxml import etree
 from shapely import Polygon
 from shapely.geometry import Point
 
-from digital_eval import Piece, to_pieces, PieceLevel
+from digital_eval import Piece, PieceLevel, PieceUtil
 
 Tuple2D = Tuple[float, float]
 
@@ -368,7 +368,6 @@ class PolygonFrameFilter:
     def __init__(self, ocr_path_in: str, points_list: str):
         self.__ocr_path_in: Path = Path(ocr_path_in)
         self.__polygon: Polygon = PolygonFrameFilter.__str_to_polygon(points_list)
-        self.__piece_orig: Piece = to_pieces(ocr_path_in)
 
     @property
     def ocr_file_path(self) -> Path:
@@ -379,7 +378,7 @@ class PolygonFrameFilter:
         return self.__polygon
 
     def process(self) -> Optional[Piece]:
-        piece_result: Piece = deepcopy(self.__piece_orig)
+        piece_result: Piece = PieceUtil.to_pieces(str(self.__ocr_path_in))
         self.__process_piece(piece_result)
         return piece_result
 

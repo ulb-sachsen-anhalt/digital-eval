@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 """Model Module"""
-
 import xml.dom.minidom
 import xml.dom.minidom as md
 from enum import (
@@ -84,9 +83,9 @@ class PieceData:
 class Piece:
     """Piece base composition for analytical purposes"""
 
-    def __init__(self, identifier: str = UNSET, xml_element: md.Element = None):
+    def __init__(self, identifier: str = UNSET, xml_element: md.Element = None, document: md.Document = None):
         self.id: str = identifier
-        self.file_path: Optional[PurePath] = None
+        self.__file_path: Optional[PurePath] = None
         self.level: PieceLevel = PieceLevel.PAGE
         self.subject: PieceContent = PieceContent.UNKNOWN
         self.data: PieceData = Optional[None]
@@ -94,8 +93,44 @@ class Piece:
         self.parent: Piece = Optional[None]
         self.custom: Dict = {}
         self.dimensions: List = []
-        self.pieces: List = []
+        self.__pieces: List[Piece] = []
         self.__xml_element: Optional[md.Element] = xml_element
+        self.__document: Optional[md.Document] = document
+
+    @property
+    def xml_element(self) -> md.Element:
+        return self.__xml_element
+
+    @property
+    def document(self) -> md.Document:
+        return self.__document
+
+    @document.setter
+    def document(self, doc: md.Document) -> None:
+        self.__document = doc
+        for child in self.pieces:
+            child.document = doc
+
+    @property
+    def file_path(self) -> PurePath:
+        return self.__file_path
+
+    @file_path.setter
+    def file_path(self, fp: PurePath) -> None:
+        self.__file_path = fp
+        for child in self.pieces:
+            child.file_path = self.__file_path
+
+    @property
+    def pieces(self) -> List:
+        return self.__pieces
+
+    @pieces.setter
+    def pieces(self, pieces: List) -> None:
+        self.__pieces = pieces
+        for child in self.__pieces:
+            child.document = self.document
+            child.file_path = self.file_path
 
     def __repr__(self) -> str:
         return f"{self.id}:{self.transcription}"
@@ -165,14 +200,10 @@ class PieceUtil:
         return PieceUtil.__read_data(path_in)
 
     @staticmethod
-    def to_alto_v3_xml(root_piece: Piece):
-        xml_doc: md.Document = md.Document()
-        return xml_doc
-
-    @staticmethod
     def __read_data(path_in: str) -> Piece:
         try:
-            doc_root: md.Element = xml.dom.minidom.parse(path_in).documentElement
+            document: md.Document = xml.dom.minidom.parse(path_in)
+            doc_root: md.Element = document.documentElement
         except Exception as _exc:
             raise RuntimeError(f"corrupt XML '{path_in}!")
         if doc_root is None:
@@ -189,6 +220,7 @@ class PieceUtil:
             raise RuntimeError(
                 'Unknown Data-Format "{}" in "{}"'.format(doc_root.localName, path_in))
         piece.file_path = PurePath(path_in)
+        piece.document = document
         return piece
 
 
@@ -208,8 +240,7 @@ class PieceAltoV3Util:
         comp_blocks = doc_root.getElementsByTagName('ComposedBlock')
         if len(comp_blocks) > 0:
             for _comp_block in comp_blocks:
-                comp_piece: Piece = Piece(_comp_block.getAttribute('ID'))
-                comp_piece.xml_element = _comp_block
+                comp_piece: Piece = Piece(_comp_block.getAttribute('ID'), _comp_block)
                 comp_piece.level = PieceLevel.REGION
                 comp_piece.parent = top_piece
                 comp_piece.dimensions = PieceAltoV3Util.__extract_dimensions(_comp_block)
@@ -232,7 +263,7 @@ class PieceAltoV3Util:
     def __read_blocks(block_elements, parent):
         _block_pieces = []
         for _block in block_elements:
-            _block_piece = Piece(_block.getAttribute('ID'))
+            _block_piece = Piece(_block.getAttribute('ID'), _block)
             _block_piece.level = PieceLevel.REGION
             _lines = _block.getElementsByTagName('TextLine')
             if len(_lines) == 0:
@@ -267,7 +298,7 @@ class PieceAltoV3Util:
         _lines = []
         for _text_line in the_lines:
             _id = _text_line.getAttribute('ID')
-            line_piece = Piece(_id)
+            line_piece = Piece(_id, _text_line)
             line_piece.level = PieceLevel.LINE
             text_strings = _text_line.getElementsByTagName('String')
             if len(text_strings) < 1:
@@ -283,7 +314,7 @@ class PieceAltoV3Util:
         _words = []
         for _text_string in text_strings:
             _id = _text_string.getAttribute('ID')
-            word_piece = Piece(_id)
+            word_piece = Piece(_id, _text_string)
             word_piece.level = PieceLevel.WORD
             _content = _text_string.getAttribute('CONTENT')
             if not _content.strip():
@@ -317,7 +348,7 @@ class PiecePageUtil:
         page_one = doc_root.getElementsByTagName(ns + 'Page')[0]
         page_width = int(page_one.getAttribute('imageWidth'))
         page_height = int(page_one.getAttribute('imageHeight'))
-        top_piece = Piece(page_one.getAttribute('imageFilename'))
+        top_piece = Piece(page_one.getAttribute('imageFilename'), page_one)
         top_piece.level = PieceLevel.PAGE
         top_piece.dimensions = [[0, 0], [page_width, 0],
                                 [page_width, page_height], [0, page_height]]
@@ -384,7 +415,7 @@ class PiecePageUtil:
         """
         _id = element.getAttribute('id')
         _type, _local = PiecePageUtil.__map_piece_type(element)
-        _piece = Piece(_id)
+        _piece = Piece(_id, element)
         _piece.level = _type
         _piece.parent = parent
 

@@ -1,14 +1,15 @@
 # handle possibly missing tif data
 import os
 import shutil
-import xml.dom.minidom as minidom
+import xml.dom.minidom as md
 from pathlib import Path
-from typing import List
+from typing import Dict
 
 import pytest
 from shapely import Polygon
 
 from digital_eval import Piece
+from digital_eval.model import PieceUtil
 from ocr_util import PolygonFrameFilter
 from src.ocr_util import FrameFilterAltoV3, Point2D
 
@@ -17,7 +18,7 @@ RES_ALTO = os.path.join(RES_ROOT, 'alto')
 
 
 @pytest.fixture(name='xml_fixture')
-def _create_filter_fixture(tmp_path):
+def _create_filter_fixture(tmp_path) -> Dict[str, str]:
     tmp_sub = tmp_path / 'xml'
     tmp_sub.mkdir()
     path_0768 = tmp_sub / '1667522809_J_0001_0768.xml'
@@ -58,7 +59,7 @@ def test_filter_0001_0768_2020(xml_fixture):
     assert path_result_expect == path_result
 
     # assert
-    tmp_data = minidom.parse(path_result)
+    tmp_data = md.parse(path_result)
     string_elements = tmp_data.getElementsByTagName('String')
     assert len(string_elements) > 1100
     for string_element in string_elements:
@@ -86,7 +87,7 @@ def test_filter_0001_0768_2022(xml_fixture):
     assert path_result_expect == path_result
 
     # assert
-    tmp_data = minidom.parse(path_result)
+    tmp_data = md.parse(path_result)
     string_elements = tmp_data.getElementsByTagName('String')
     assert len(string_elements) > 960
     for string_element in string_elements:
@@ -107,7 +108,7 @@ def test_filter_0001_0260(xml_fixture):
 
     # assert
     assert os.path.exists(path_result)
-    tmp_data = minidom.parse(path_result)
+    tmp_data = md.parse(path_result)
     text_blocks = tmp_data.getElementsByTagName('TextBlock')
     assert len(text_blocks) == 1
     assert not tmp_data.getElementsByTagName('ComposedBlock')
@@ -117,13 +118,16 @@ def test_filter_0001_0260(xml_fixture):
     assert len(text_blocks[0].getElementsByTagName('String')) == 84
 
 
-def test_frame_filter(xml_fixture):
-    path: str = xml_fixture['0768']
-    points_str: str = '2892,2480 5072,2480 5072,5148 2892,5148.123'
-    frame_filter: FrameFilter = FrameFilter(path, points_str)
+def test_polygon_frame_filter(xml_fixture):
+    points: str = '550,700 2700,700 2700,4350 550,4350'
+    alto_in_path: str = xml_fixture['0768']
+    # alto_out_path: str = alto_in_path + '.frame.xml'
+    filter_ocr: PolygonFrameFilter = PolygonFrameFilter(alto_in_path, points)
 
-    piece: Piece = frame_filter.process()
+    # act
+    piece: Piece = filter_ocr.process()
+    print(piece.document.toprettyxml())
 
     assert isinstance(piece, Piece)
-    assert isinstance(frame_filter.polygon, Polygon)
-    assert isinstance(frame_filter.ocr_file_path, Path)
+    assert isinstance(filter_ocr.polygon, Polygon)
+    assert isinstance(filter_ocr.ocr_file_path, Path)
