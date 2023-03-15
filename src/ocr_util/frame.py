@@ -321,15 +321,15 @@ class FrameFilterAltoV3:
         return top_left, bottom_right
 
 
-class FrameFilter:
+class PolygonFrameFilter:
     __POINT_LIST_PATTERN: str = r'^(?:(?:-?\d+(?:\.\d+)?),(?:-?\d+(?:\.\d+)?)\ ?)+$'
 
     @staticmethod
     def __str_to_polygon(points_list: str) -> Polygon:
-        match: Match = re.match(FrameFilter.__POINT_LIST_PATTERN, points_list)
+        match: Match = re.match(PolygonFrameFilter.__POINT_LIST_PATTERN, points_list)
         points_str: str = match.string
         point_strs_arr: List[str] = points_str.split(' ')
-        points_arr: List[Point] = list(map(FrameFilter.__str_to_point, point_strs_arr))
+        points_arr: List[Point] = list(map(PolygonFrameFilter.__str_to_point, point_strs_arr))
         return Polygon(points_arr)
 
     @staticmethod
@@ -367,7 +367,7 @@ class FrameFilter:
 
     def __init__(self, ocr_path_in: str, points_list: str):
         self.__ocr_path_in: Path = Path(ocr_path_in)
-        self.__polygon: Polygon = FrameFilter.__str_to_polygon(points_list)
+        self.__polygon: Polygon = PolygonFrameFilter.__str_to_polygon(points_list)
         self.__piece_orig: Piece = to_pieces(ocr_path_in)
 
     @property
@@ -391,8 +391,8 @@ class FrameFilter:
         if piece.level > PieceLevel.GLYPH:
             if len(piece.pieces) == 0:
                 return False
-            piece.dimensions = FrameFilter.__calculate_dimensions(piece)
+            piece.dimensions = PolygonFrameFilter.__calculate_dimensions(piece)
             return True
         if piece.level != PieceLevel.GLYPH:
             raise Exception(f'Unknown Level: {piece.level}')
-        return FrameFilter.__is_polygon_in_piece(self.polygon, piece)
+        return PolygonFrameFilter.__is_polygon_in_piece(self.polygon, piece)
