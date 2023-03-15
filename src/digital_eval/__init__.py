@@ -27,7 +27,7 @@ from .model import (
     Piece,
     PieceLevel,
     PieceContent,
-    to_pieces,
+    PieceUtil,
 )
 
 from .model_legacy import (

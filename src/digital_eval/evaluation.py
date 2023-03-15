@@ -1,51 +1,37 @@
 # -*- coding: utf-8 -*-
 """OCR Evaluation Module"""
 
+import concurrent.futures
 import copy
 import os
 import re
-import sys
-
 import xml.dom.minidom
 import xml.etree.ElementTree as ET
-import concurrent.futures
-
 from datetime import (
     date
 )
 from multiprocessing import (
     cpu_count
 )
-from typing import (
-    List, 
-    Tuple, 
-)
 from pathlib import (
     Path
 )
+from typing import (
+    List,
+    Tuple,
+)
 
 import numpy as np
-
-from digital_eval.metrics import (
-    MetricChars,
-    MetricLetters,
-    MetricWords,
-    MetricBoW,
-    MetricIRPre,
-    MetricIRRec,
-    MetricIRFM,
-)
-
-from digital_eval.model_legacy import (
-    OCRData,
-)
+import sys
 
 from digital_eval.model import (
-    to_pieces,
+    PieceUtil,
     Piece,
     PieceLevel,
 )
-
+from digital_eval.model_legacy import (
+    OCRData,
+)
 
 PAGE_2013 = 'http://schema.primaresearch.org/PAGE/gts/pagecontent/2013-07-15'
 XML_NS = {'alto': 'http://www.loc.gov/standards/alto/ns-v3#',
@@ -75,8 +61,8 @@ def strip_outliers_from(data_tuples, fence_ratio=1.5):
     median = np.median(data_points)
     Q1 = np.median([v for v in data_points if v < median])
     Q3 = np.median([v for v in data_points if v > median])
-    regulars = [data 
-                for data in data_tuples 
+    regulars = [data
+                for data in data_tuples
                 if data[1] >= (Q1 - fence_ratio * (Q3 - Q1)) and data[1] <= (Q1 + fence_ratio * (Q3 - Q1))]
     return (regulars, Q1, Q3)
 
@@ -172,11 +158,11 @@ def match_candidates(path_candidates, path_gt_file):
     # 3: assume gt is textfile and name is contained in results data
     elif re.match(r'^[\d{5,}].*\.txt$', gt_filename):
         cleared_name = os.path.splitext(gt_filename)[0]
-        matches = [f 
-                   for f in os.listdir(path_candidates) 
+        matches = [f
+                   for f in os.listdir(path_candidates)
                    if names_match(cleared_name, f)]
         if matches:
-            return [os.path.join(path_candidates, m) 
+            return [os.path.join(path_candidates, m)
                     for m in matches]
 
     return []
@@ -195,12 +181,13 @@ def match_candidate(path_gt_file_pattern):
     # inspect all files in given directory if it fits anyway
     # assume groundtruth starts with same tokens
     gt_dir = os.path.dirname(path_gt_file_pattern)
-    gt_files=[f 
-        for f in os.listdir(gt_dir)
-        if f.endswith(".xml") or f.endswith(".txt")]
+    gt_files = [f
+                for f in os.listdir(gt_dir)
+                if f.endswith(".xml") or f.endswith(".txt")]
     for _file in gt_files:
         if _file.startswith(gt_filename):
             return os.path.join(gt_dir, _file)
+
 
 def names_match(name_groundtruth, name_candidate):
     if '.gt' in name_groundtruth:
@@ -235,7 +222,7 @@ def get_bbox_data(file_path):
         # to recognize OCR formats inside
         start_token = _handle.read(128)
         _frame_points = None
-        
+
         # switch by estimated ocr format
         if 'alto' in start_token:
             # legacy: read from custom ALTO meta data
@@ -349,7 +336,7 @@ def piece_to_text(file_path, frame=None, oneliner=True) -> Tuple:
 
     _gt_type = NOT_SET
     try:
-        top_piece = to_pieces(file_path)
+        top_piece = PieceUtil.to_pieces(file_path)
         # optional groundtruth type
         _gt_type = _get_groundtruth_from_filename(file_path)
         if not _gt_type:
@@ -360,16 +347,16 @@ def piece_to_text(file_path, frame=None, oneliner=True) -> Tuple:
         if not frame:
             frame = top_piece.dimensions
         elif len(frame) == 2:
-            frame = [[frame[0][0],frame[0][1]],
-                    [frame[1][0],frame[0][1]],
-                    [frame[1][0],frame[1][1]],
-                    [frame[0][0],frame[1][1]]]
+            frame = [[frame[0][0], frame[0][1]],
+                     [frame[1][0], frame[0][1]],
+                     [frame[1][0], frame[1][1]],
+                     [frame[0][0], frame[1][1]]]
         frame_piece = Piece()
         frame_piece.dimensions = frame
         filter_word_pieces(frame_piece, top_piece)
-        the_lines = [l 
-                     for r in top_piece.pieces 
-                     for l in r.pieces 
+        the_lines = [l
+                     for r in top_piece.pieces
+                     for l in r.pieces
                      if l.transcription and l.level == PieceLevel.LINE]
         if oneliner:
             return (_gt_type, top_piece.transcription, len(the_lines))
@@ -410,7 +397,7 @@ def filter_word_pieces(frame, current) -> int:
             _total_stack += _current.pieces
     # now pick words
     _words = [_p for _p in _total_stack if _p.level == PieceLevel.WORD]
-        
+
     # check for each word piece
     for _word in _words:
         if _word not in frame:
@@ -446,7 +433,7 @@ class EvaluationResult:
         enclose EvaluationResult with outliers removed
     '''
 
-    def __init__(self, eval_key: str, n_total: int = 1, n_chars = 0, n_lines = 0):
+    def __init__(self, eval_key: str, n_total: int = 1, n_chars=0, n_lines=0):
         self.eval_key = eval_key
         self.total_mean = 0.0
         self.n_total = n_total
@@ -462,9 +449,9 @@ class EvaluationResult:
         self.cleared_result = None
 
     def get_defaults(self):
-        '''Provide default data (eval_key, number of elements, mean) that must be available'''
+        """Provide default data (eval_key, number of elements, mean) that must be available"""
 
-        return (self.eval_key, self.n_total, self.mean, self.median, self.n_chars)
+        return self.eval_key, self.n_total, self.mean, self.median, self.n_chars
 
 
 class EvalEntry:
@@ -541,7 +528,7 @@ class Evaluator:
             n_executors = cpus - 1 if cpus > 3 else 1
             if self.verbosity == 1:
                 print(f"[DEBUG] use {n_executors} executors ({cpus}) to create evaluation data")
-            
+
             with concurrent.futures.ProcessPoolExecutor(max_workers=n_executors) as executor:
                 try:
                     _entries = list(executor.map(self._wrap_eval_entry, entries, timeout=EVAL_TIMEOUT))
@@ -558,16 +545,16 @@ class Evaluator:
             if self.verbosity == 1:
                 print(f"[DEBUG] processed {len(_entries)}, omitted {len(_entries) - len(_not_nones)} empty results")
             self.evaluation_entries = _not_nones
-        
+
         self.evaluation_entries = sorted(self.evaluation_entries, key=lambda e: e.path_c)
         # detail report
-        self.evaluation_report['candidates'] = [self._generate_report_candidate(e) 
+        self.evaluation_report['candidates'] = [self._generate_report_candidate(e)
                                                 for e in self.evaluation_entries]
-        
+
     def _wrap_eval_entry(self, entry: EvalEntry):
         """Wrapper for creation of evaluation data
         to be used in common process-pooling"""
-        
+
         if entry.path_g:
             try:
                 return self.eval_entry(entry)
@@ -591,7 +578,7 @@ class Evaluator:
         (gt_type, txt_gt, _) = self.to_text_func(path_g, oneliner=True)
         if not txt_gt:
             print(f"[WARN ] {path_g} contains no text")
-        
+
         # if text mode is enforced
         # forget groundtruth coordinates
         coords = None if self.text_mode else coords
@@ -633,7 +620,7 @@ class Evaluator:
             _type = the_entry.gt_type
             if '+' in image_name and '_' in image_name:
                 _tkns = image_name.split('_')
-                image_name = _tkns[0].replace('+',':') + '_' + _tkns[1]
+                image_name = _tkns[0].replace('+', ':') + '_' + _tkns[1]
             if '.xml' in image_name:
                 image_name = image_name.replace('.xml', '')
             gt_label = f"({_type[:3]})" if _type and _type != NOT_SET else ''
@@ -666,7 +653,7 @@ class Evaluator:
                 evaluation_result.median = median
                 evaluation_result.std = std
                 if std >= 1.0:
-                    (regulars, _, _ ) = strip_outliers_from(data_tuples)
+                    (regulars, _, _) = strip_outliers_from(data_tuples)
                     regulars_data_points = [e[1] for e in regulars]
                     clear_result = EvaluationResult(k, len(regulars))
                     (mean2, std2, med2) = get_statistics(regulars_data_points)
@@ -680,7 +667,7 @@ class Evaluator:
             # re-order
             self.evaluation_results = sorted(self.evaluation_results, key=lambda e: e.eval_key)
 
-    def aggregate(self, by_type=False, by_metrics=[0,1,2,3]):
+    def aggregate(self, by_type=False, by_metrics=[0, 1, 2, 3]):
 
         # precheck - having root dir
         self._check_aggregate_preconditions()
@@ -757,4 +744,5 @@ def report_stdout(evaluator: Evaluator, verbosity):
             ccr_std = result.cleared_result.std
             drops = n_total - n_t2
             if drops > 0:
-                print(f'[INFO ] "{gt_type}"\t∅: {mean2:.2f}\t{n_t2} items (-{drops}), {n_c2} refs, std: {ccr_std:.2f}, median: {med2:.2f}')
+                print(
+                    f'[INFO ] "{gt_type}"\t∅: {mean2:.2f}\t{n_t2} items (-{drops}), {n_c2} refs, std: {ccr_std:.2f}, median: {med2:.2f}')

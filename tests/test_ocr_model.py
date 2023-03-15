@@ -12,9 +12,11 @@ from shapely.geometry import (
 )
 
 from digital_eval.model import (
-    to_pieces,
-    PieceLevel, Piece,
+    PieceLevel,
+    Piece,
+    PieceUtil,
 )
+
 from .conftest import (
     TEST_RES_DIR,
 )
@@ -26,7 +28,7 @@ def test_to_pieces_page_odem_transkribus_gt():
     ocr_path = f'{TEST_RES_DIR}/groundtruth/page/urn+nbn+de+gbv+3+1-115907-p0042-0_ger.gt.xml'
 
     # act
-    page_piece = to_pieces(ocr_path)
+    page_piece = PieceUtil.to_pieces(ocr_path)
 
     # assert
     # 1 region
@@ -56,7 +58,7 @@ def test_to_pieces_altov3():
     ocr_path = join(TEST_RES_DIR, 'groundtruth/alto/1667522809_J_0073_0001_375x2050_2325x9550.xml')
 
     # act
-    page_piece = to_pieces(ocr_path)
+    page_piece = PieceUtil.to_pieces(ocr_path)
 
     # assert
     # 10 regions
@@ -88,7 +90,7 @@ def test_to_pieces_page_odem():
     ocr_path = f'{TEST_RES_DIR}/candidate/frk_page/urn+nbn+de+gbv+3+1-115907-p0042-0_ger.xml'
 
     # act
-    page_piece = to_pieces(ocr_path)
+    page_piece = PieceUtil.to_pieces(ocr_path)
 
     # assert
     # 3 regions
@@ -114,7 +116,7 @@ def _fixture_odem01():
     """
 
     ocr_path = f'{TEST_RES_DIR}/groundtruth/page/urn+nbn+de+gbv+3+1-115907-p0042-0_ger.gt.xml'
-    page_piece = to_pieces(ocr_path)
+    page_piece = PieceUtil.to_pieces(ocr_path)
     yield page_piece
 
 
@@ -146,7 +148,7 @@ def test_pieces_odem01_page_not_in_region(odem01):
 @pytest.fixture(name="zd101")
 def _fixture_zd101():
     ocr_path = f'{TEST_RES_DIR}/groundtruth/alto/1667522809_J_0073_0001_375x2050_2325x9550.xml'
-    page_piece = to_pieces(ocr_path)
+    page_piece = PieceUtil.to_pieces(ocr_path)
     yield page_piece
 
 
@@ -214,7 +216,7 @@ def test_pieces_contains_piece_relation():
     ocr_path = join(TEST_RES_DIR, 'groundtruth/alto/1667522809_J_0073_0001_375x2050_2325x9550.xml')
 
     # act
-    page_piece = to_pieces(ocr_path)
+    page_piece = PieceUtil.to_pieces(ocr_path)
     region1 = page_piece.pieces[0]
     line1 = region1.pieces[0]
     word1 = line1.pieces[0]
@@ -251,6 +253,5 @@ def test_piece_hierarchy_top_down():
 
 def test_piece_file_path():
     ocr_path: str = f'{TEST_RES_DIR}/groundtruth/alto/1667522809_J_0073_0001_375x2050_2325x9550.xml'
-    page_piece: Piece = to_pieces(ocr_path)
-
+    page_piece: Piece = PieceUtil.to_pieces(ocr_path)
     assert isinstance(page_piece.file_path, PurePath)
