@@ -9,9 +9,7 @@ import pytest
 from shapely import Polygon
 
 from digital_eval import Piece
-from digital_eval.model import PieceUtil
-from ocr_util import PolygonFrameFilter
-from src.ocr_util import FrameFilterAltoV3, Point2D
+from src.ocr_util import FrameFilterAltoV3, Point2D, PolygonFrameFilter
 
 RES_ROOT = os.path.join('tests', 'resources', 'frames')
 RES_ALTO = os.path.join(RES_ROOT, 'alto')

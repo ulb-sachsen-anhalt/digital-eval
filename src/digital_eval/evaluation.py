@@ -409,7 +409,7 @@ def filter_word_pieces(frame, current) -> int:
 def _uplete(curr):
     if len(curr.pieces) == 0:
         _pa = curr.parent
-        _pa.pieces.remove(curr)
+        _pa.remove_pieces(curr)
         _uplete(_pa)
 
 

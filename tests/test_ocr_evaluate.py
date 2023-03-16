@@ -20,7 +20,6 @@ from pytest import (
 
 from digital_eval.evaluation import (
     EvalEntry,
-    MetricChars,
     Evaluator,
     OCRData,
     match_candidates,
@@ -29,7 +28,7 @@ from digital_eval.evaluation import (
     filter_word_pieces,
     get_bbox_data,
 )
-from digital_eval.metrics import MetricIRFM, MetricIRPre, MetricIRRec
+from digital_eval.metrics import MetricIRFM, MetricIRPre, MetricIRRec, MetricChars
 
 from digital_eval.model import (
     PieceLevel,
@@ -44,6 +43,7 @@ from digital_eval.model_legacy import (
 from .conftest import (
     TEST_RES_DIR
 )
+
 
 def test_match_candidates_alto_candidate_with_coords():
     actual_matches = match_candidates(f'{TEST_RES_DIR}/candidate/frk_alto',
@@ -160,7 +160,6 @@ def test_ocr_to_text_text_data_without_coords():
 
 
 def test_ocr_to_text_groundtruth_odem_ocrd_page_2019():
-
     text_path = f'{TEST_RES_DIR}/groundtruth/page/urn+nbn+de+gbv+3+1-115907-p0042-0_ger.gt.xml'
 
     # act
@@ -175,11 +174,10 @@ def test_ocr_to_text_groundtruth_odem_ocrd_page_2019():
 
 
 def test_ocr_to_text_candidate_odem_ocrd_page_2019():
-
     text_path = f'{TEST_RES_DIR}/candidate/frk_page/urn+nbn+de+gbv+3+1-115907-p0042-0_ger.xml'
 
     # act
-    result = ocr_to_text(text_path, coords=((216, 240), (1050,1640)), oneliner=True)
+    result = ocr_to_text(text_path, coords=((216, 240), (1050, 1640)), oneliner=True)
 
     # assert
     assert result is not None
@@ -192,7 +190,7 @@ def test_ocr_to_text_candidate_odem_ocrd_page_2019():
 def test_evaluate_single_alto_candidate_with_page_groundtruth(tmp_path):
     """Illustrate, evaluation of single candidate
     with proper organization of groundtruth data"""
-    
+
     # arrange
     eval_domain = tmp_path / 'candidate' / '1667522809_J_0001'
     eval_domain.mkdir(parents=True)
@@ -216,12 +214,12 @@ def test_evaluate_single_alto_candidate_with_page_groundtruth(tmp_path):
     evaluator.eval_map()
     result = evaluator.get_results()[0]
     defaults = result.get_defaults()
-    
+
     # assert
     assert 5 == len(defaults)
     # metric label
     assert 'Cs@1667522809_J_0001' == defaults[0]
-    assert 1 == defaults[1] # number of data points
+    assert 1 == defaults[1]  # number of data points
     # metric raw
     assert 37.19 == pytest.approx(defaults[2], rel=1e-3)
     # metric with stripped outliers (no outlier, of course!)
@@ -235,7 +233,7 @@ def test_evaluate_page_groundtruth_with_itself(tmp_path):
     """Use Groundtruth as candidate and evaluate it
     with itself as reference data shall yield
     accuracy of nearly 100 percent"""
-    
+
     # arrange
     eval_domain = tmp_path / 'candidate' / '1667522809_J_0001'
     eval_domain.mkdir(parents=True)
@@ -259,12 +257,12 @@ def test_evaluate_page_groundtruth_with_itself(tmp_path):
     evaluator.eval_map()
     result = evaluator.get_results()[0]
     defaults = result.get_defaults()
-    
+
     # assert
     assert 5 == len(defaults)
     # metric label
     assert 'Cs@1667522809_J_0001' == defaults[0]
-    assert 1 == defaults[1] # number of data points
+    assert 1 == defaults[1]  # number of data points
     assert 100.00 == pytest.approx(defaults[2], rel=1e-3)
     # reference size chars
     assert 4662 == defaults[4]
@@ -285,11 +283,11 @@ def test_evaluate_set_with_5_entries(tmp_path):
     also note the somehow hacky way of setting the numbers of the reference data
     by injecting wacky test strings - only size matters
     """
-    
+
     # arrange
     path_dir_gt = tmp_path / 'odem'
     path_dir_gt.mkdir()
-    path_dir_c = tmp_path / 'media' / 'jpg'/ 'odem'
+    path_dir_c = tmp_path / 'media' / 'jpg' / 'odem'
     path_dir_c.mkdir(parents=True)
     evaluator = Evaluator(path_dir_c)
     evaluator.domain_reference = path_dir_gt
@@ -314,7 +312,7 @@ def test_evaluate_set_with_5_entries(tmp_path):
     _metric_ca6._data_reference = 't' * 1520
 
     entry1 = EvalEntry(path_dir_c / 'eng' / 'urn+nbn+de+gbv+3+1-135654-p0403-5_eng.xml')
-    entry1.path_g =  str(path_dir_gt / 'eng' /'urn+nbn+de+gbv+3+1-135654-p0403-5_eng.gt.xml')
+    entry1.path_g = str(path_dir_gt / 'eng' / 'urn+nbn+de+gbv+3+1-135654-p0403-5_eng.gt.xml')
     entry1.metrics = [_metric_ca1]
     entry2 = EvalEntry(path_dir_c / 'ger' / 'urn+nbn+de+gbv+3+1-816198-p0493-2_ger.xml')
     entry2.path_g = str('/data/ocr/groundtruth/odem/ger/urn+nbn+de+gbv+3+1-816198-p0493-2_ger.gt.xml')
@@ -328,16 +326,16 @@ def test_evaluate_set_with_5_entries(tmp_path):
     entry5 = EvalEntry(path_dir_c / 'ger' / 'urn+nbn+de+gbv+3+1-828020-p0173-6_ger.xml')
     entry5.path_g = '/data/ocr/groundtruth/odem/ger/urn+nbn+de+gbv+3+1-828020-p0173-6_ger.gt.xml'
     entry5.metrics = [_metric_ca5]
-    entry6 = EvalEntry(path_dir_c / 'ger' /  'urn+nbn+de+gbv+3+1-125584-p0314-6_ger.xml')
+    entry6 = EvalEntry(path_dir_c / 'ger' / 'urn+nbn+de+gbv+3+1-125584-p0314-6_ger.xml')
     entry6.path_g = '/data/ocr/groundtruth/odem/ger/urn+nbn+de+gbv+3+1-125584-p0314-6_ger.gt.xml'
     entry6.metrics = [_metric_ca6]
     evaluator.evaluation_entries = [entry1, entry2, entry3, entry4, entry5, entry6]
-    
+
     # act
     evaluator.aggregate(by_metrics=[0])
     evaluator.eval_map()
     results = evaluator.get_results()
-    
+
     # assert
     # ensure standard deviation decreases by dropping outlier
     assert 3 == len(results)
@@ -366,7 +364,7 @@ def test_they_intersect(b1, b2, expected):
 
 def test_get_groundtruth_type_legacy():
     """Ensure GT-Annotations from ZD1 are still to be found"""
-    
+
     file_path = f'{TEST_RES_DIR}/groundtruth/page/1681877805_J_0075_0001.art.gt.xml'
     actual = OCRData(file_path)
     assert 'art' == actual.get_type_groundtruth()
@@ -404,13 +402,13 @@ def test_alto_page_dimensions():
     assert (6712, 9944) == page_dim
 
 
-@pytest.mark.parametrize(["path_data","coords_start","coords_end","n_lines"],
-[
- (f"{TEST_RES_DIR}/groundtruth/page/page01.gt.xml", (667,595), (2317,2900), 29),
- (f"{TEST_RES_DIR}/candidate/page_lines/page01.xml", (667,595), (2317,2900), 29),
- (f"{TEST_RES_DIR}/groundtruth/page/1681877805_J_0075_0001.art.gt.xml", None, None, 101)
-])
-def test_get_line_data(path_data,coords_start,coords_end,n_lines):
+@pytest.mark.parametrize(["path_data", "coords_start", "coords_end", "n_lines"],
+                         [
+                             (f"{TEST_RES_DIR}/groundtruth/page/page01.gt.xml", (667, 595), (2317, 2900), 29),
+                             (f"{TEST_RES_DIR}/candidate/page_lines/page01.xml", (667, 595), (2317, 2900), 29),
+                             (f"{TEST_RES_DIR}/groundtruth/page/1681877805_J_0075_0001.art.gt.xml", None, None, 101)
+                         ])
+def test_get_line_data(path_data, coords_start, coords_end, n_lines):
     """Ensure different formats will be properly processd,
     i.e. with frame information lines and words are filtered,
     and with missing frame data all lines are being read
@@ -477,7 +475,7 @@ def test_raise_exception_for_empty_words():
     # act
     with pytest.raises(RuntimeError) as err:
         OCRData(file_path)
-    
+
     # assert
     assert 'word_1641981922406_2298 misses text: list index out of range' in err.value.args[0]
 
@@ -528,7 +526,7 @@ def test_handle_exception_invalid_literal_for_int():
     """
 
     # arrange
-    path_gt =  f'{TEST_RES_DIR}/groundtruth/page/urn+nbn+de+gbv+3+1-792101-p0667-5_ger.gt.xml'
+    path_gt = f'{TEST_RES_DIR}/groundtruth/page/urn+nbn+de+gbv+3+1-792101-p0667-5_ger.gt.xml'
     eval_entry = EvalEntry('dummy_candidate')
     eval_entry.path_g = path_gt
 
@@ -615,7 +613,7 @@ def test_handle_exception_invalid_alto_xml():
     """
 
     # arrange
-    path_gt =  f'{TEST_RES_DIR}/candidate/frk_alto/1667522809_J_0001_0256_corrupt.xml'
+    path_gt = f'{TEST_RES_DIR}/candidate/frk_alto/1667522809_J_0001_0256_corrupt.xml'
     eval_entry = EvalEntry('dummy_candidate')
     eval_entry.path_g = path_gt
 

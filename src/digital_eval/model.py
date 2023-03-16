@@ -1,7 +1,10 @@
 # -*- coding: utf-8 -*-
 """Model Module"""
+from __future__ import annotations
+
 import xml.dom.minidom
 import xml.dom.minidom as md
+from copy import copy
 from enum import (
     Enum
 )
@@ -9,6 +12,7 @@ from pathlib import PurePath
 from typing import (
     List, Optional, Dict, Tuple,
 )
+from xml.dom import pulldom
 
 from shapely.geometry import (
     Polygon
@@ -80,22 +84,50 @@ class PieceData:
         self.data = None
 
 
+class OcrFileFormat(Enum):
+    UNKNOWN = 0
+    ALTO_V3 = 1
+    PAGE = 2
+
+
+PieceDimensions = List[List[float]]
+
+
 class Piece:
     """Piece base composition for analytical purposes"""
 
     def __init__(self, identifier: str = UNSET, xml_element: md.Element = None, document: md.Document = None):
         self.id: str = identifier
-        self.__file_path: Optional[PurePath] = None
         self.level: PieceLevel = PieceLevel.PAGE
         self.subject: PieceContent = PieceContent.UNKNOWN
         self.data: PieceData = Optional[None]
-        self._transcriptions: List = []
         self.parent: Piece = Optional[None]
         self.custom: Dict = {}
-        self.dimensions: List = []
+        self._transcriptions: List = []
+        self.__file_path: Optional[PurePath] = None
+        self.__dimensions: PieceDimensions = []
         self.__pieces: List[Piece] = []
         self.__xml_element: Optional[md.Element] = xml_element
         self.__document: Optional[md.Document] = document
+        self.__ocr_file_format: Optional[OcrFileFormat] = None
+
+    @property
+    def ocr_file_format(self) -> OcrFileFormat:
+        return self.__ocr_file_format
+
+    @ocr_file_format.setter
+    def ocr_file_format(self, off: OcrFileFormat) -> None:
+        self.__ocr_file_format = off
+        for child in self.pieces:
+            child.ocr_file_format = off
+
+    @property
+    def dimensions(self) -> PieceDimensions:
+        return self.__dimensions
+
+    @dimensions.setter
+    def dimensions(self, dims: PieceDimensions) -> None:
+        self.__dimensions = dims
 
     @property
     def xml_element(self) -> md.Element:
@@ -119,30 +151,26 @@ class Piece:
     def file_path(self, fp: PurePath) -> None:
         self.__file_path = fp
         for child in self.pieces:
-            child.file_path = self.__file_path
+            child.file_path = fp
 
     @property
-    def pieces(self) -> List:
-        return self.__pieces
+    def pieces(self) -> List[Piece]:
+        return copy(self.__pieces)
 
     @pieces.setter
-    def pieces(self, pieces: List) -> None:
-        self.__pieces = pieces
-        for child in self.__pieces:
-            child.document = self.document
-            child.file_path = self.file_path
+    def pieces(self, pcs: List[Piece]) -> None:
+        self.__pieces = pcs
+        self.__pass_props()
 
-    def __repr__(self) -> str:
-        return f"{self.id}:{self.transcription}"
+    def add_pieces(self, *pieces: Piece) -> List[Piece]:
+        self.__pieces.extend(*pieces)
+        self.__pass_props()
+        return self.pieces
 
-    def _is_superstruct(self):
-        return self.level in [
-            PieceLevel.PAGE,
-            PieceLevel.REGION,
-            PieceLevel.LINE,
-            PieceLevel.TABLE,
-            PieceLevel.TABLE_CELL,
-        ]
+    def remove_pieces(self, *pieces: Piece) -> List[Piece]:
+        for piece in pieces:
+            self.__pieces.remove(piece)
+        return self.pieces
 
     @property
     def transcription(self) -> str:
@@ -155,7 +183,7 @@ class Piece:
         """
         if self._transcriptions:
             return self._transcriptions[0].text
-        elif not self._transcriptions and self._is_superstruct():
+        elif not self._transcriptions and self.__is_superstruct():
             return ' '.join([_p.transcription
                              for _p in self.pieces])
         raise RuntimeError(f"ID={self.id}: Can't get text_content for {self.id}!")
@@ -167,6 +195,9 @@ class Piece:
         if transcription is not None and len(transcription.strip()) > 0:
             _transcription.text = transcription
         self._transcriptions.append(_transcription)
+
+    def __repr__(self) -> str:
+        return f"{self.id}:{self.transcription}"
 
     def __contains__(self, other_piece) -> bool:
         """Test for membership of other_piece
@@ -190,6 +221,21 @@ class Piece:
         other_shape = Polygon(other_piece.dimensions)
         return self_hull.contains(other_shape.centroid)
 
+    def __is_superstruct(self):
+        return self.level in [
+            PieceLevel.PAGE,
+            PieceLevel.REGION,
+            PieceLevel.LINE,
+            PieceLevel.TABLE,
+            PieceLevel.TABLE_CELL,
+        ]
+
+    def __pass_props(self):
+        for child in self.__pieces:
+            child.document = self.document
+            child.file_path = self.file_path
+            child.ocr_file_format = self.ocr_file_format
+
 
 class PieceUtil:
 
@@ -202,7 +248,7 @@ class PieceUtil:
     @staticmethod
     def __read_data(path_in: str) -> Piece:
         try:
-            document: md.Document = xml.dom.minidom.parse(path_in)
+            document: md.Document = md.parse(path_in)
             doc_root: md.Element = document.documentElement
         except Exception as _exc:
             raise RuntimeError(f"corrupt XML '{path_in}!")
@@ -210,17 +256,23 @@ class PieceUtil:
             raise RuntimeError('invalid document root')
         name_space = doc_root.getAttribute('xmlns')
         piece: Optional[Piece]
+        ocr_file_format: OcrFileFormat = OcrFileFormat.UNKNOWN
         if doc_root.localName == 'alto':
             piece = PieceAltoV3Util.extract_data(doc_root)
+            ocr_file_format = OcrFileFormat.ALTO_V3
         elif name_space == PAGE_2013:
             piece = PiecePageUtil.extract_data(doc_root)
+            ocr_file_format = OcrFileFormat.PAGE
         elif doc_root.localName == 'PcGts':
             piece = PiecePageUtil.extract_data(doc_root, ns='pc:')
+            ocr_file_format = OcrFileFormat.PAGE
         else:
             raise RuntimeError(
                 'Unknown Data-Format "{}" in "{}"'.format(doc_root.localName, path_in))
         piece.file_path = PurePath(path_in)
         piece.document = document
+        piece.ocr_file_format = ocr_file_format
+
         return piece
 
 

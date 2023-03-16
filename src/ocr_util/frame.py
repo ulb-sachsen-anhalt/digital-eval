@@ -1,16 +1,16 @@
 import os
 import re
-from copy import deepcopy
 from pathlib import Path
 from typing import Final, Mapping, Match, Optional
 from typing import NamedTuple, Tuple, List
+from xml.dom.minidom import Element, Node
 
 import numpy as np
 from lxml import etree
 from shapely import Polygon
 from shapely.geometry import Point
 
-from digital_eval import Piece, PieceLevel, PieceUtil
+from digital_eval import Piece, PieceLevel, PieceUtil, PieceDimensions
 
 Tuple2D = Tuple[float, float]
 
@@ -27,6 +27,20 @@ Point2DList = List[Point2D]
 
 
 class Util:
+    __POINT_LIST_PATTERN: str = r'^(?:(?:-?\d+(?:\.\d+)?),(?:-?\d+(?:\.\d+)?)\ ?)+$'
+
+    @staticmethod
+    def remove_element_and_clear_parent(element: Element) -> None:
+        parent: Element = element.parentNode
+        if parent:
+            parent.removeChild(element)
+            siblings: List[Element] = parent.childNodes
+            for sibling in siblings:
+                is_text_node: bool = sibling.nodeType == Node.TEXT_NODE
+                if is_text_node:
+                    parent.removeChild(sibling)
+            if len(parent.childNodes) == 0:
+                Util.remove_element_and_clear_parent(parent)
 
     @staticmethod
     def str_to_point_2d(point_str: str) -> Point2D:
@@ -36,6 +50,62 @@ class Util:
         x = float(x_str)
         y = float(y_str)
         return Point2D(x, y)
+
+    @staticmethod
+    def str_to_polygon(points_list: str) -> Polygon:
+        match: Match = re.match(Util.__POINT_LIST_PATTERN, points_list)
+        points_str: str = match.string
+        point_strs_arr: List[str] = points_str.split(' ')
+        points_arr: List[Point] = list(map(Util.__str_to_point, point_strs_arr))
+        return Polygon(points_arr)
+
+    @staticmethod
+    def is_piece_in_polygon(piece: Piece, polygon: Polygon) -> bool:
+        piece_polygon: Polygon = Polygon(piece.dimensions)
+        convex_hull: Polygon = polygon.convex_hull
+        return convex_hull.contains(piece_polygon.centroid)
+
+    @staticmethod
+    def calulate_dimensions_by_children(piece: Piece) -> PieceDimensions:
+        if len(piece.pieces) > 0:
+            dims: PieceDimensions = []
+            for child_piece in piece.pieces:
+                dims.extend(child_piece.dimensions)
+            dims = Util.__calculate_dimensions_rect_bounds(dims)
+            return dims
+        return piece.dimensions
+
+    @staticmethod
+    def __calculate_dimensions_rect_bounds(dimensions: PieceDimensions) -> PieceDimensions:
+        min_x: Optional[float] = None
+        min_y: Optional[float] = None
+        max_x: Optional[float] = None
+        max_y: Optional[float] = None
+        for point in dimensions:
+            point_x: float = point[0]
+            point_y: float = point[0]
+            if min_x is None or point_x < min_x:
+                min_x = point_x
+            if min_y is None or point_y < min_y:
+                min_y = point_y
+            if max_x is None or point_x > max_x:
+                max_x = point_x
+            if max_y is None or point_y > max_y:
+                max_y = point_y
+        return [[min_x, min_y], [max_x, min_y], [max_x, max_y], [min_x, max_y]]
+
+    @staticmethod
+    def __str_to_point(point_str: str) -> Point:
+        x_str: str
+        y_str: str
+        x_str, y_str = point_str.split(',')
+        x = float(x_str)
+        y = float(y_str)
+        return Point(x, y)
+
+    @staticmethod
+    def __set_dimensions_in_xml(piece: Piece):
+        pass
 
 
 class Point2D(NamedTuple):
@@ -322,52 +392,10 @@ class FrameFilterAltoV3:
 
 
 class PolygonFrameFilter:
-    __POINT_LIST_PATTERN: str = r'^(?:(?:-?\d+(?:\.\d+)?),(?:-?\d+(?:\.\d+)?)\ ?)+$'
-
-    @staticmethod
-    def __str_to_polygon(points_list: str) -> Polygon:
-        match: Match = re.match(PolygonFrameFilter.__POINT_LIST_PATTERN, points_list)
-        points_str: str = match.string
-        point_strs_arr: List[str] = points_str.split(' ')
-        points_arr: List[Point] = list(map(PolygonFrameFilter.__str_to_point, point_strs_arr))
-        return Polygon(points_arr)
-
-    @staticmethod
-    def __str_to_point(point_str: str) -> Point:
-        x_str: str
-        y_str: str
-        x_str, y_str = point_str.split(',')
-        x = float(x_str)
-        y = float(y_str)
-        return Point(x, y)
-
-    @staticmethod
-    def __is_polygon_in_piece(polygon: Polygon, piece: Piece) -> bool:
-        piece_conv_hull: Polygon = Polygon(piece.dimensions).convex_hull
-        return piece_conv_hull.contains(polygon.centroid)
-
-    @staticmethod
-    def __calculate_dimensions(piece: Piece) -> List[List[float]]:
-        min_x: Optional[float] = None
-        min_y: Optional[float] = None
-        max_x: Optional[float] = None
-        max_y: Optional[float] = None
-        for point in piece.dimensions:
-            point_x: float = point[0]
-            point_y: float = point[0]
-            if min_x is None or point_x < min_x:
-                min_x = point_x
-            if min_y is None or point_y < min_y:
-                min_y = point_y
-            if max_x is None or point_x > max_x:
-                max_x = point_x
-            if max_y is None or point_y > max_y:
-                max_y = point_y
-        return [[min_x, min_y], [max_x, min_y], [max_x, max_y], [min_x, max_y]]
 
     def __init__(self, ocr_path_in: str, points_list: str):
         self.__ocr_path_in: Path = Path(ocr_path_in)
-        self.__polygon: Polygon = PolygonFrameFilter.__str_to_polygon(points_list)
+        self.__polygon: Polygon = Util.str_to_polygon(points_list)
 
     @property
     def ocr_file_path(self) -> Path:
@@ -383,15 +411,17 @@ class PolygonFrameFilter:
         return piece_result
 
     def __process_piece(self, piece: Piece) -> bool:
-        if len(piece.pieces) > 0:
-            for child_piece in piece.pieces:
-                if not self.__process_piece(child_piece):
-                    piece.pieces.remove(child_piece)
-        if piece.level > PieceLevel.GLYPH:
+        for child_piece in piece.pieces:
+            if not self.__process_piece(child_piece):
+                piece.remove_pieces(child_piece)
+                element: Element = child_piece.xml_element
+                Util.remove_element_and_clear_parent(element)
+                # gucke im parent ob da noch nodes
+        if piece.level > PieceLevel.WORD:
             if len(piece.pieces) == 0:
                 return False
-            piece.dimensions = PolygonFrameFilter.__calculate_dimensions(piece)
+            piece.dimensions = Util.calulate_dimensions_by_children(piece)
             return True
-        if piece.level != PieceLevel.GLYPH:
+        if piece.level != PieceLevel.WORD:
             raise Exception(f'Unknown Level: {piece.level}')
-        return PolygonFrameFilter.__is_polygon_in_piece(self.polygon, piece)
+        return Util.is_piece_in_polygon(piece, self.polygon)
