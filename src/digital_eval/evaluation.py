@@ -25,9 +25,9 @@ import numpy as np
 import sys
 
 from digital_eval.model import (
-    PieceUtil,
     Piece,
     PieceLevel,
+    to_pieces,
 )
 from digital_eval.model_legacy import (
     OCRData,
@@ -336,7 +336,7 @@ def piece_to_text(file_path, frame=None, oneliner=True) -> Tuple:
 
     _gt_type = NOT_SET
     try:
-        top_piece = PieceUtil.to_pieces(file_path)
+        top_piece = to_pieces(file_path)
         # optional groundtruth type
         _gt_type = _get_groundtruth_from_filename(file_path)
         if not _gt_type:

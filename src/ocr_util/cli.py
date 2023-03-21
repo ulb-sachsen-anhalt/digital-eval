@@ -5,7 +5,7 @@ import argparse
 from typing import Final
 
 from digital_eval import Piece
-from ocr_util import Point2D, Util, Point2DList, FrameFilterAltoV3
+from ocr_util import OldPoint2D, PolygonFrameFilterUtil, OldPoint2DList, OldFrameFilterAltoV3
 
 # script constants
 
@@ -13,9 +13,9 @@ DEFAULT_VERBOSITY: int = 0
 SUB_CMD_FRAME: Final[str] = 'frame'
 
 
-def argparse_point2d_type(point: str) -> Point2D:
+def argparse_point2d_type(point: str) -> OldPoint2D:
     try:
-        return Util.str_to_point_2d(point)
+        return PolygonFrameFilterUtil.str_to_point_2d(point)
     except ValueError as err:
         raise argparse.ArgumentTypeError(f"Invalid point coordinates: '{point}'")
 
@@ -68,8 +68,8 @@ def start() -> None:
     if args.subcommand == SUB_CMD_FRAME:
         input_ocr_file: str = args.input_ocr_file
         output_ocr_file: str = args.output_ocr_file
-        points: Point2DList = args.points
-        frame_filter: FrameFilterAltoV3 = FrameFilterAltoV3(
+        points: OldPoint2DList = args.points
+        frame_filter: OldFrameFilterAltoV3 = OldFrameFilterAltoV3(
             path_alto_in=input_ocr_file,
             path_alto_out=output_ocr_file,
             points=points,

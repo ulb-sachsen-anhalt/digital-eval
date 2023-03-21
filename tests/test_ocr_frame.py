@@ -3,13 +3,15 @@ import os
 import shutil
 import xml.dom.minidom as md
 from pathlib import Path
-from typing import Dict
+from typing import Dict, List
 
 import pytest
 from shapely import Polygon
 
 from digital_eval import Piece
-from src.ocr_util import FrameFilterAltoV3, Point2D, PolygonFrameFilter
+from digital_eval.model import from_pieces, PieceUtil
+from ocr_util import PolygonFrameFilterUtil
+from src.ocr_util import OldFrameFilterAltoV3, OldPoint2D, PolygonFrameFilter
 
 RES_ROOT = os.path.join('tests', 'resources', 'frames')
 RES_ALTO = os.path.join(RES_ROOT, 'alto')
@@ -42,7 +44,7 @@ def test_filter_0001_0768_2020(xml_fixture):
 
     # arrange
     # filter_ocr = OCRQAFilter(xml_fixture['0768'], "550x700", "2700x4350")
-    filter_ocr = FrameFilterAltoV3(xml_fixture['0768'], [Point2D(550, 700), Point2D(2700, 4350)])
+    filter_ocr = OldFrameFilterAltoV3(xml_fixture['0768'], [OldPoint2D(550, 700), OldPoint2D(2700, 4350)])
 
     # act
     filter_ocr.process()
@@ -70,7 +72,7 @@ def test_filter_0001_0768_2022(xml_fixture):
 
     # arrange
     # filter_ocr = OCRQAFilter(xml_fixture['0768_22'], "525x825", "2725x7125")
-    filter_ocr = FrameFilterAltoV3(xml_fixture['0768_22'], [Point2D(525, 825), Point2D(2725, 7125)])
+    filter_ocr = OldFrameFilterAltoV3(xml_fixture['0768_22'], [OldPoint2D(525, 825), OldPoint2D(2725, 7125)])
 
     # act
     filter_ocr.process()
@@ -98,7 +100,7 @@ def test_filter_0001_0260(xml_fixture):
 
     # arrange
     # filter_ocr = OCRQAFilter(xml_fixture['0260'], "550x700", "2700x4350")
-    filter_ocr = FrameFilterAltoV3(xml_fixture['0260'], [Point2D(550, 700), Point2D(2700, 4350)])
+    filter_ocr = OldFrameFilterAltoV3(xml_fixture['0260'], [OldPoint2D(550, 700), OldPoint2D(2700, 4350)])
 
     # act
     filter_ocr.process()
@@ -117,15 +119,28 @@ def test_filter_0001_0260(xml_fixture):
 
 
 def test_polygon_frame_filter(xml_fixture):
+    """Check result file exists and contains CONTENT"""
+
+    # arrange
     points: str = '550,700 2700,700 2700,4350 550,4350'
     alto_in_path: str = xml_fixture['0768']
-    # alto_out_path: str = alto_in_path + '.frame.xml'
-    filter_ocr: PolygonFrameFilter = PolygonFrameFilter(alto_in_path, points)
+    filter_ocr = PolygonFrameFilter(alto_in_path, points)
 
     # act
-    piece: Piece = filter_ocr.process()
-    print(piece.document.toprettyxml())
+    piece_result: Piece = filter_ocr.process()
+    file_out_path: str = from_pieces(piece_result)
+    poly: Polygon = PolygonFrameFilterUtil.str_to_polygon(points)
 
-    assert isinstance(piece, Piece)
+    # assert
+    assert piece_result
+    assert isinstance(piece_result, Piece)
     assert isinstance(filter_ocr.polygon, Polygon)
     assert isinstance(filter_ocr.ocr_file_path, Path)
+    string_elements = piece_result.xml_element.getElementsByTagName('String')
+    assert len(string_elements) < 1200
+    for string_element in string_elements:
+        assert string_element.tagName == 'String'
+        assert string_element.getAttribute('CONTENT') != ''
+    pieces: List[Piece] = PieceUtil.flatten(piece_result)
+    for piece in pieces:
+        assert piece.is_in_polygon(poly)

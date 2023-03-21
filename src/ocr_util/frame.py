@@ -1,131 +1,42 @@
 import os
 import re
 from pathlib import Path
-from typing import Final, Mapping, Match, Optional
+from typing import Final, Mapping, Match, Optional, Dict
 from typing import NamedTuple, Tuple, List
-from xml.dom.minidom import Element, Node
+from xml.dom.minidom import Element
 
 import numpy as np
 from lxml import etree
 from shapely import Polygon
 from shapely.geometry import Point
 
-from digital_eval import Piece, PieceLevel, PieceUtil, PieceDimensions
+from digital_eval import Piece, PieceLevel
+from digital_eval.model import to_pieces, PieceUtil, PieceChanges
 
-Tuple2D = Tuple[float, float]
+OldTuple2D = Tuple[float, float]
 
 
-class Point2D(NamedTuple):
+class OldPoint2D(NamedTuple):
     x: float
     y: float
 
-    def to_tuple(self) -> Tuple2D:
+    def to_tuple(self) -> OldTuple2D:
         return self.x, self.y
 
 
-Point2DList = List[Point2D]
+OldPoint2DList = List[OldPoint2D]
 
 
-class Util:
-    __POINT_LIST_PATTERN: str = r'^(?:(?:-?\d+(?:\.\d+)?),(?:-?\d+(?:\.\d+)?)\ ?)+$'
-
-    @staticmethod
-    def remove_element_and_clear_parent(element: Element) -> None:
-        parent: Element = element.parentNode
-        if parent:
-            parent.removeChild(element)
-            siblings: List[Element] = parent.childNodes
-            for sibling in siblings:
-                is_text_node: bool = sibling.nodeType == Node.TEXT_NODE
-                if is_text_node:
-                    parent.removeChild(sibling)
-            if len(parent.childNodes) == 0:
-                Util.remove_element_and_clear_parent(parent)
-
-    @staticmethod
-    def str_to_point_2d(point_str: str) -> Point2D:
-        x_str: str
-        y_str: str
-        x_str, y_str = point_str.split(',')
-        x = float(x_str)
-        y = float(y_str)
-        return Point2D(x, y)
-
-    @staticmethod
-    def str_to_polygon(points_list: str) -> Polygon:
-        match: Match = re.match(Util.__POINT_LIST_PATTERN, points_list)
-        points_str: str = match.string
-        point_strs_arr: List[str] = points_str.split(' ')
-        points_arr: List[Point] = list(map(Util.__str_to_point, point_strs_arr))
-        return Polygon(points_arr)
-
-    @staticmethod
-    def is_piece_in_polygon(piece: Piece, polygon: Polygon) -> bool:
-        piece_polygon: Polygon = Polygon(piece.dimensions)
-        convex_hull: Polygon = polygon.convex_hull
-        return convex_hull.contains(piece_polygon.centroid)
-
-    @staticmethod
-    def calulate_dimensions_by_children(piece: Piece) -> PieceDimensions:
-        if len(piece.pieces) > 0:
-            dims: PieceDimensions = []
-            for child_piece in piece.pieces:
-                dims.extend(child_piece.dimensions)
-            dims = Util.__calculate_dimensions_rect_bounds(dims)
-            return dims
-        return piece.dimensions
-
-    @staticmethod
-    def __calculate_dimensions_rect_bounds(dimensions: PieceDimensions) -> PieceDimensions:
-        min_x: Optional[float] = None
-        min_y: Optional[float] = None
-        max_x: Optional[float] = None
-        max_y: Optional[float] = None
-        for point in dimensions:
-            point_x: float = point[0]
-            point_y: float = point[0]
-            if min_x is None or point_x < min_x:
-                min_x = point_x
-            if min_y is None or point_y < min_y:
-                min_y = point_y
-            if max_x is None or point_x > max_x:
-                max_x = point_x
-            if max_y is None or point_y > max_y:
-                max_y = point_y
-        return [[min_x, min_y], [max_x, min_y], [max_x, max_y], [min_x, max_y]]
-
-    @staticmethod
-    def __str_to_point(point_str: str) -> Point:
-        x_str: str
-        y_str: str
-        x_str, y_str = point_str.split(',')
-        x = float(x_str)
-        y = float(y_str)
-        return Point(x, y)
-
-    @staticmethod
-    def __set_dimensions_in_xml(piece: Piece):
-        pass
-
-
-class Point2D(NamedTuple):
-    x: float
-    y: float
-
-    def to_tuple(self) -> Tuple2D:
-        return self.x, self.y
-
-
-class FrameFilterAltoV3:
+class OldFrameFilterAltoV3:
     __NAMESPACES: Final[Mapping[str, str]] = {"alto": "http://www.loc.gov/standards/alto/ns-v3#"}
     __FILTER_ALTO_ELS: Final[List[str]] = ['TextBlock', 'Illustration', 'GraphicalElement']
     __DELETE_ALTO_ELS: Final[List[str]] = ['SP']
 
-    def __init__(self, path_alto_in: str, points: Point2DList, path_alto_out: str = None, verbosity: int = 0):
+    def __init__(self, path_alto_in: str, points: OldPoint2DList, path_alto_out: str = None, verbosity: int = 0):
         self.verbosity = verbosity
         self.__path_alto_in: str = path_alto_in
         self.__path_alto_out: str = path_alto_out
-        self.__points: Point2DList = points
+        self.__points: OldPoint2DList = points
         self.__path_out: str = self.__create_out_path() if path_alto_out is None else path_alto_out
         self.__removals = {}
         self.__resized = {}
@@ -147,7 +58,7 @@ class FrameFilterAltoV3:
         print_space = self.__doc_root[1][0][0]
 
         # optional: extract ComposedBlock TextRegions
-        composed_blocks = print_space.xpath('alto:ComposedBlock', namespaces=FrameFilterAltoV3.__NAMESPACES)
+        composed_blocks = print_space.xpath('alto:ComposedBlock', namespaces=OldFrameFilterAltoV3.__NAMESPACES)
         # move all composed_block's children
         # straight up to PrintSpace
         # clear empty composed block afterwards
@@ -159,11 +70,11 @@ class FrameFilterAltoV3:
             self.__remove_el(composed_block)
 
         # transform OCR-D output remove GraphicalElement etc.
-        top_left: Tuple2D
-        bottom_right: Tuple2D
-        top_left, bottom_right = FrameFilterAltoV3.__points_to_rect_bounds(self.__points)
-        for to_filter in FrameFilterAltoV3.__FILTER_ALTO_ELS:
-            els = print_space.xpath(f'alto:{to_filter}', namespaces=FrameFilterAltoV3.__NAMESPACES)
+        top_left: OldTuple2D
+        bottom_right: OldTuple2D
+        top_left, bottom_right = OldFrameFilterAltoV3.__points_to_rect_bounds(self.__points)
+        for to_filter in OldFrameFilterAltoV3.__FILTER_ALTO_ELS:
+            els = print_space.xpath(f'alto:{to_filter}', namespaces=OldFrameFilterAltoV3.__NAMESPACES)
             for _el in els:
                 self.__clear_leaves_recursive(
                     _el, top_left, bottom_right
@@ -178,7 +89,7 @@ class FrameFilterAltoV3:
             print(f'[INFO] filtered {v} {k} Elements')
 
         print(f'[INFO] resized  {self.__resized}')
-        actual_words = self.__doc_root.xpath('//alto:String', namespaces=FrameFilterAltoV3.__NAMESPACES)
+        actual_words = self.__doc_root.xpath('//alto:String', namespaces=OldFrameFilterAltoV3.__NAMESPACES)
         n_chars = sum([len(w.attrib['CONTENT']) for w in actual_words])
         print(f'[INFO] frame has {len(actual_words)} words ({n_chars} chars)')
 
@@ -205,53 +116,53 @@ class FrameFilterAltoV3:
     def __clear_leaves_recursive(self, el, top_left, btm_right):
         if el.getchildren():
             for kid in el.getchildren():
-                tag_name = FrameFilterAltoV3.__get_tag_name(kid)
+                tag_name = OldFrameFilterAltoV3.__get_tag_name(kid)
                 # delete element immediately if blacklisted
-                if tag_name in FrameFilterAltoV3.__DELETE_ALTO_ELS:
-                    FrameFilterAltoV3.__remove_el(kid)
+                if tag_name in OldFrameFilterAltoV3.__DELETE_ALTO_ELS:
+                    OldFrameFilterAltoV3.__remove_el(kid)
                     self.__set_removal(tag_name)
                 else:
                     self.__clear_leaves_recursive(kid, top_left, btm_right)
         else:
-            tl, br = FrameFilterAltoV3.__as_box(el)
-            if not FrameFilterAltoV3.__is_in(top_left, btm_right, tl, br):
-                FrameFilterAltoV3.__remove_el(el)
-                tag_name = FrameFilterAltoV3.__get_tag_name(el)
+            tl, br = OldFrameFilterAltoV3.__as_box(el)
+            if not OldFrameFilterAltoV3.__is_in(top_left, btm_right, tl, br):
+                OldFrameFilterAltoV3.__remove_el(el)
+                tag_name = OldFrameFilterAltoV3.__get_tag_name(el)
                 self.__set_removal(tag_name)
-            elif not FrameFilterAltoV3.__get_element_data(el)[3]:
-                FrameFilterAltoV3.__remove_el(el)
-                tag_name = FrameFilterAltoV3.__get_tag_name(el)
+            elif not OldFrameFilterAltoV3.__get_element_data(el)[3]:
+                OldFrameFilterAltoV3.__remove_el(el)
+                tag_name = OldFrameFilterAltoV3.__get_tag_name(el)
                 self.__set_removal(tag_name + '_empty')
 
     def __clear(self, print_space):
         last_branches = print_space.xpath(
-            '//alto:TextLine', namespaces=FrameFilterAltoV3.__NAMESPACES)
+            '//alto:TextLine', namespaces=OldFrameFilterAltoV3.__NAMESPACES)
         for last in last_branches:
             # if the branch has whithered, remove it
             _the_kids = last.getchildren()
             if len(_the_kids) == 0:
-                tag_name = FrameFilterAltoV3.__get_tag_name(last)
+                tag_name = OldFrameFilterAltoV3.__get_tag_name(last)
                 self.__set_removal(tag_name)
-                parents = FrameFilterAltoV3.__get_parents_to(last, 'PrintSpace')
-                FrameFilterAltoV3.__remove_el(last)
+                parents = OldFrameFilterAltoV3.__get_parents_to(last, 'PrintSpace')
+                OldFrameFilterAltoV3.__remove_el(last)
                 for parent in parents:
                     if not parent.getchildren():
                         parent_tag_name = self.__get_tag_name(parent)
                         self.__set_removal(parent_tag_name)
-                        FrameFilterAltoV3.__remove_el(parent)
+                        OldFrameFilterAltoV3.__remove_el(parent)
 
     def __shrink(self, print_space):
         """still valid subtree, but propably must shrink
         lines and afterwards regions, too"""
-        _regions = print_space.xpath('//alto:TextBlock', namespaces=FrameFilterAltoV3.__NAMESPACES)
+        _regions = print_space.xpath('//alto:TextBlock', namespaces=OldFrameFilterAltoV3.__NAMESPACES)
         for _region in _regions:
             _lines = print_space.xpath(
-                '//alto:TextLine', namespaces=FrameFilterAltoV3.__NAMESPACES)
+                '//alto:TextLine', namespaces=OldFrameFilterAltoV3.__NAMESPACES)
             for _line in _lines:
-                if FrameFilterAltoV3.__resized_element_to_fit_children(_line, 'alto:String'):
+                if OldFrameFilterAltoV3.__resized_element_to_fit_children(_line, 'alto:String'):
                     the_label = etree.QName(_line).localname
                     self.__add_resized(the_label)
-            if FrameFilterAltoV3.__resized_element_to_fit_children(_region, 'alto:TextLine'):
+            if OldFrameFilterAltoV3.__resized_element_to_fit_children(_region, 'alto:TextLine'):
                 the_label = etree.QName(_region).localname
                 self.__add_resized(the_label)
 
@@ -319,20 +230,20 @@ class FrameFilterAltoV3:
     def __get_parents_to(el, parent_tag):
         """Traverse ancestors tree-up"""
         parent = el.getparent()
-        tag_name = FrameFilterAltoV3.__get_tag_name(parent)
+        tag_name = OldFrameFilterAltoV3.__get_tag_name(parent)
         parents = []
         while tag_name != parent_tag:
             parents.append(parent)
             parent = parent.getparent()
-            tag_name = FrameFilterAltoV3.__get_tag_name(parent)
+            tag_name = OldFrameFilterAltoV3.__get_tag_name(parent)
         return parents
 
     @staticmethod
     def __resized_element_to_fit_children(element, sub_element: str):
         """Optional resize element to only span it's current children"""
 
-        kids = element.findall(sub_element, FrameFilterAltoV3.__NAMESPACES)
-        _boxes = [FrameFilterAltoV3.__as_box(s) for s in kids]
+        kids = element.findall(sub_element, OldFrameFilterAltoV3.__NAMESPACES)
+        _boxes = [OldFrameFilterAltoV3.__as_box(s) for s in kids]
         mins = np.min(_boxes, axis=0)
         _children_min_x = mins[0][0]
         _children_min_y = mins[0][1]
@@ -370,7 +281,7 @@ class FrameFilterAltoV3:
         return resized
 
     @staticmethod
-    def __points_to_rect_bounds(points: Point2DList) -> Tuple[Tuple2D, Tuple2D]:
+    def __points_to_rect_bounds(points: OldPoint2DList) -> Tuple[OldTuple2D, OldTuple2D]:
         min_x: float = -1
         min_y: float = -1
         max_x: float = -1
@@ -386,16 +297,44 @@ class FrameFilterAltoV3:
                 max_x = point_x
             if point_y > max_y or max_y == -1:
                 max_y = point_y
-        top_left: Tuple2D = (min_x, min_y)
-        bottom_right: Tuple2D = (max_x, max_y)
+        top_left: OldTuple2D = (min_x, min_y)
+        bottom_right: OldTuple2D = (max_x, max_y)
         return top_left, bottom_right
+
+
+class PolygonFrameFilterReport(NamedTuple):
+    removed_pieces: Dict[str, int] = {}
+    removed_elements: Dict[str, int] = {}
+    resized_elements: Dict[str, int] = {}
+
+
+class PolygonFrameFilterUtil:
+    __POINT_LIST_PATTERN: str = r'^(?:(?:-?\d+(?:\.\d+)?),(?:-?\d+(?:\.\d+)?)\ ?)+$'
+
+    @staticmethod
+    def str_to_polygon(points_list: str) -> Polygon:
+        match: Match = re.match(PolygonFrameFilterUtil.__POINT_LIST_PATTERN, points_list)
+        points_str: str = match.string
+        point_strs_arr: List[str] = points_str.split(' ')
+        points_arr: List[Point] = list(map(PolygonFrameFilterUtil.__str_to_point, point_strs_arr))
+        return Polygon(points_arr)
+
+    @staticmethod
+    def __str_to_point(point_str: str) -> Point:
+        x_str: str
+        y_str: str
+        x_str, y_str = point_str.split(',')
+        x = float(x_str)
+        y = float(y_str)
+        return Point(x, y)
 
 
 class PolygonFrameFilter:
 
     def __init__(self, ocr_path_in: str, points_list: str):
         self.__ocr_path_in: Path = Path(ocr_path_in)
-        self.__polygon: Polygon = Util.str_to_polygon(points_list)
+        self.__polygon: Polygon = PolygonFrameFilterUtil.str_to_polygon(points_list)
+        self.__report: PolygonFrameFilterReport = PolygonFrameFilterReport()
 
     @property
     def ocr_file_path(self) -> Path:
@@ -406,22 +345,35 @@ class PolygonFrameFilter:
         return self.__polygon
 
     def process(self) -> Optional[Piece]:
-        piece_result: Piece = PieceUtil.to_pieces(str(self.__ocr_path_in))
+        piece_result: Piece = to_pieces(str(self.__ocr_path_in))
         self.__process_piece(piece_result)
+        for removed_element in PieceChanges.removed_elements:
+            name: str = removed_element.nodeName
+            try:
+                value: int = self.__report.removed_elements[name]
+                self.__report.removed_elements[name] = value + 1
+            except KeyError as err:
+                self.__report.removed_elements[name] = 1
+
+        for resized_element in PieceChanges.resized_elements:
+            name: str = resized_element.nodeName
+            try:
+                value: int = self.__report.resized_elements[name]
+                self.__report.resized_elements[name] = value + 1
+            except KeyError as err:
+                self.__report.resized_elements[name] = 1
+
         return piece_result
 
     def __process_piece(self, piece: Piece) -> bool:
         for child_piece in piece.pieces:
             if not self.__process_piece(child_piece):
                 piece.remove_pieces(child_piece)
-                element: Element = child_piece.xml_element
-                Util.remove_element_and_clear_parent(element)
-                # gucke im parent ob da noch nodes
         if piece.level > PieceLevel.WORD:
             if len(piece.pieces) == 0:
                 return False
-            piece.dimensions = Util.calulate_dimensions_by_children(piece)
+            piece.dimensions = PieceUtil.calulate_dimensions_by_children(piece)
             return True
         if piece.level != PieceLevel.WORD:
             raise Exception(f'Unknown Level: {piece.level}')
-        return Util.is_piece_in_polygon(piece, self.polygon)
+        return piece.is_in_polygon(self.polygon)

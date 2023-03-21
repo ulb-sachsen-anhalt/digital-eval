@@ -2,7 +2,6 @@
 """Model Module"""
 from __future__ import annotations
 
-import xml.dom.minidom
 import xml.dom.minidom as md
 from copy import copy
 from enum import (
@@ -10,9 +9,9 @@ from enum import (
 )
 from pathlib import PurePath
 from typing import (
-    List, Optional, Dict, Tuple,
+    List, Optional, Dict, Tuple, TextIO, Any,
 )
-from xml.dom import pulldom
+from xml.dom.minidom import Element
 
 from shapely.geometry import (
     Polygon
@@ -84,13 +83,19 @@ class PieceData:
         self.data = None
 
 
-class OcrFileFormat(Enum):
+class PieceOcrFileFormat(Enum):
     UNKNOWN = 0
     ALTO_V3 = 1
     PAGE = 2
 
 
 PieceDimensions = List[List[float]]
+
+
+class PieceChanges:
+    removed_pieces: List[Piece] = []
+    removed_elements: List[Element] = []
+    resized_elements: List[Element] = []
 
 
 class Piece:
@@ -109,14 +114,14 @@ class Piece:
         self.__pieces: List[Piece] = []
         self.__xml_element: Optional[md.Element] = xml_element
         self.__document: Optional[md.Document] = document
-        self.__ocr_file_format: Optional[OcrFileFormat] = None
+        self.__ocr_file_format: Optional[PieceOcrFileFormat] = None
 
     @property
-    def ocr_file_format(self) -> OcrFileFormat:
+    def ocr_file_format(self) -> PieceOcrFileFormat:
         return self.__ocr_file_format
 
     @ocr_file_format.setter
-    def ocr_file_format(self, off: OcrFileFormat) -> None:
+    def ocr_file_format(self, off: PieceOcrFileFormat) -> None:
         self.__ocr_file_format = off
         for child in self.pieces:
             child.ocr_file_format = off
@@ -128,6 +133,8 @@ class Piece:
     @dimensions.setter
     def dimensions(self, dims: PieceDimensions) -> None:
         self.__dimensions = dims
+        if self.__set_dimensions_in_xml(dims):
+            PieceChanges.resized_elements.append(self.xml_element)
 
     @property
     def xml_element(self) -> md.Element:
@@ -160,17 +167,23 @@ class Piece:
     @pieces.setter
     def pieces(self, pcs: List[Piece]) -> None:
         self.__pieces = pcs
-        self.__pass_props()
+        self.__pass_properties_to_child_pieces()
 
     def add_pieces(self, *pieces: Piece) -> List[Piece]:
         self.__pieces.extend(*pieces)
-        self.__pass_props()
+        self.__pass_properties_to_child_pieces()
         return self.pieces
 
-    def remove_pieces(self, *pieces: Piece) -> List[Piece]:
+    def remove_pieces(self, *pieces: Piece) -> None:
         for piece in pieces:
             self.__pieces.remove(piece)
-        return self.pieces
+            PieceChanges.removed_pieces.append(piece)
+            element: Element = piece.xml_element
+            removable_tags: List[str] = []
+            if piece.ocr_file_format == PieceOcrFileFormat.ALTO_V3:
+                removable_tags.append('SP')
+            removed_elements: List[Element] = _MinidomUtil.remove_element_and_clear_parent(element, removable_tags)
+            PieceChanges.removed_elements.extend(removed_elements)
 
     @property
     def transcription(self) -> str:
@@ -189,12 +202,15 @@ class Piece:
         raise RuntimeError(f"ID={self.id}: Can't get text_content for {self.id}!")
 
     @transcription.setter
-    def transcription(self, transcription: str) -> None:
+    def transcription(self, transscr: str) -> None:
         """Set textual transcription representing this piece"""
         _transcription = PieceTranscription()
-        if transcription is not None and len(transcription.strip()) > 0:
-            _transcription.text = transcription
+        if transscr is not None and len(transscr.strip()) > 0:
+            _transcription.text = transscr
         self._transcriptions.append(_transcription)
+
+    def is_in_polygon(self, poly: Polygon) -> bool:
+        return PieceUtil.is_piece_in_polygon(self, poly)
 
     def __repr__(self) -> str:
         return f"{self.id}:{self.transcription}"
@@ -230,23 +246,61 @@ class Piece:
             PieceLevel.TABLE_CELL,
         ]
 
-    def __pass_props(self):
+    def __pass_properties_to_child_pieces(self):
         for child in self.__pieces:
             child.document = self.document
             child.file_path = self.file_path
             child.ocr_file_format = self.ocr_file_format
+
+    def __set_dimensions_in_xml(self, dimensions: PieceDimensions) -> bool:
+        xml_element: Element = self.xml_element
+        top_left: List[float] = dimensions[0]
+        bottom_right: List[float] = dimensions[2]
+        x1: float = top_left[0]
+        y1: float = top_left[1]
+        x2: float = bottom_right[0]
+        y2: float = bottom_right[1]
+        width: float = x2 - x1
+        height: float = y2 - y1
+        has_changed: bool = False
+        if self.ocr_file_format == PieceOcrFileFormat.ALTO_V3:
+            if _MinidomUtil.set_attribute(xml_element, 'HPOS', x1):
+                has_changed = True
+            if _MinidomUtil.set_attribute(xml_element, 'VPOS', y1):
+                has_changed = True
+            if _MinidomUtil.set_attribute(xml_element, 'WIDTH', width):
+                has_changed = True
+            if _MinidomUtil.set_attribute(xml_element, 'HEIGHT', height):
+                has_changed = True
+        return has_changed
 
 
 class PieceUtil:
 
     @staticmethod
     def to_pieces(path_in: str) -> Piece:
-        """Transform given input in various formats
-        into internal Piece-Representation"""
-        return PieceUtil.__read_data(path_in)
+        return PieceUtil.read_data(path_in)
 
     @staticmethod
-    def __read_data(path_in: str) -> Piece:
+    def from_pieces(root_piece: Piece, path_out: str = None) -> str:
+        if path_out is None:
+            orig_file_path: PurePath = root_piece.file_path
+            parent_dir: PurePath = orig_file_path.parent
+            basename: str = orig_file_path.name
+            suffix: str = orig_file_path.suffix
+            new_name: str = basename.replace(f"{suffix}", f".gt{suffix}")
+            path_out: PurePath = parent_dir.joinpath(new_name)
+        file: TextIO = open(path_out, 'w')
+        file.write(PieceUtil.to_xml_str(root_piece))
+        file.close()
+        return path_out
+
+    @staticmethod
+    def to_xml_str(piece: Piece) -> str:
+        return piece.xml_element.toprettyxml(encoding="utf-8").decode("utf-8")
+
+    @staticmethod
+    def read_data(path_in: str) -> Piece:
         try:
             document: md.Document = md.parse(path_in)
             doc_root: md.Element = document.documentElement
@@ -256,27 +310,84 @@ class PieceUtil:
             raise RuntimeError('invalid document root')
         name_space = doc_root.getAttribute('xmlns')
         piece: Optional[Piece]
-        ocr_file_format: OcrFileFormat = OcrFileFormat.UNKNOWN
+        ocr_file_format: PieceOcrFileFormat = PieceOcrFileFormat.UNKNOWN
         if doc_root.localName == 'alto':
-            piece = PieceAltoV3Util.extract_data(doc_root)
-            ocr_file_format = OcrFileFormat.ALTO_V3
+            piece = _PieceAltoV3Util.extract_data(doc_root)
+            ocr_file_format = PieceOcrFileFormat.ALTO_V3
         elif name_space == PAGE_2013:
-            piece = PiecePageUtil.extract_data(doc_root)
-            ocr_file_format = OcrFileFormat.PAGE
+            piece = _PiecePageUtil.extract_data(doc_root)
+            ocr_file_format = PieceOcrFileFormat.PAGE
         elif doc_root.localName == 'PcGts':
-            piece = PiecePageUtil.extract_data(doc_root, ns='pc:')
-            ocr_file_format = OcrFileFormat.PAGE
+            piece = _PiecePageUtil.extract_data(doc_root, ns='pc:')
+            ocr_file_format = PieceOcrFileFormat.PAGE
         else:
             raise RuntimeError(
                 'Unknown Data-Format "{}" in "{}"'.format(doc_root.localName, path_in))
         piece.file_path = PurePath(path_in)
         piece.document = document
         piece.ocr_file_format = ocr_file_format
-
         return piece
 
+    @staticmethod
+    def calulate_dimensions_by_children(piece: Piece) -> PieceDimensions:
+        if len(piece.pieces) > 0:
+            dims: PieceDimensions = []
+            for child_piece in piece.pieces:
+                dims.extend(child_piece.dimensions)
+            dims = PieceUtil.__calculate_dimensions_rect_bounds(dims)
+            return dims
+        return piece.dimensions
 
-class PieceAltoV3Util:
+    @staticmethod
+    def is_piece_in_polygon(piece: Piece, polygon: Polygon) -> bool:
+        piece_polygon: Polygon = Polygon(piece.dimensions)
+        convex_hull: Polygon = polygon.convex_hull
+        return convex_hull.contains(piece_polygon.centroid)
+
+    @staticmethod
+    def flatten(piece: Piece) -> List[Piece]:
+
+        def flatten_recursive(pc: Piece, pieces: List[Piece] = None) -> List[Piece]:
+            if pieces is None:
+                pieces = []
+            pieces.append(pc)
+            for child in pc.pieces:
+                flatten_recursive(child, pieces)
+            return pieces
+
+        return flatten_recursive(piece)
+
+    @staticmethod
+    def __calculate_dimensions_rect_bounds(dimensions: PieceDimensions) -> PieceDimensions:
+        min_x: Optional[float] = None
+        min_y: Optional[float] = None
+        max_x: Optional[float] = None
+        max_y: Optional[float] = None
+        for point in dimensions:
+            point_x: float = point[0]
+            point_y: float = point[1]
+            if min_x is None or point_x < min_x:
+                min_x = point_x
+            if min_y is None or point_y < min_y:
+                min_y = point_y
+            if max_x is None or point_x > max_x:
+                max_x = point_x
+            if max_y is None or point_y > max_y:
+                max_y = point_y
+        return [[min_x, min_y], [max_x, min_y], [max_x, max_y], [min_x, max_y]]
+
+
+def to_pieces(path_in: str) -> Piece:
+    """Transform given input in various formats
+    into internal Piece-Representation"""
+    return PieceUtil.to_pieces(path_in)
+
+
+def from_pieces(root_piece: Piece, path_out: str = None) -> str:
+    return PieceUtil.from_pieces(root_piece, path_out)
+
+
+class _PieceAltoV3Util:
     @staticmethod
     def extract_data(doc_root) -> Piece:
         page_one: md.Element = doc_root.getElementsByTagName('Page')[0]
@@ -286,7 +397,7 @@ class PieceAltoV3Util:
         top_piece: Piece = Piece(page_one.getAttribute('ID'), page_one)
         top_piece.dimensions = _dimensions
         top_piece.level = PieceLevel.PAGE
-        top_piece.subject = PieceAltoV3Util.__get_piece_subject(doc_root)
+        top_piece.subject = _PieceAltoV3Util.__get_piece_subject(doc_root)
         # composed level
         _block_pieces = []
         comp_blocks = doc_root.getElementsByTagName('ComposedBlock')
@@ -295,17 +406,17 @@ class PieceAltoV3Util:
                 comp_piece: Piece = Piece(_comp_block.getAttribute('ID'), _comp_block)
                 comp_piece.level = PieceLevel.REGION
                 comp_piece.parent = top_piece
-                comp_piece.dimensions = PieceAltoV3Util.__extract_dimensions(_comp_block)
+                comp_piece.dimensions = _PieceAltoV3Util.__extract_dimensions(_comp_block)
                 text_blocks = _comp_block.getElementsByTagName('TextBlock')
                 if len(text_blocks) < 1:
                     raise RuntimeError(f"Empty ALTO {doc_root} - no blocks!")
-                comp_piece.pieces = PieceAltoV3Util.__read_blocks(text_blocks, comp_piece)
+                comp_piece.pieces = _PieceAltoV3Util.__read_blocks(text_blocks, comp_piece)
                 _block_pieces.append(comp_piece)
         else:
             text_blocks = doc_root.getElementsByTagName('TextBlock')
             if len(text_blocks) < 1:
                 raise RuntimeError(f"Empty ALTO {doc_root} - no blocks!")
-            _block_pieces = PieceAltoV3Util.__read_blocks(text_blocks, top_piece)
+            _block_pieces = _PieceAltoV3Util.__read_blocks(text_blocks, top_piece)
         top_piece.pieces = _block_pieces
         _all_points = [point for _block in _block_pieces for point in _block.dimensions]
         top_piece.dimensions = _all_points
@@ -321,8 +432,8 @@ class PieceAltoV3Util:
             if len(_lines) == 0:
                 raise RuntimeError(f"TextBlock@ID={_block_piece.id} contains no lines!")
             _block_piece.parent = parent
-            _block_piece.pieces = PieceAltoV3Util.__read_lines(_lines, _block_piece)
-            _block_piece.dimensions = PieceAltoV3Util.__extract_dimensions(_block)
+            _block_piece.pieces = _PieceAltoV3Util.__read_lines(_lines, _block_piece)
+            _block_piece.dimensions = _PieceAltoV3Util.__extract_dimensions(_block)
             _block_pieces.append(_block_piece)
         return _block_pieces
 
@@ -355,9 +466,9 @@ class PieceAltoV3Util:
             text_strings = _text_line.getElementsByTagName('String')
             if len(text_strings) < 1:
                 raise RuntimeError(f"No words in line {_id}!")
-            line_piece.pieces = PieceAltoV3Util.__read_words(text_strings, line_piece)
+            line_piece.pieces = _PieceAltoV3Util.__read_words(text_strings, line_piece)
             line_piece.parent = parent
-            line_piece.dimensions = PieceAltoV3Util.__extract_dimensions(_text_line)
+            line_piece.dimensions = _PieceAltoV3Util.__extract_dimensions(_text_line)
             _lines.append(line_piece)
         return _lines
 
@@ -372,7 +483,7 @@ class PieceAltoV3Util:
             if not _content.strip():
                 continue
             word_piece.transcription = _content
-            word_piece.dimensions = PieceAltoV3Util.__extract_dimensions(_text_string)
+            word_piece.dimensions = _PieceAltoV3Util.__extract_dimensions(_text_string)
             word_piece.parent = parent
             _words.append(word_piece)
         return _words
@@ -394,7 +505,7 @@ class PieceAltoV3Util:
         raise RuntimeError(f"{el.localName}@ID={el.getAttribute('ID')}: Can't calculate dimensions")
 
 
-class PiecePageUtil:
+class _PiecePageUtil:
     @staticmethod
     def extract_data(doc_root, ns='') -> Piece:
         page_one = doc_root.getElementsByTagName(ns + 'Page')[0]
@@ -414,11 +525,11 @@ class PiecePageUtil:
         # inspect *all* regions
         region_pieces = []
         for region in regions:
-            _piece = PiecePageUtil.__from_text_element(region, top_piece, ns)
+            _piece = _PiecePageUtil.__from_text_element(region, top_piece, ns)
             # go into details
             page_lines = region.getElementsByTagName(ns + 'TextLine')
             if len(page_lines) > 0:
-                _piece.pieces = PiecePageUtil.__read_lines(page_lines, _piece, ns)
+                _piece.pieces = _PiecePageUtil.__read_lines(page_lines, _piece, ns)
             _piece.parent = top_piece
             region_pieces.append(_piece)
         top_piece.pieces = region_pieces
@@ -430,12 +541,12 @@ class PiecePageUtil:
     def __read_lines(page_lines, parent, ns) -> List[Piece]:
         line_pieces = []
         for page_line in page_lines:
-            line_piece = PiecePageUtil.__from_text_element(page_line, parent, ns)
+            line_piece = _PiecePageUtil.__from_text_element(page_line, parent, ns)
             word_tokens = page_line.getElementsByTagName(ns + 'Word')
             line_piece.parent = parent
             # inspect PAGE on word level, if set
             if len(word_tokens) > 0:
-                word_pieces = [PiecePageUtil.__from_text_element(el, line_piece, ns) for el in word_tokens]
+                word_pieces = [_PiecePageUtil.__from_text_element(el, line_piece, ns) for el in word_tokens]
                 if not word_pieces:
                     raise RuntimeError(f"No words in line {line_piece.id}!")
                 # remove line content in favour of words content
@@ -466,7 +577,7 @@ class PiecePageUtil:
 
         """
         _id = element.getAttribute('id')
-        _type, _local = PiecePageUtil.__map_piece_type(element)
+        _type, _local = _PiecePageUtil.__map_piece_type(element)
         _piece = Piece(_id, element)
         _piece.level = _type
         _piece.parent = parent
@@ -512,3 +623,37 @@ class PiecePageUtil:
         elif _local == 'TableCell':
             _name = PieceLevel.TABLE_CELL
         return _name, _local
+
+
+class _MinidomUtil:
+    @staticmethod
+    def remove_element_and_clear_parent(element: Element, removable_tags: List[str] = []) -> List[Element]:
+        parent: Element = element.parentNode
+        removed_elements: List[Element] = []
+        if parent:
+            parent.removeChild(element)
+            removed_elements.append(element)
+            siblings: List[Element] = parent.childNodes
+            for sibling in siblings:
+                is_text_node: bool = sibling.nodeType == md.Node.TEXT_NODE
+                is_removable_tag: bool = sibling.nodeName in removable_tags
+                is_removable: bool = is_text_node or is_removable_tag
+                if is_removable:
+                    parent.removeChild(sibling)
+                    if is_removable_tag:
+                        removed_elements.append(sibling)
+            if len(parent.childNodes) == 0:
+                removed_parent_elements = _MinidomUtil.remove_element_and_clear_parent(parent, removable_tags)
+                removed_elements.extend(removed_parent_elements)
+        return removed_elements
+
+    @staticmethod
+    def set_attribute(element: Element, attr_name: str, value: Any) -> bool:
+        attr_node: md.Node = element.getAttributeNode(attr_name)
+        if attr_node is not None:
+            old_value: str = str(attr_node.nodeValue)
+            new_value: str = str(value)
+            if new_value != old_value:
+                attr_node.nodeValue = new_value
+                return True
+        return False
