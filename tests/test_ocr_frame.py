@@ -2,7 +2,7 @@
 import os
 import shutil
 import xml.dom.minidom as md
-from pathlib import Path
+from pathlib import Path, PurePath
 from typing import Dict, List
 
 import pytest
@@ -39,7 +39,7 @@ def _create_filter_fixture(tmp_path) -> Dict[str, str]:
             '1208': str(path_1208)}
 
 
-def test_filter_0001_0768_2020(xml_fixture):
+def test_filter_0001_0768_2020_old(xml_fixture):
     """Check result file exists and contains CONTENT"""
 
     # arrange
@@ -67,11 +67,10 @@ def test_filter_0001_0768_2020(xml_fixture):
         assert string_element.getAttribute('CONTENT') != ''
 
 
-def test_filter_0001_0768_2022(xml_fixture):
+def test_filter_0001_0768_2022_old(xml_fixture):
     """Change in format: now unwrap from ContentBlocks first"""
 
     # arrange
-    # filter_ocr = OCRQAFilter(xml_fixture['0768_22'], "525x825", "2725x7125")
     filter_ocr = OldFrameFilterAltoV3(xml_fixture['0768_22'], [OldPoint2D(525, 825), OldPoint2D(2725, 7125)])
 
     # act
@@ -81,9 +80,9 @@ def test_filter_0001_0768_2022(xml_fixture):
     # assert
     assert os.path.exists(path_result)
     path_result_expect = os.path.join(
-        os.path.dirname(
-            xml_fixture['0768']),
-        '1667522809_J_0001_0768.gt.alto.xml')
+        os.path.dirname(xml_fixture['0768_22']),
+        '1667522809_J_0001_0768.gt.alto.xml'
+    )
     assert path_result_expect == path_result
 
     # assert
@@ -95,7 +94,7 @@ def test_filter_0001_0768_2022(xml_fixture):
         assert string_element.getAttribute('CONTENT') != ''
 
 
-def test_filter_0001_0260(xml_fixture):
+def test_filter_0001_0260_old(xml_fixture):
     """check filtered structure from new tesseract ALTO format with ComposedBlock"""
 
     # arrange
@@ -118,7 +117,29 @@ def test_filter_0001_0260(xml_fixture):
     assert len(text_blocks[0].getElementsByTagName('String')) == 84
 
 
-def test_polygon_frame_filter(xml_fixture):
+def test_poly(xml_fixture):
+    # arrange
+    points: str = '550,700 2700,700 2700,4350 550,4350'
+    alto_in_path: str = xml_fixture['0768']
+    filter_ocr = PolygonFrameFilter(alto_in_path, points)
+
+    # act
+    piece_result: Piece = filter_ocr.process()
+
+    # assert
+    assert piece_result
+    assert isinstance(piece_result, Piece)
+    assert isinstance(filter_ocr.polygon, Polygon)
+    assert isinstance(filter_ocr.ocr_file_path, Path)
+
+    # assert
+    poly: Polygon = PolygonFrameFilterUtil.str_to_polygon(points)
+    pieces: List[Piece] = PieceUtil.flatten(piece_result)
+    for piece in pieces:
+        assert piece.is_in_polygon(poly)
+
+
+def test_filter_0001_0768_2020(xml_fixture):
     """Check result file exists and contains CONTENT"""
 
     # arrange
@@ -128,19 +149,72 @@ def test_polygon_frame_filter(xml_fixture):
 
     # act
     piece_result: Piece = filter_ocr.process()
-    file_out_path: str = from_pieces(piece_result)
-    poly: Polygon = PolygonFrameFilterUtil.str_to_polygon(points)
+    file_out_path: PurePath = from_pieces(piece_result)
 
     # assert
-    assert piece_result
-    assert isinstance(piece_result, Piece)
-    assert isinstance(filter_ocr.polygon, Polygon)
-    assert isinstance(filter_ocr.ocr_file_path, Path)
-    string_elements = piece_result.xml_element.getElementsByTagName('String')
-    assert len(string_elements) < 1200
+    assert os.path.exists(file_out_path)
+    path_result_expect: str = os.path.join(
+        os.path.dirname(xml_fixture['0768']),
+        '1667522809_J_0001_0768.gt.xml')
+    assert path_result_expect == str(file_out_path)
+
+    # assert
+    tmp_xml: md.Document = md.parse(str(file_out_path))
+    string_elements = tmp_xml.getElementsByTagName('String')
+    assert len(string_elements) < 7744
     for string_element in string_elements:
         assert string_element.tagName == 'String'
         assert string_element.getAttribute('CONTENT') != ''
-    pieces: List[Piece] = PieceUtil.flatten(piece_result)
-    for piece in pieces:
-        assert piece.is_in_polygon(poly)
+
+
+def test_filter_0001_0768_2022(xml_fixture):
+    """Change in format: now unwrap from ContentBlocks first"""
+
+    # arrange
+    points: str = '525,825 2725,825 2725,7125 525,7125'
+    alto_in_path: str = xml_fixture['0768_22']
+    filter_ocr = PolygonFrameFilter(alto_in_path, points)
+
+    # act
+    piece_result: Piece = filter_ocr.process()
+    file_out_path: PurePath = from_pieces(piece_result)
+
+    # assert
+    assert os.path.exists(file_out_path)
+    path_result_expect: str = os.path.join(
+        os.path.dirname(
+            xml_fixture['0768_22']),
+        '1667522809_J_0001_0768.2022.gt.xml')
+    assert str(file_out_path) == path_result_expect
+
+    # assert
+    tmp_xml: md.Document = md.parse(str(file_out_path))
+    string_elements = tmp_xml.getElementsByTagName('String')
+    assert len(string_elements) > 960
+    for string_element in string_elements:
+        assert string_element.tagName == 'String'
+        assert string_element.getAttribute('CONTENT') != ''
+
+
+def test_filter_0001_0260(xml_fixture):
+    """check filtered structure from new tesseract ALTO format with ComposedBlock"""
+
+    # arrange
+    points: str = '550,700 2700,700 2700,4350 550,4350'
+    alto_in_path: str = xml_fixture['0260']
+    filter_ocr = PolygonFrameFilter(alto_in_path, points)
+
+    # act
+    piece_result: Piece = filter_ocr.process()
+    file_out_path: PurePath = from_pieces(piece_result)
+
+    # assert
+    assert os.path.exists(file_out_path)
+    tmp_xml: md.Document = md.parse(str(file_out_path))
+    text_blocks = tmp_xml.getElementsByTagName('TextBlock')
+    assert len(text_blocks) == 1
+    assert not tmp_xml.getElementsByTagName('ComposedBlock')
+
+    # ensure proper double quotes - not direct possible, but see if it gets
+    # parsed
+    assert len(text_blocks[0].getElementsByTagName('String')) == 84

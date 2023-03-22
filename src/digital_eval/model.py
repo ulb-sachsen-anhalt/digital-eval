@@ -84,16 +84,15 @@ class PieceData:
 
 
 class PieceOcrFileFormat(Enum):
-    UNKNOWN = 0
-    ALTO_V3 = 1
-    PAGE = 2
+    UNKNOWN = "UNKNOWN"
+    ALTO_V3 = "ALTO_V3"
+    PAGE = "PAGE"
 
 
 PieceDimensions = List[List[float]]
 
 
 class PieceChanges:
-    removed_pieces: List[Piece] = []
     removed_elements: List[Element] = []
     resized_elements: List[Element] = []
 
@@ -101,20 +100,26 @@ class PieceChanges:
 class Piece:
     """Piece base composition for analytical purposes"""
 
-    def __init__(self, identifier: str = UNSET, xml_element: md.Element = None, document: md.Document = None):
+    def __init__(
+            self,
+            identifier: str = UNSET,
+            xml_element: md.Element = None,
+            document: md.Document = None,
+            ocr_file_format: PieceOcrFileFormat = PieceOcrFileFormat.UNKNOWN
+    ):
         self.id: str = identifier
         self.level: PieceLevel = PieceLevel.PAGE
         self.subject: PieceContent = PieceContent.UNKNOWN
-        self.data: PieceData = Optional[None]
-        self.parent: Piece = Optional[None]
+        self.data: Optional[PieceData] = None
+        self.parent: Optional[Piece] = None
         self.custom: Dict = {}
         self._transcriptions: List = []
         self.__file_path: Optional[PurePath] = None
         self.__dimensions: PieceDimensions = []
         self.__pieces: List[Piece] = []
-        self.__xml_element: Optional[md.Element] = xml_element
-        self.__document: Optional[md.Document] = document
-        self.__ocr_file_format: Optional[PieceOcrFileFormat] = None
+        self.__xml_element: md.Element = xml_element
+        self.__document: md.Document = document
+        self.__ocr_file_format: PieceOcrFileFormat = ocr_file_format
 
     @property
     def ocr_file_format(self) -> PieceOcrFileFormat:
@@ -133,8 +138,10 @@ class Piece:
     @dimensions.setter
     def dimensions(self, dims: PieceDimensions) -> None:
         self.__dimensions = dims
-        if self.__set_dimensions_in_xml(dims):
-            PieceChanges.resized_elements.append(self.xml_element)
+        self.__pass_properties_to_child_pieces()
+        if self.__ocr_file_format != PieceOcrFileFormat.UNKNOWN:
+            if self.__set_dimensions_in_xml(dims):
+                PieceChanges.resized_elements.append(self.xml_element)
 
     @property
     def xml_element(self) -> md.Element:
@@ -177,7 +184,6 @@ class Piece:
     def remove_pieces(self, *pieces: Piece) -> None:
         for piece in pieces:
             self.__pieces.remove(piece)
-            PieceChanges.removed_pieces.append(piece)
             element: Element = piece.xml_element
             removable_tags: List[str] = []
             if piece.ocr_file_format == PieceOcrFileFormat.ALTO_V3:
@@ -272,6 +278,12 @@ class Piece:
                 has_changed = True
             if _MinidomUtil.set_attribute(xml_element, 'HEIGHT', height):
                 has_changed = True
+        elif self.ocr_file_format == PieceOcrFileFormat.PAGE:
+            points: str = _PiecePageUtil.dimensions_to_str(dimensions)
+            if _MinidomUtil.set_attribute(xml_element, 'points', points):
+                has_changed = True
+        else:
+            raise NotImplementedError(f'__set_dimensions_in_xml() not implemented for "{self.ocr_file_format}"')
         return has_changed
 
 
@@ -282,7 +294,7 @@ class PieceUtil:
         return PieceUtil.read_data(path_in)
 
     @staticmethod
-    def from_pieces(root_piece: Piece, path_out: str = None) -> str:
+    def from_pieces(root_piece: Piece, path_out: PurePath = None) -> PurePath:
         if path_out is None:
             orig_file_path: PurePath = root_piece.file_path
             parent_dir: PurePath = orig_file_path.parent
@@ -291,13 +303,13 @@ class PieceUtil:
             new_name: str = basename.replace(f"{suffix}", f".gt{suffix}")
             path_out: PurePath = parent_dir.joinpath(new_name)
         file: TextIO = open(path_out, 'w')
-        file.write(PieceUtil.to_xml_str(root_piece))
+        file.write(PieceUtil.to_xml_str(root_piece.document))
         file.close()
         return path_out
 
     @staticmethod
-    def to_xml_str(piece: Piece) -> str:
-        return piece.xml_element.toprettyxml(encoding="utf-8").decode("utf-8")
+    def to_xml_str(node: md.Node) -> str:
+        return node.toprettyxml(encoding="utf-8").decode("utf-8")
 
     @staticmethod
     def read_data(path_in: str) -> Piece:
@@ -383,7 +395,7 @@ def to_pieces(path_in: str) -> Piece:
     return PieceUtil.to_pieces(path_in)
 
 
-def from_pieces(root_piece: Piece, path_out: str = None) -> str:
+def from_pieces(root_piece: Piece, path_out: str = None) -> PurePath:
     return PieceUtil.from_pieces(root_piece, path_out)
 
 
@@ -394,7 +406,11 @@ class _PieceAltoV3Util:
         _page_width = int(page_one.getAttribute('WIDTH'))
         _page_height = int(page_one.getAttribute('HEIGHT'))
         _dimensions = [[0, 0], [_page_width, 0], [_page_width, _page_height], [0, _page_height]]
-        top_piece: Piece = Piece(page_one.getAttribute('ID'), page_one)
+        top_piece: Piece = Piece(
+            page_one.getAttribute('ID'),
+            page_one,
+            ocr_file_format=PieceOcrFileFormat.ALTO_V3
+        )
         top_piece.dimensions = _dimensions
         top_piece.level = PieceLevel.PAGE
         top_piece.subject = _PieceAltoV3Util.__get_piece_subject(doc_root)
@@ -403,7 +419,11 @@ class _PieceAltoV3Util:
         comp_blocks = doc_root.getElementsByTagName('ComposedBlock')
         if len(comp_blocks) > 0:
             for _comp_block in comp_blocks:
-                comp_piece: Piece = Piece(_comp_block.getAttribute('ID'), _comp_block)
+                comp_piece: Piece = Piece(
+                    _comp_block.getAttribute('ID'),
+                    _comp_block,
+                    ocr_file_format=PieceOcrFileFormat.ALTO_V3
+                )
                 comp_piece.level = PieceLevel.REGION
                 comp_piece.parent = top_piece
                 comp_piece.dimensions = _PieceAltoV3Util.__extract_dimensions(_comp_block)
@@ -426,7 +446,11 @@ class _PieceAltoV3Util:
     def __read_blocks(block_elements, parent):
         _block_pieces = []
         for _block in block_elements:
-            _block_piece = Piece(_block.getAttribute('ID'), _block)
+            _block_piece = Piece(
+                _block.getAttribute('ID'),
+                _block,
+                ocr_file_format=PieceOcrFileFormat.ALTO_V3
+            )
             _block_piece.level = PieceLevel.REGION
             _lines = _block.getElementsByTagName('TextLine')
             if len(_lines) == 0:
@@ -461,7 +485,11 @@ class _PieceAltoV3Util:
         _lines = []
         for _text_line in the_lines:
             _id = _text_line.getAttribute('ID')
-            line_piece = Piece(_id, _text_line)
+            line_piece = Piece(
+                _id,
+                _text_line,
+                ocr_file_format=PieceOcrFileFormat.ALTO_V3
+            )
             line_piece.level = PieceLevel.LINE
             text_strings = _text_line.getElementsByTagName('String')
             if len(text_strings) < 1:
@@ -477,7 +505,11 @@ class _PieceAltoV3Util:
         _words = []
         for _text_string in text_strings:
             _id = _text_string.getAttribute('ID')
-            word_piece = Piece(_id, _text_string)
+            word_piece = Piece(
+                _id,
+                _text_string,
+                ocr_file_format=PieceOcrFileFormat.ALTO_V3
+            )
             word_piece.level = PieceLevel.WORD
             _content = _text_string.getAttribute('CONTENT')
             if not _content.strip():
@@ -506,12 +538,22 @@ class _PieceAltoV3Util:
 
 
 class _PiecePageUtil:
+
+    @staticmethod
+    def dimensions_to_str(dimensions: PieceDimensions) -> str:
+        strs: List[str] = list(map(lambda p: f'{p[0]},{p[1]}', dimensions))
+        return ' '.join(strs)
+
     @staticmethod
     def extract_data(doc_root, ns='') -> Piece:
         page_one = doc_root.getElementsByTagName(ns + 'Page')[0]
         page_width = int(page_one.getAttribute('imageWidth'))
         page_height = int(page_one.getAttribute('imageHeight'))
-        top_piece = Piece(page_one.getAttribute('imageFilename'), page_one)
+        top_piece = Piece(
+            page_one.getAttribute('imageFilename'),
+            page_one,
+            ocr_file_format=PieceOcrFileFormat.PAGE
+        )
         top_piece.level = PieceLevel.PAGE
         top_piece.dimensions = [[0, 0], [page_width, 0],
                                 [page_width, page_height], [0, page_height]]
@@ -578,7 +620,11 @@ class _PiecePageUtil:
         """
         _id = element.getAttribute('id')
         _type, _local = _PiecePageUtil.__map_piece_type(element)
-        _piece = Piece(_id, element)
+        _piece = Piece(
+            _id,
+            element,
+            ocr_file_format=PieceOcrFileFormat.PAGE
+        )
         _piece.level = _type
         _piece.parent = parent
 

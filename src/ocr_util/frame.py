@@ -11,7 +11,7 @@ from shapely import Polygon
 from shapely.geometry import Point
 
 from digital_eval import Piece, PieceLevel
-from digital_eval.model import to_pieces, PieceUtil, PieceChanges
+from digital_eval.model import to_pieces, PieceUtil, PieceChanges, PieceOcrFileFormat
 
 OldTuple2D = Tuple[float, float]
 
@@ -303,7 +303,6 @@ class OldFrameFilterAltoV3:
 
 
 class PolygonFrameFilterReport(NamedTuple):
-    removed_pieces: Dict[str, int] = {}
     removed_elements: Dict[str, int] = {}
     resized_elements: Dict[str, int] = {}
 
@@ -335,6 +334,8 @@ class PolygonFrameFilter:
         self.__ocr_path_in: Path = Path(ocr_path_in)
         self.__polygon: Polygon = PolygonFrameFilterUtil.str_to_polygon(points_list)
         self.__report: PolygonFrameFilterReport = PolygonFrameFilterReport()
+        start_msg: str = f'filter strs from {ocr_path_in} between {points_list}'
+        print('[INFO] ' + start_msg)
 
     @property
     def ocr_file_path(self) -> Path:
@@ -347,6 +348,25 @@ class PolygonFrameFilter:
     def process(self) -> Optional[Piece]:
         piece_result: Piece = to_pieces(str(self.__ocr_path_in))
         self.__process_piece(piece_result)
+        self.__create_report()
+        return piece_result
+
+    def __process_piece(self, piece: Piece) -> bool:
+        for child_piece in piece.pieces:
+            keep_piece: bool = self.__process_piece(child_piece)
+            if not keep_piece:
+                piece.remove_pieces(child_piece)
+        if piece.level > PieceLevel.WORD:
+            if len(piece.pieces) == 0:
+                return False
+            piece.dimensions = PieceUtil.calulate_dimensions_by_children(piece)
+            return True
+        # Word
+        if piece.level != PieceLevel.WORD:
+            raise Exception(f'Unknown Level: {piece.level}')
+        return piece.is_in_polygon(self.polygon)
+
+    def __create_report(self):
         for removed_element in PieceChanges.removed_elements:
             name: str = removed_element.nodeName
             try:
@@ -363,17 +383,13 @@ class PolygonFrameFilter:
             except KeyError as err:
                 self.__report.resized_elements[name] = 1
 
-        return piece_result
+        for k, v in self.__report.removed_elements.items():
+            print(f'[INFO] removed {v} {k} Elements')
 
-    def __process_piece(self, piece: Piece) -> bool:
-        for child_piece in piece.pieces:
-            if not self.__process_piece(child_piece):
-                piece.remove_pieces(child_piece)
-        if piece.level > PieceLevel.WORD:
-            if len(piece.pieces) == 0:
-                return False
-            piece.dimensions = PieceUtil.calulate_dimensions_by_children(piece)
-            return True
-        if piece.level != PieceLevel.WORD:
-            raise Exception(f'Unknown Level: {piece.level}')
-        return piece.is_in_polygon(self.polygon)
+        for k, v in self.__report.resized_elements.items():
+            print(f'[INFO] resized {v} {k} Elements')
+
+        # print(f'[INFO] resized  {self.__resized}')
+        # actual_words = self.__doc_root.xpath('//alto:String', namespaces=OldFrameFilterAltoV3.__NAMESPACES)
+        # n_chars = sum([len(w.attrib['CONTENT']) for w in actual_words])
+        # print(f'[INFO] frame has {len(actual_words)} words ({n_chars} chars)')
