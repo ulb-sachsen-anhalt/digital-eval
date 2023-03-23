@@ -270,13 +270,13 @@ class Piece:
         height: float = y2 - y1
         has_changed: bool = False
         if self.ocr_file_format == PieceOcrFileFormat.ALTO_V3:
-            if _MinidomUtil.set_attribute(xml_element, 'HPOS', x1):
+            if _MinidomUtil.set_attribute(xml_element, 'HPOS', int(x1)):
                 has_changed = True
-            if _MinidomUtil.set_attribute(xml_element, 'VPOS', y1):
+            if _MinidomUtil.set_attribute(xml_element, 'VPOS', int(y1)):
                 has_changed = True
-            if _MinidomUtil.set_attribute(xml_element, 'WIDTH', width):
+            if _MinidomUtil.set_attribute(xml_element, 'WIDTH', int(width)):
                 has_changed = True
-            if _MinidomUtil.set_attribute(xml_element, 'HEIGHT', height):
+            if _MinidomUtil.set_attribute(xml_element, 'HEIGHT', int(height)):
                 has_changed = True
         elif self.ocr_file_format == PieceOcrFileFormat.PAGE:
             points: str = _PiecePageUtil.dimensions_to_str(dimensions)
@@ -541,7 +541,7 @@ class _PiecePageUtil:
 
     @staticmethod
     def dimensions_to_str(dimensions: PieceDimensions) -> str:
-        strs: List[str] = list(map(lambda p: f'{p[0]},{p[1]}', dimensions))
+        strs: List[str] = list(map(lambda p: f'{int(p[0])},{int(p[1])}', dimensions))
         return ' '.join(strs)
 
     @staticmethod
