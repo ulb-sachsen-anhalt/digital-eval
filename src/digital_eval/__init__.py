@@ -28,7 +28,9 @@ from .model import (
     PieceLevel,
     PieceContent,
     PieceUtil,
-    PieceDimensions
+    PieceDimensions,
+    to_pieces,
+    from_pieces,
 )
 
 from .model_legacy import (

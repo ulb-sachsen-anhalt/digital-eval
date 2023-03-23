@@ -5,7 +5,7 @@ from __future__ import annotations
 import xml.dom.minidom as md
 from copy import copy
 from enum import (
-    Enum
+    Enum, IntEnum
 )
 from pathlib import PurePath
 from typing import (
@@ -26,7 +26,7 @@ XML_NS = {'alto': 'http://www.loc.gov/standards/alto/ns-v3#',
 UNSET: str = 'n.a.'
 
 
-class PieceLevel(Enum):
+class PieceLevel(IntEnum):
     # more hierarchically
     UNKNOWN = 0
     GLYPH = 1
@@ -438,8 +438,8 @@ class _PieceAltoV3Util:
                 raise RuntimeError(f"Empty ALTO {doc_root} - no blocks!")
             _block_pieces = _PieceAltoV3Util.__read_blocks(text_blocks, top_piece)
         top_piece.pieces = _block_pieces
-        _all_points = [point for _block in _block_pieces for point in _block.dimensions]
-        top_piece.dimensions = _all_points
+        # _all_points = [point for _block in _block_pieces for point in _block.dimensions]
+        # top_piece.dimensions = _all_points
         return top_piece
 
     @staticmethod

@@ -152,33 +152,30 @@ def _fixture_zd101():
 
 
 def test_pieces_zd101_page_piece_dimension(zd101):
-    """Check ALTO page piece spans only space
-    from all child pieces, i.e. the regions
+    """Check ALTO page piece spans
     """
 
     # explore dimensions
-    # 10 text_regions, 4 corners => 40 points
-    assert len(zd101.dimensions) == 40
-    # top left 1st region
-    assert [802, 2100] in zd101.dimensions
-    # top left 2nd region
-    assert [403, 2252] in zd101.dimensions
-    # bottom right latest region
-    assert [2313, 9545] in zd101.dimensions
+    assert len(zd101.dimensions) == 4
+
+    assert [0, 0] in zd101.dimensions
+    assert [6633, 0] in zd101.dimensions
+    assert [6633, 9944] in zd101.dimensions
+    assert [0, 9944] in zd101.dimensions
 
 
 def test_pieces_zd101_page_bounding_box_dimension(zd101):
-    """check if bounding box is reasonable
-    for single column
-    
-    * top_left: 401,2100
-    * bottom_right: 2380, 9545
+    """check if bounding box reflects non-modfied page dimensions
+
+    * top_left: 0,0
+    * bottom_right: 6633,9944
     """
+
 
     _polygon = Polygon(zd101.dimensions)
 
     # all regions contained in this box
-    assert _polygon.bounds == (401.0, 2100.0, 2380.0, 9545.0)
+    assert _polygon.bounds == (0.0, 0.0, 6633.0, 9944.0)
 
 
 def test_pieces_zd101_region01_dimensions(zd101):

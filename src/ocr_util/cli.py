@@ -2,10 +2,13 @@
 """OCR Utils"""
 
 import argparse
+import re
+from pathlib import PurePath
 from typing import Final
 
 from digital_eval import Piece
-from ocr_util import OldPoint2D, PolygonFrameFilterUtil, OldPoint2DList, OldFrameFilterAltoV3
+from digital_eval.model import from_pieces
+from ocr_util import PolygonFrameFilterUtil, PolygonFrameFilter
 
 # script constants
 
@@ -13,11 +16,11 @@ DEFAULT_VERBOSITY: int = 0
 SUB_CMD_FRAME: Final[str] = 'frame'
 
 
-def argparse_point2d_type(point: str) -> OldPoint2D:
-    try:
-        return PolygonFrameFilterUtil.str_to_point_2d(point)
-    except ValueError as err:
-        raise argparse.ArgumentTypeError(f"Invalid point coordinates: '{point}'")
+def points_type(points: str) -> str:
+    match: re.Match = re.match(PolygonFrameFilterUtil.POINT_LIST_PATTERN, points)
+    if not match:
+        raise argparse.ArgumentTypeError(f"Invalid point coordinates: '{points}'")
+    return points
 
 
 def start() -> None:
@@ -54,12 +57,11 @@ def start() -> None:
     )
     frame_arg_parser.add_argument(
         "-p", "--points",
-        nargs=4,
         required=True,
-        type=argparse_point2d_type,
+        type=points_type,
         help=f"""
         Frame to slice words/lines/regions from input OCR-Data
-        f.e.: --frame 2892,2480 5072,2480 5072,5148 2892,5148
+        f.e.: --frame "2892,2480 5072,2480 5072,5148 2892,5148"
         """
     )
     args = arg_parser.parse_args()
@@ -68,15 +70,15 @@ def start() -> None:
     if args.subcommand == SUB_CMD_FRAME:
         input_ocr_file: str = args.input_ocr_file
         output_ocr_file: str = args.output_ocr_file
-        points: OldPoint2DList = args.points
-        frame_filter: OldFrameFilterAltoV3 = OldFrameFilterAltoV3(
-            path_alto_in=input_ocr_file,
-            path_alto_out=output_ocr_file,
-            points=points,
-            verbosity=verbosity
+        points: str = args.points
+        print(input_ocr_file, output_ocr_file, points)
+        polygon_frame_filter: PolygonFrameFilter = PolygonFrameFilter(
+            input_ocr_file,
+            points
         )
-        filter_result: str = frame_filter.process()
-        print('filter_result', filter_result)
+        piece_result: Piece = polygon_frame_filter.process()
+        file_result: PurePath = from_pieces(piece_result, output_ocr_file)
+        print('file_result', file_result)
 
 
 if __name__ == "__main__":

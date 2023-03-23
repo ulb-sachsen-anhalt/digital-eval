@@ -308,11 +308,11 @@ class PolygonFrameFilterReport(NamedTuple):
 
 
 class PolygonFrameFilterUtil:
-    __POINT_LIST_PATTERN: str = r'^(?:(?:-?\d+(?:\.\d+)?),(?:-?\d+(?:\.\d+)?)\ ?)+$'
+    POINT_LIST_PATTERN: str = r'^(?:(?:-?\d+(?:\.\d+)?),(?:-?\d+(?:\.\d+)?)\ ?)+$'
 
     @staticmethod
     def str_to_polygon(points_list: str) -> Polygon:
-        match: Match = re.match(PolygonFrameFilterUtil.__POINT_LIST_PATTERN, points_list)
+        match: Match = re.match(PolygonFrameFilterUtil.POINT_LIST_PATTERN, points_list)
         points_str: str = match.string
         point_strs_arr: List[str] = points_str.split(' ')
         points_arr: List[Point] = list(map(PolygonFrameFilterUtil.__str_to_point, point_strs_arr))
@@ -356,10 +356,12 @@ class PolygonFrameFilter:
             keep_piece: bool = self.__process_piece(child_piece)
             if not keep_piece:
                 piece.remove_pieces(child_piece)
-        if piece.level > PieceLevel.WORD:
+        if PieceLevel.WORD < piece.level < PieceLevel.PAGE:
             if len(piece.pieces) == 0:
                 return False
             piece.dimensions = PieceUtil.calulate_dimensions_by_children(piece)
+            return True
+        elif piece.level >= PieceLevel.PAGE:
             return True
         # Word
         if piece.level != PieceLevel.WORD:

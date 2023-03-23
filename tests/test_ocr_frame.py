@@ -135,6 +135,7 @@ def test_poly(xml_fixture):
     # assert
     poly: Polygon = PolygonFrameFilterUtil.str_to_polygon(points)
     pieces: List[Piece] = PieceUtil.flatten(piece_result)
+    pieces.remove(piece_result)
     for piece in pieces:
         assert piece.is_in_polygon(poly)
 
@@ -213,8 +214,8 @@ def test_filter_0001_0260(xml_fixture):
     tmp_xml: md.Document = md.parse(str(file_out_path))
     text_blocks = tmp_xml.getElementsByTagName('TextBlock')
     assert len(text_blocks) == 1
-    assert not tmp_xml.getElementsByTagName('ComposedBlock')
+    assert len(tmp_xml.getElementsByTagName('ComposedBlock')) == 1
 
     # ensure proper double quotes - not direct possible, but see if it gets
     # parsed
-    assert len(text_blocks[0].getElementsByTagName('String')) == 84
+    assert len(text_blocks[0].getElementsByTagName('String')) == 98
