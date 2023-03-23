@@ -2,3 +2,4 @@ rapidfuzz
 numpy
 nltk
 shapely
+lxml

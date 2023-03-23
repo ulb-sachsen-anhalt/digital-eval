@@ -4,18 +4,16 @@
 from os.path import (
     join,
 )
-
-import shutil
+from pathlib import PurePath
 
 import pytest
-
 from shapely.geometry import (
     Polygon
 )
 
 from digital_eval.model import (
-    to_pieces,
     PieceLevel,
+    Piece, to_pieces,
 )
 
 from .conftest import (
@@ -106,6 +104,7 @@ def test_to_pieces_page_odem():
     assert line1_text == 'und erklaͤret die Schrift nicht nur al⸗'
     assert page_piece.pieces[2].pieces[0].transcription == line1_text
 
+
 # @pytest.mark.skip("disabled")
 @pytest.fixture(name='odem01', scope='module')
 def _fixture_odem01():
@@ -136,7 +135,7 @@ def test_pieces_odem01_region_and_page(odem01):
 def test_pieces_odem01_page_not_in_region(odem01):
     """Evidently can't a super-structure
     *not* be contained in it's own child"""
-    
+
     # top level pageregion 1 is not contained in region 3
     with pytest.raises(RuntimeError) as _rer:
         odem01 not in odem01.pieces[0]
@@ -153,33 +152,30 @@ def _fixture_zd101():
 
 
 def test_pieces_zd101_page_piece_dimension(zd101):
-    """Check ALTO page piece spans only space
-    from all child pieces, i.e. the regions
+    """Check ALTO page piece spans
     """
 
     # explore dimensions
-    # 10 text_regions, 4 corners => 40 points
-    assert len(zd101.dimensions) == 40
-    # top left 1st region
-    assert [802, 2100] in zd101.dimensions
-    # top left 2nd region
-    assert [403, 2252] in zd101.dimensions
-    # bottom right latest region
-    assert [2313, 9545] in zd101.dimensions
+    assert len(zd101.dimensions) == 4
+
+    assert [0, 0] in zd101.dimensions
+    assert [6633, 0] in zd101.dimensions
+    assert [6633, 9944] in zd101.dimensions
+    assert [0, 9944] in zd101.dimensions
 
 
 def test_pieces_zd101_page_bounding_box_dimension(zd101):
-    """check if bounding box is reasonable
-    for single column
-    
-    * top_left: 401,2100
-    * bottom_right: 2380, 9545
+    """check if bounding box reflects non-modfied page dimensions
+
+    * top_left: 0,0
+    * bottom_right: 6633,9944
     """
+
 
     _polygon = Polygon(zd101.dimensions)
 
     # all regions contained in this box
-    assert _polygon.bounds == (401.0, 2100.0, 2380.0, 9545.0)
+    assert _polygon.bounds == (0.0, 0.0, 6633.0, 9944.0)
 
 
 def test_pieces_zd101_region01_dimensions(zd101):
@@ -193,20 +189,20 @@ def test_pieces_zd101_region01_dimensions(zd101):
     region1 = zd101.pieces[0]
     line1 = region1.pieces[0]
     assert region1.dimensions == [
-        [802, 2100], [1901,2100], [1901,2223], [802,2223]]
+        [802, 2100], [1901, 2100], [1901, 2223], [802, 2223]]
 
     # this region has only one line
     assert len(region1.pieces) == 1
     # which is completely same as region
-    assert line1.dimensions == [[802, 2100], 
-        [1901,2100], [1901, 2223], [802,2223]]
+    assert line1.dimensions == [[802, 2100],
+                                [1901, 2100], [1901, 2223], [802, 2223]]
     assert region1.dimensions == line1.dimensions
     # this line has two words
     assert len(line1.pieces) == 2
     word1 = line1.pieces[0]
     # coords for word01 differ sligthly from line
-    assert word1.dimensions == [[802, 2101], 
-        [1246, 2101], [1246, 2219], [802, 2219]]
+    assert word1.dimensions == [[802, 2101],
+                                [1246, 2101], [1246, 2219], [802, 2219]]
     assert word1 in line1 and line1 in region1
 
 
@@ -241,6 +237,7 @@ def test_piece_hierarchy_bottom_up():
     assert PieceLevel.LINE < PieceLevel.PAGE
     assert PieceLevel.WORD < PieceLevel.PAGE
 
+
 def test_piece_hierarchy_top_down():
     """The are all considere equal"""
 
@@ -248,3 +245,9 @@ def test_piece_hierarchy_top_down():
     assert PieceLevel.LINE > PieceLevel.WORD
     assert PieceLevel.REGION > PieceLevel.WORD
     assert PieceLevel.WORD > PieceLevel.GLYPH
+
+
+def test_piece_file_path():
+    ocr_path: str = f'{TEST_RES_DIR}/groundtruth/alto/1667522809_J_0073_0001_375x2050_2325x9550.xml'
+    page_piece: Piece = to_pieces(ocr_path)
+    assert isinstance(page_piece.file_path, PurePath)
