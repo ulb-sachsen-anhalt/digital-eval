@@ -10,8 +10,7 @@ from shapely import Polygon
 
 from digital_eval import Piece
 from digital_eval.model import from_pieces, PieceUtil
-from ocr_util import PolygonFrameFilterUtil
-from src.ocr_util import OldFrameFilterAltoV3, OldPoint2D, PolygonFrameFilter
+from ocr_util import PolygonFrameFilterUtil, PolygonFrameFilter
 
 RES_ROOT = os.path.join('tests', 'resources', 'frames')
 RES_ALTO = os.path.join(RES_ROOT, 'alto')
@@ -37,84 +36,6 @@ def _create_filter_fixture(tmp_path) -> Dict[str, str]:
             '0260': str(path_0260),
             '0512': str(path_0512),
             '1208': str(path_1208)}
-
-
-def test_filter_0001_0768_2020_old(xml_fixture):
-    """Check result file exists and contains CONTENT"""
-
-    # arrange
-    # filter_ocr = OCRQAFilter(xml_fixture['0768'], "550x700", "2700x4350")
-    filter_ocr = OldFrameFilterAltoV3(xml_fixture['0768'], [OldPoint2D(550, 700), OldPoint2D(2700, 4350)])
-
-    # act
-    filter_ocr.process()
-    path_result = filter_ocr.get_out_path()
-
-    # assert
-    assert os.path.exists(path_result)
-    path_result_expect = os.path.join(
-        os.path.dirname(
-            xml_fixture['0768']),
-        '1667522809_J_0001_0768.gt.alto.xml')
-    assert path_result_expect == path_result
-
-    # assert
-    tmp_data = md.parse(path_result)
-    string_elements = tmp_data.getElementsByTagName('String')
-    assert len(string_elements) > 1100
-    for string_element in string_elements:
-        assert string_element.tagName == 'String'
-        assert string_element.getAttribute('CONTENT') != ''
-
-
-def test_filter_0001_0768_2022_old(xml_fixture):
-    """Change in format: now unwrap from ContentBlocks first"""
-
-    # arrange
-    filter_ocr = OldFrameFilterAltoV3(xml_fixture['0768_22'], [OldPoint2D(525, 825), OldPoint2D(2725, 7125)])
-
-    # act
-    filter_ocr.process()
-    path_result = filter_ocr.get_out_path()
-
-    # assert
-    assert os.path.exists(path_result)
-    path_result_expect = os.path.join(
-        os.path.dirname(xml_fixture['0768_22']),
-        '1667522809_J_0001_0768.gt.alto.xml'
-    )
-    assert path_result_expect == path_result
-
-    # assert
-    tmp_data = md.parse(path_result)
-    string_elements = tmp_data.getElementsByTagName('String')
-    assert len(string_elements) > 960
-    for string_element in string_elements:
-        assert string_element.tagName == 'String'
-        assert string_element.getAttribute('CONTENT') != ''
-
-
-def test_filter_0001_0260_old(xml_fixture):
-    """check filtered structure from new tesseract ALTO format with ComposedBlock"""
-
-    # arrange
-    # filter_ocr = OCRQAFilter(xml_fixture['0260'], "550x700", "2700x4350")
-    filter_ocr = OldFrameFilterAltoV3(xml_fixture['0260'], [OldPoint2D(550, 700), OldPoint2D(2700, 4350)])
-
-    # act
-    filter_ocr.process()
-    path_result = filter_ocr.get_out_path()
-
-    # assert
-    assert os.path.exists(path_result)
-    tmp_data = md.parse(path_result)
-    text_blocks = tmp_data.getElementsByTagName('TextBlock')
-    assert len(text_blocks) == 1
-    assert not tmp_data.getElementsByTagName('ComposedBlock')
-
-    # ensure proper double quotes - not direct possible, but see if it gets
-    # parsed
-    assert len(text_blocks[0].getElementsByTagName('String')) == 84
 
 
 def test_poly(xml_fixture):
