@@ -24,6 +24,15 @@ class PolygonFrameFilterUtil:
         points_str: str = match.string
         point_strs_arr: List[str] = points_str.split(' ')
         points_arr: List[Point] = list(map(PolygonFrameFilterUtil.__str_to_point, point_strs_arr))
+        if len(points_arr) == 2:
+            topleft: Point = points_arr[0]
+            bottomright: Point = points_arr[1]
+            points_arr = [
+                topleft,
+                Point(bottomright.x, topleft.y),
+                bottomright,
+                Point(topleft.x, bottomright.y),
+            ]
         return Polygon(points_arr)
 
     @staticmethod

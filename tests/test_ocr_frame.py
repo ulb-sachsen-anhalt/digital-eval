@@ -61,6 +61,28 @@ def test_poly(xml_fixture):
         assert piece.is_in_polygon(poly)
 
 
+def test_poly_legacy(xml_fixture):
+    # arrange
+    points: str = '550,700 2700,4350'
+    alto_in_path: str = xml_fixture['0768']
+    filter_ocr = PolygonFrameFilter(alto_in_path, points)
+
+    # act
+    piece_result: Piece = filter_ocr.process()
+
+    # assert
+    assert piece_result
+    assert isinstance(piece_result, Piece)
+    assert isinstance(filter_ocr.polygon, Polygon)
+    assert isinstance(filter_ocr.ocr_file_path, Path)
+
+    # assert
+    poly: Polygon = PolygonFrameFilterUtil.str_to_polygon(points)
+    pieces: List[Piece] = PieceUtil.flatten(piece_result)
+    pieces.remove(piece_result)
+    for piece in pieces:
+        assert piece.is_in_polygon(poly)
+
 def test_filter_0001_0768_2020(xml_fixture):
     """Check result file exists and contains CONTENT"""
 
