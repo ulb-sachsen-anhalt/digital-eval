@@ -38,7 +38,7 @@ def test_metric_unicode_normalization_happens():
     raw1 has "á" as {U+00E0} => gets canonical decomposed
     raw2 has "á" as {U+0061}+{U+0301}
     """
-    
+
     # arrange
     raw1 = 'the á lazy brown fox jumps over the hump'
     raw2 = THE_COMBINED_A_FOX
@@ -55,10 +55,10 @@ def test_metric_unicode_normalization_happens():
     assert norm1 == norm2
     assert 0 == dist
     assert len(norm1) == 41
-    # the "á" char from raw1 string gets 
+    # the "á" char from raw1 string gets
     # decomposed into {U+0061}+{U+0301}
     # by normalization with de-composition
-    # therefore normalised str is 
+    # therefore normalised str is
     # one char longer
     assert len(raw1) + 1 == len(norm1)
 
@@ -66,17 +66,17 @@ def test_metric_unicode_normalization_happens():
 def test_metric_unicode_normalization_not_happens():
     """Normalization has no effect since
     the letters "a" and "á" are still different
-    after normalization, they just stay 
+    after normalization, they just stay
     {U+0061} and {U+0061}+{U+0301}
 
     =>
 
-    results in this case in a *raw* edit distance 
-    of "3" since the "á" gets decomposed into 2 
-    unicode points and still there is one whitespace 
+    results in this case in a *raw* edit distance
+    of "3" since the "á" gets decomposed into 2
+    unicode points and still there is one whitespace
     too much left
     """
-    
+
     # arrange
     raw1 = THE_LAZY_FOX
     raw2 = THE_COMBINED_A_FOX
@@ -91,30 +91,30 @@ def test_metric_unicode_normalization_not_happens():
 
 
 def test_metric_unicode_normalization_textual_metric():
-    """Normalization has no effect too, 
-    but since the whitespaces get dropped, 
+    """Normalization has no effect too,
+    but since the whitespaces get dropped,
     the distance calculation just
     only concerns the *real* characters
 
     => distance decreases to "2"
     """
-    
+
     # arrange
-    c = MetricChars()
-    c.reference = THE_LAZY_FOX
-    c.candidate = THE_COMBINED_A_FOX
+    char_metric = MetricChars()
+    char_metric.reference = THE_LAZY_FOX
+    char_metric.candidate = THE_COMBINED_A_FOX
 
     # act
-    c.value
+    _ = char_metric.value
 
     # assert
-    assert 2 == c.diff
+    assert 2 == char_metric.diff
 
 
 @pytest.mark.parametrize(["n_reference", "difference", "value"],
-    [(1000,  150, 0.85),
-     (1000, 1001,  0.0),
-     (   0,    0,  1.0)])
+                         [(1000, 150, 0.85),
+                          (1000, 1001, 0.0),
+                          (0, 0, 1.0)])
 def test_caluculate_accuracy(difference, n_reference, value):
     """Behavior for accuracy of common values"""
 
@@ -128,9 +128,9 @@ def test_caluculate_accuracy(difference, n_reference, value):
 
 
 @pytest.mark.parametrize(["n_reference", "difference", "value"],
-    [(1000,  100, 0.1),
-     (1000, 1001, 0.0),
-     (   0,    0, 1.0)])
+                         [(1000, 100, 0.1),
+                          (1000, 1001, 0.0),
+                          (0, 0, 1.0)])
 def test_caluculate_error(difference, n_reference, value):
     """Behavior for error rate of common values"""
 
@@ -285,25 +285,25 @@ def test_metric_character_accuracy():
     str2 = 'fthe lazy brown fox jumps ouer the hump'
 
     # arrange
-    m = MetricChars()
-    m.reference = str1
-    m.candidate = str2
+    char_metric = MetricChars()
+    char_metric.reference = str1
+    char_metric.candidate = str2
 
     # assert
-    assert 93.75 == pytest.approx(m.value, rel=0.001, abs=0.001)
+    assert 93.75 == pytest.approx(char_metric.value, rel=0.001, abs=0.001)
 
 
 def test_metric_bot_ident():
     """BOW with identical tokens"""
 
-    gt = "the lazy brown fox jumps over the hump again and again three times the dude"
-    l2 = list(gt.split())
-    random.shuffle(l2)
-    s2 = ' '.join(l2)
+    gt1 = "the lazy brown fox jumps over the hump again and again three times the dude"
+    list2 = list(gt1.split())
+    random.shuffle(list2)
+    str2 = ' '.join(list2)
 
-    n_diffs = bag_of_tokens(gt, s2)
+    n_diffs = bag_of_tokens(gt1, str2)
     assert n_diffs == 0
-    assert len(s2) == len(gt)
+    assert len(str2) == len(gt1)
 
 
 def test_metric_bot_candidate_with_only_repetitions():
@@ -311,27 +311,27 @@ def test_metric_bot_candidate_with_only_repetitions():
     Behaviour of BOW with multiple identical entries
     """
 
-    gt = "the dizzy brown fox jumps"
-    s2 = "the dizzy brown fox fox fox jumps"
+    gt1 = "the dizzy brown fox jumps"
+    str2 = "the dizzy brown fox fox fox jumps"
 
     # actsert
-    assert 0 == bag_of_tokens(gt, s2)
+    assert 0 == bag_of_tokens(gt1, str2)
 
 
 def test_metric_bot_miss_tokens():
     """BOW with missing tokens in candidate text"""
 
-    gt = "the lazy brown fox jumps"
-    s2 = "the brown fux jumps"
+    gt1 = "the lazy brown fox jumps"
+    str2 = "the brown fux jumps"
 
     # acsert
-    assert 2 == bag_of_tokens(gt.split(), s2.split())
+    assert 2 == bag_of_tokens(gt1.split(), str2.split())
 
 
 def test_ir_metric_precision_fox():
-    """Basic test IR Precision with candidate 
+    """Basic test IR Precision with candidate
     having all tokens included (minus stopwords)"""
-    
+
     # arrange
     m_prec = MetricIRPre()
     m_prec.reference = THE_LAZY_FOX
@@ -348,7 +348,7 @@ def test_ir_metric_precision_fox():
 def test_ir_metric_recall_fox():
     """Basic test IR Recall - everthing has been found
     (minus stoppwords)"""
-    
+
     # arrange
     m_prec = MetricIRRec()
     m_prec.reference = THE_LAZY_FOX
@@ -363,8 +363,10 @@ def test_ir_metric_recall_fox():
 
 
 IR_CANDIDATE_TEXT = 'the red fox'
+
+
 def test_ir_metrics_precision_english_poor_candidate():
-    """Example with all IR-Metrics and 
+    """Example with all IR-Metrics and
     a rather poor candidate"""
 
     # arrange
@@ -379,7 +381,7 @@ def test_ir_metrics_precision_english_poor_candidate():
 
 
 def test_ir_metrics_recall_english_poor_candidate():
-    """Example with all IR-Metrics and 
+    """Example with all IR-Metrics and
     a rather poor candidate"""
 
     # arrange
@@ -388,25 +390,27 @@ def test_ir_metrics_recall_english_poor_candidate():
     rec.candidate = IR_CANDIDATE_TEXT
 
     # assert
-    assert 0.20 == pytest.approx(rec.value , 0.01)
+    assert 0.20 == pytest.approx(rec.value, 0.01)
 
 
 def test_ir_metrics_fmeasure_english_poor_candidate():
-    """Example with all IR-Metrics and 
+    """Example with all IR-Metrics and
     a rather poor candidate"""
 
     # arrange
-    fm = MetricIRFM()
-    fm.reference = THE_LAZY_FOX
-    fm.candidate = IR_CANDIDATE_TEXT
+    metric_fm = MetricIRFM()
+    metric_fm.reference = THE_LAZY_FOX
+    metric_fm.candidate = IR_CANDIDATE_TEXT
 
     # assert
-    assert 0.29 == pytest.approx(fm.value , 0.01)
+    assert 0.29 == pytest.approx(metric_fm.value, 0.01)
 
 
 IR_CANDIDATE_TEXT_GERMAN = 'dieser faule Fuchs springt die Hecke'
 IR_REFERENCE_TEXT_GERMAN = 'Fuchs springt faule Hecke'
 IR_REFERENCE_TEXT_GERMAN_POOR = 'forsche Fuchs hopst'
+
+
 def test_ir_metrics_precision_german():
     """Candidate with german phrase
     and very nice candidate precision"""
@@ -438,12 +442,12 @@ def test_ir_metrics_precision_german_poor_candidate():
     and rather poor candidate"""
 
     # arrange
-    p = MetricIRPre(languages=['german'])
-    p.reference = IR_CANDIDATE_TEXT_GERMAN
-    p.candidate = IR_REFERENCE_TEXT_GERMAN_POOR
+    metric_pre = MetricIRPre(languages=['german'])
+    metric_pre.reference = IR_CANDIDATE_TEXT_GERMAN
+    metric_pre.candidate = IR_REFERENCE_TEXT_GERMAN_POOR
 
     # assert
-    assert p.value == pytest.approx(0.33)
+    assert metric_pre.value == pytest.approx(0.33)
 
 
 def test_ir_metrics_recall_german_poor_candidate():
@@ -451,12 +455,12 @@ def test_ir_metrics_recall_german_poor_candidate():
     and rather poor candidate"""
 
     # arrange
-    r = MetricIRRec(languages=['german'])
-    r.reference = IR_CANDIDATE_TEXT_GERMAN
-    r.candidate = IR_REFERENCE_TEXT_GERMAN_POOR
+    metric_rec = MetricIRRec(languages=['german'])
+    metric_rec.reference = IR_CANDIDATE_TEXT_GERMAN
+    metric_rec.candidate = IR_REFERENCE_TEXT_GERMAN_POOR
 
     # assert
-    assert r.value == 0.25
+    assert metric_rec.value == 0.25
 
 
 def test_metrics_token_based_more_gt_than_tc():
@@ -464,7 +468,7 @@ def test_metrics_token_based_more_gt_than_tc():
     * 2 exchanges (first 2 tokens), followed by
     * 3 insertions ('springt', 'über', 'die')
     => total 5 edit operations required
-    
+
     aligned means: (7 - 5) / 7
     => 0.2857
 
@@ -473,20 +477,20 @@ def test_metrics_token_based_more_gt_than_tc():
     """
 
     # arrange
-    gt = "der faulte Fuchs springt über die Hecke".split()
-    tc = "faule springt Fuchs Hecke".split()
+    gt1 = "der faulte Fuchs springt über die Hecke".split()
+    cand = "faule springt Fuchs Hecke".split()
 
     # act
-    diff = edit_distance(gt, tc)
-    m = MetricWords()
-    m.diff = diff
-    m._data_reference = gt
-    m._data_candidate = tc
-    
+    diff = edit_distance(gt1, cand)
+    m_word = MetricWords()
+    m_word.diff = diff
+    m_word._data_reference = gt1
+    m_word._data_candidate = cand
+
     # assert
     assert diff == 5
-    assert 28.57 == pytest.approx(m.value, rel=1e-2)
-    assert len(tc) + 3 == len(gt)
+    assert 28.57 == pytest.approx(m_word.value, rel=1e-2)
+    assert len(cand) + 3 == len(gt1)
 
 
 def test_metrics_token_based_more_tc_than_gt():
@@ -495,16 +499,16 @@ def test_metrics_token_based_more_tc_than_gt():
     """
 
     # arrange
-    gt = "der faule Fuchs"
-    tc = "der faule Fuchs springt über die"
+    gt1 = "der faule Fuchs"
+    cand = "der faule Fuchs springt über die"
 
     # act
-    delta = edit_distance(gt.split(), tc.split())
+    delta = edit_distance(gt1.split(), cand.split())
     # rather hacky way to mock a metric object
-    m = MetricWords()
-    m.diff = delta
-    m._data_reference = gt.split()
-    aligned = accuracy_for(m)
+    m_word = MetricWords()
+    m_word.diff = delta
+    m_word._data_reference = gt1.split()
+    aligned = accuracy_for(m_word)
 
     # assert
     assert 3 == delta
@@ -515,11 +519,11 @@ def test_metrics_token_based_equal():
     """No mismatch => 100.00"""
 
     # arrange
-    gt = "der fahle Fuchs springt über die Hecke"
-    tc = "der fahle Fuchs springt über die Hecke"
+    gt1 = "der fahle Fuchs springt über die Hecke"
+    cand = "der fahle Fuchs springt über die Hecke"
 
     # act
-    diff = edit_distance(gt.split(), tc.split())
+    diff = edit_distance(gt1.split(), cand.split())
 
     # assert
     assert 0 == diff
@@ -529,19 +533,19 @@ def test_metrics_token_based_same_length_but_final_differ():
     """One miss between two lists => 80.00"""
 
     # arrange
-    gt = "faule Fuchs springt die Hecke"
-    _gt_tokenized = gt.split()
-    tc = "faule Fuchs springt über Hecke"
+    gt1 = "faule Fuchs springt die Hecke"
+    _gt_tokenized = gt1.split()
+    cand = "faule Fuchs springt über Hecke"
 
     # act
-    diff = edit_distance(_gt_tokenized, tc.split())
+    diff = edit_distance(_gt_tokenized, cand.split())
     # rather hacky way to mock a metric object
-    m = MetricWords()
-    m.diff = diff
-    m._data_reference = _gt_tokenized
-    aligned = accuracy_for(m)
+    m_w = MetricWords()
+    m_w.diff = diff
+    m_w._data_reference = _gt_tokenized
+    aligned = accuracy_for(m_w)
     normed = norm_percentual(aligned)
-    
+
     # assert
     assert 80.00 == pytest.approx(normed)
     assert 1 == diff
@@ -552,10 +556,10 @@ def test_metrics_token_based_no_test_candidate():
     correponds to len gt"""
 
     # arrange
-    gt = "ein Dachs springt die Hecke"
+    gt1 = "ein Dachs springt die Hecke"
 
     # act
-    diff = edit_distance(gt.split(), [])
+    diff = edit_distance(gt1.split(), [])
 
     # assert
-    assert diff == len(gt.split())
+    assert diff == len(gt1.split())
