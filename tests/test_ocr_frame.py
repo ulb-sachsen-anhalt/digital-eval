@@ -42,7 +42,7 @@ def test_poly(xml_fixture):
     # arrange
     points: str = '550,700 2700,700 2700,4350 550,4350'
     alto_in_path: str = xml_fixture['0768']
-    filter_ocr = PolygonFrameFilter(alto_in_path, points)
+    filter_ocr = PolygonFrameFilter(alto_in_path, points, 0)
 
     # act
     piece_result: Piece = filter_ocr.process()
@@ -65,7 +65,7 @@ def test_poly_legacy(xml_fixture):
     # arrange
     points: str = '550,700 2700,4350'
     alto_in_path: str = xml_fixture['0768']
-    filter_ocr = PolygonFrameFilter(alto_in_path, points)
+    filter_ocr = PolygonFrameFilter(alto_in_path, points, 0)
 
     # act
     piece_result: Piece = filter_ocr.process()
@@ -89,7 +89,7 @@ def test_filter_0001_0768_2020(xml_fixture):
     # arrange
     points: str = '550,700 2700,700 2700,4350 550,4350'
     alto_in_path: str = xml_fixture['0768']
-    filter_ocr = PolygonFrameFilter(alto_in_path, points)
+    filter_ocr = PolygonFrameFilter(alto_in_path, points, 0)
 
     # act
     piece_result: Piece = filter_ocr.process()
@@ -117,7 +117,7 @@ def test_filter_0001_0768_2022(xml_fixture):
     # arrange
     points: str = '525,825 2725,825 2725,7125 525,7125'
     alto_in_path: str = xml_fixture['0768_22']
-    filter_ocr = PolygonFrameFilter(alto_in_path, points)
+    filter_ocr = PolygonFrameFilter(alto_in_path, points, 0)
 
     # act
     piece_result: Piece = filter_ocr.process()
@@ -146,7 +146,7 @@ def test_filter_0001_0260(xml_fixture):
     # arrange
     points: str = '550,700 2700,700 2700,4350 550,4350'
     alto_in_path: str = xml_fixture['0260']
-    filter_ocr = PolygonFrameFilter(alto_in_path, points)
+    filter_ocr = PolygonFrameFilter(alto_in_path, points, 0)
 
     # act
     piece_result: Piece = filter_ocr.process()
