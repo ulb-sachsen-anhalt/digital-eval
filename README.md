@@ -15,7 +15,7 @@ Python3 Tool to report evaluation outcomes from mass digitalization workflows.
 * formats: ALTO, PAGE or plain text for both groundtruth and candidates
 * speedup with parallel execution
 * additional OCR util:
-    * filter custom areas of single OCR files
+  * filter custom areas of single OCR files
 
 ## Installation
 
@@ -89,14 +89,23 @@ Inconsistent OCR Groundtruth with empty texts (ALTO String elements missing CONT
 invalid geometrical coordinates (less than 3 points or even empty) will lead to evaluation errors if geometry must be
 respected.
 
-### Additional OCR Util
+## Additional OCR Utils
+
+### Filter Area
 
 You can filter a custom area of a page of an OCR file by providing the points of an arbitrary shape.
-The format of the `-p, --points` argument is `<pt_1_x>,<pt_1_y> <pt_2_x>,<pt_2_y> <pt_3_x>,<pt_3_y> ... <pt_n_x>,<pt_n_y>` 
+The format of the `-p, --points` argument is `<pt_1_x>,<pt_1_y> <pt_2_x>,<pt_2_y> <pt_3_x>,<pt_3_y> ... <pt_n_x>,<pt_n_y>` . For simple rectangular areas this can be expressed also with two points, with first point as top left and second point as bottom right: `<pt_top_left_x>,<pt_top_left_y> <pt_bottom_right_x>,<pt_bottom_right_y>`.
 
 The following example filters a rectangular area of 600x400 pixels of a page, which is described by an input ALTO file and saves the result to an output ALTO file
+
 ```bash
 ocr-util frame -i page_1.alto.xml -p "0,0 600,0 600,400 0,400" -o page_1_area.alto.xml
+```
+
+Short version with top left and bottom right:
+
+```bash
+ocr-util frame -i page_1.alto.xml -p "0,0 600,400" -o page_1_area.alto.xml
 ```
 
 ## Development
