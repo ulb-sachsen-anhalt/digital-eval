@@ -1,4 +1,4 @@
-rapidfuzz
+rapidfuzz<3
 numpy
 nltk
 shapely
