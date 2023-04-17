@@ -47,12 +47,14 @@ class PolygonFrameFilterUtil:
 
 class PolygonFrameFilter:
 
-    def __init__(self, ocr_path_in: str, points_list: str):
+    def __init__(self, ocr_path_in: str, points_list: str, verbosity:int):
+        self.__verbosity:int = verbosity
         self.__ocr_path_in: Path = Path(ocr_path_in)
         self.__polygon: Polygon = PolygonFrameFilterUtil.str_to_polygon(points_list)
         self.__report: PolygonFrameFilterReport = PolygonFrameFilterReport()
-        start_msg: str = f'filter strs from {ocr_path_in} between {points_list}'
-        print('[INFO] ' + start_msg)
+        if self.__verbosity > 0:
+            start_msg: str = f'filter strs from {ocr_path_in} between {points_list}'
+            print('[INFO ] ' + start_msg)
 
     @property
     def ocr_file_path(self) -> Path:
@@ -103,7 +105,9 @@ class PolygonFrameFilter:
                 self.__report.resized_elements[name] = 1
 
         for k, v in self.__report.removed_elements.items():
-            print(f'[INFO] removed {v} {k} Elements')
+            if self.__verbosity > 1:
+                print(f'[DEBUG] removed {v} {k} Elements')
 
         for k, v in self.__report.resized_elements.items():
-            print(f'[INFO] resized {v} {k} Elements')
+            if self.__verbosity > 1:
+                print(f'[DEBUG] resized {v} {k} Elements')

@@ -27,13 +27,6 @@ def start() -> None:
     arg_parser: argparse.ArgumentParser = argparse.ArgumentParser(
         prog="ocr-util",
     )
-    arg_parser.add_argument(
-        "-v", "--verbosity",
-        action='count',
-        default=DEFAULT_VERBOSITY,
-        required=False,
-        help=f"Verbosity flag. To increase, append multiple 'v's (optional; default: '{DEFAULT_VERBOSITY}')"
-    )
     sub_arg_parsers = arg_parser.add_subparsers(
         title='Subkommandos',
         dest='subcommand',
@@ -43,6 +36,13 @@ def start() -> None:
         SUB_CMD_FRAME,
         help='Filter Contents of provided ALTO-v3-Data by provided Coordinates, where Coordinates span a rectangular'
              ' box with'
+    )
+    frame_arg_parser.add_argument(
+        "-v", "--verbosity",
+        action='count',
+        default=DEFAULT_VERBOSITY,
+        required=False,
+        help=f"Verbosity flag. To increase, append multiple 'v's (optional; default: '{DEFAULT_VERBOSITY}')"
     )
     frame_arg_parser.add_argument(
         "-i", "--input-ocr-file",
@@ -59,7 +59,7 @@ def start() -> None:
         "-p", "--points",
         required=True,
         type=points_type,
-        help=f"""
+        help="""
         Frame to slice words/lines/regions from input OCR-Data
         f.e.: --frame "2892,2480 5072,2480 5072,5148 2892,5148"
         """
@@ -71,14 +71,17 @@ def start() -> None:
         input_ocr_file: str = args.input_ocr_file
         output_ocr_file: str = args.output_ocr_file
         points: str = args.points
-        print(input_ocr_file, output_ocr_file, points)
+        if verbosity > 1:
+            print(f"[DEBUG] args: {input_ocr_file}, {output_ocr_file}, {points}, {verbosity}")
         polygon_frame_filter: PolygonFrameFilter = PolygonFrameFilter(
             input_ocr_file,
-            points
+            points,
+            verbosity
         )
         piece_result: Piece = polygon_frame_filter.process()
         file_result: PurePath = from_pieces(piece_result, output_ocr_file)
-        print('file_result', file_result)
+        if verbosity > 0:
+            print('[INFO ] file_result', file_result)
 
 
 if __name__ == "__main__":
