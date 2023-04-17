@@ -250,11 +250,11 @@ def error_for(the_obj) -> float:
 
 def norm_to_scale(value, scale_by) -> float:
     """Normalize outcome in range 0 - scale_by"""
-
     return value * scale_by
 
 
-def _norm_percentual(value):
+def norm_percentual(value):
+    """Normalize value in between 0 - 100"""
     return partial(norm_to_scale, scale_by=100)(value)
 
 
@@ -272,7 +272,7 @@ class OCRDifferenceMetric:
         if isinstance(preprocessings, list):
             self.preprocessings = preprocessings
         self.calc_func = calc_func
-        self.postprocessings = [_norm_percentual]
+        self.postprocessings = [norm_percentual]
         if isinstance(postprocessings, list):
             self.postprocessings = postprocessings
         self.input_reference = None
@@ -350,6 +350,7 @@ class OCRDifferenceMetric:
 
 
 class MetricChars(OCRDifferenceMetric):
+    """Calculate plain sequent character based metric"""
 
     def __init__(self, precision=2, normalization=UC_NORMALIZATION, calc_func=accuracy_for,
                  preprocessings=None, postprocessings=None):
@@ -362,13 +363,15 @@ class MetricChars(OCRDifferenceMetric):
         self._label = 'Cs'
         self.name = 'Characters'
         self.preprocessings = [_filter_whitespaces]
-        self.postprocessings = [_norm_percentual]
+        self.postprocessings = [norm_percentual]
 
     def _forward(self):
         self.diff = edit_distance(self._data_reference, self._data_candidate)
 
 
 class MetricLetters(OCRDifferenceMetric):
+    """Calculate metric for only a certain sub-set of
+    character sequence"""
 
     def __init__(self, precision=2, normalization=UC_NORMALIZATION, calc_func=accuracy_for,
                  preprocessings=None, postprocessings=None):
@@ -389,6 +392,7 @@ class MetricLetters(OCRDifferenceMetric):
 
 
 class MetricWords(OCRDifferenceMetric):
+    """Calculate metric for a sequence of word tokens"""
 
     def __init__(self, precision=2, normalization=UC_NORMALIZATION, calc_func=accuracy_for,
                  preprocessings=None, postprocessings=None):
@@ -406,6 +410,7 @@ class MetricWords(OCRDifferenceMetric):
 
 
 class MetricBoW(OCRDifferenceMetric):
+    """Calculate metric for a multiset of word tokens"""
 
     def __init__(self, precision=2, normalization=UC_NORMALIZATION, calc_func=accuracy_for,
                  preprocessings=None, postprocessings=None):
@@ -423,6 +428,7 @@ class MetricBoW(OCRDifferenceMetric):
 
 
 class MetricIR(OCRDifferenceMetric):
+    """Calculate information retrival metrics"""
 
     def __init__(self, precision=2, normalization=UC_NORMALIZATION, calc_func=accuracy_for,
                  preprocessings=None, postprocessings=None, languages=None):
@@ -447,6 +453,7 @@ class MetricIR(OCRDifferenceMetric):
 
 
 class MetricIRPre(MetricIR):
+    """Calculate precision"""
 
     def __init__(self, precision=2, normalization=UC_NORMALIZATION, calc_func=accuracy_for,
                  preprocessings=None, postprocessings=None, languages=None):
@@ -464,6 +471,7 @@ class MetricIRPre(MetricIR):
 
 
 class MetricIRRec(MetricIR):
+    "Calculate recall"
 
     def __init__(self, precision=2, normalization=UC_NORMALIZATION, calc_func=accuracy_for,
                  preprocessings=None, postprocessings=None, languages=None):
@@ -481,6 +489,7 @@ class MetricIRRec(MetricIR):
 
 
 class MetricIRFM(MetricIR):
+    """Calculate harmonic mean for precision/recall"""
 
     def __init__(self, precision=2, normalization=UC_NORMALIZATION, calc_func=accuracy_for,
                  preprocessings=None, postprocessings=None, languages=None):
