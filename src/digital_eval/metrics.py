@@ -34,7 +34,7 @@ from rapidfuzz.string_metric import (
 
 # Python3 standard Unicode Normalization
 #
-UC_NORMALIZATION = 'NFKD'
+UC_NORMALIZATION = 'NFC'
 
 
 # whitespaces

@@ -221,12 +221,12 @@ def test_evaluate_single_alto_candidate_with_page_groundtruth(tmp_path):
     assert 'Cs@1667522809_J_0001' == defaults[0]
     assert 1 == defaults[1]  # number of data points
     # metric raw
-    assert 37.19 == pytest.approx(defaults[2], rel=1e-3)
+    assert 37.07 == pytest.approx(defaults[2], rel=1e-3)
     # metric with stripped outliers (no outlier, of course!)
     assert 0 == result.n_outlier
     assert not result.cleared_result
     # reference size chars
-    assert 4662 == defaults[4]
+    assert 4607 == defaults[4]
 
 
 def test_evaluate_page_groundtruth_with_itself(tmp_path):
@@ -265,7 +265,7 @@ def test_evaluate_page_groundtruth_with_itself(tmp_path):
     assert 1 == defaults[1]  # number of data points
     assert 100.00 == pytest.approx(defaults[2], rel=1e-3)
     # reference size chars
-    assert 4662 == defaults[4]
+    assert 4607 == defaults[4]
 
 
 def test_evaluate_set_with_5_entries(tmp_path):

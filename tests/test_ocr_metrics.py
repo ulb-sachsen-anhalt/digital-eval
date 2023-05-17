@@ -54,13 +54,13 @@ def test_metric_unicode_normalization_happens():
     # after normalization, they *are* similar
     assert norm1 == norm2
     assert 0 == dist
-    assert len(norm1) == 41
+    assert len(norm1) == 40
     # the "á" char from raw1 string gets
     # decomposed into {U+0061}+{U+0301}
     # by normalization with de-composition
     # therefore normalised str is
     # one char longer
-    assert len(raw1) + 1 == len(norm1)
+    assert len(raw1) == len(norm1)
 
 
 def test_metric_unicode_normalization_not_happens():
@@ -87,7 +87,7 @@ def test_metric_unicode_normalization_not_happens():
     dist = edit_distance(norm1, norm2)
 
     # assert
-    assert 3 == dist
+    assert 2 == dist
 
 
 def test_metric_unicode_normalization_textual_metric():
@@ -108,7 +108,7 @@ def test_metric_unicode_normalization_textual_metric():
     _ = char_metric.value
 
     # assert
-    assert 2 == char_metric.diff
+    assert 1 == char_metric.diff
 
 
 @pytest.mark.parametrize(["n_reference", "difference", "value"],
