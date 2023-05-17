@@ -31,17 +31,16 @@ from rapidfuzz.string_metric import (
     levenshtein
 )
 
-
 # Python3 standard Unicode Normalization
 #
 UC_NORMALIZATION = 'NFC'
-
 
 # whitespaces
 #
 # usual spatium and special control sequences
 WHITESPACES = string.whitespace
 
+WHITESPACES_EXCLUDING_BLANK_CHARS = WHITESPACES[1:]
 
 # punctuations
 #
@@ -49,16 +48,15 @@ WHITESPACES = string.whitespace
 #   * Dashes        \u2012-2017
 #   * Quotations    \u2018-201F
 PUNCTUATIONS = string.punctuation + '\u2012' + '\u2013' + '\u2014' + '\u2015' + '\u2016' + \
-    '\u2017' + '\u2018' + '\u2019' + '\u201A' + '\u201B' + \
-    '\u201C' + '\u201D' + '\u201E' + '\u201F'
+               '\u2017' + '\u2018' + '\u2019' + '\u201A' + '\u201B' + \
+               '\u201C' + '\u201D' + '\u201E' + '\u201F'
 # no special line break delimiter
 PUNCTUATIONS = PUNCTUATIONS + '\u2E17'  # DOUBLE OBLIQUE HYPHEN
 # no spaces
 PUNCTUATIONS = PUNCTUATIONS + '\u0020' + '\u00a0' + '\u2000' + \
-    '\u2001' + '\u2002' + '\u2003' + '\u2004' + '\u2005' + \
-    '\u2006' + '\u2007' + '\u2008' + '\u2009' + \
-    '\u200a' + '\u2028' + '\u205f' + '\u3000'
-
+               '\u2001' + '\u2002' + '\u2003' + '\u2004' + '\u2005' + \
+               '\u2006' + '\u2007' + '\u2008' + '\u2009' + \
+               '\u200a' + '\u2028' + '\u205f' + '\u3000'
 
 # digits
 #
@@ -66,22 +64,26 @@ PUNCTUATIONS = PUNCTUATIONS + '\u0020' + '\u00a0' + '\u2000' + \
 #   * arabic digits
 #   * persian / indic digits
 DIGITS = string.digits + '\u0660' + '\u0661' + '\u0662' + '\u0663' + \
-    '\u0664' + '\u0665' + '\u0666' + '\u0667' + '\u0668' + '\u0669'
+         '\u0664' + '\u0665' + '\u0666' + '\u0667' + '\u0668' + '\u0669'
 # persian indic digits
 DIGITS = DIGITS + '\u06f0' + '\u06f1' + '\u06f2' + '\u06f3' + \
-    '\u06f4' + '\u06f5' + '\u06f6' + '\u06f7' + '\u06f8' + '\u06f9'
-
+         '\u06f4' + '\u06f5' + '\u06f6' + '\u06f7' + '\u06f8' + '\u06f9'
 
 # filter mechanics
 #
 # via Python3 string translation maps
 WHITESPACE_TRANSLATOR = str.maketrans('', '', WHITESPACES)
+WHITESPACE_EXCLUDING_BLANK_CHARS_TRANSLATOR = str.maketrans('', '', WHITESPACES_EXCLUDING_BLANK_CHARS)
 PUNCT_TRANLATOR = str.maketrans('', '', PUNCTUATIONS)
 DIGIT_TRANSLATOR = str.maketrans('', '', DIGITS)
 
 
 def _filter_whitespaces(a_str) -> str:
     return a_str.translate(WHITESPACE_TRANSLATOR)
+
+
+def _filter_whitespaces_excluding_blank_chars(a_str) -> str:
+    return a_str.translate(WHITESPACE_EXCLUDING_BLANK_CHARS_TRANSLATOR)
 
 
 def _filter_puncts(a_str) -> str:
@@ -362,7 +364,7 @@ class MetricChars(OCRDifferenceMetric):
             postprocessings)
         self._label = 'Cs'
         self.name = 'Characters'
-        self.preprocessings = [_filter_whitespaces]
+        self.preprocessings = [_filter_whitespaces_excluding_blank_chars]
         self.postprocessings = [norm_percentual]
 
     def _forward(self):
