@@ -588,7 +588,7 @@ def test_handle_table_text_groundtruth():
 
     # assert / legacy: 5.825 , actual 4.0
     _result_cca = eval_entry.metrics[0].value
-    assert _result_cca > 3.9 and _result_cca < 4.1
+    assert _result_cca > 3.9 and _result_cca < 4.1 #TODO: actual 6.01 which range?
 
 
 def test_get_box_from_empty_page():

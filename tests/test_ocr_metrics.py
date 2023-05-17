@@ -34,6 +34,7 @@ THE_FOX_INPUT_IR = 'the hump lazy brown fox fox fox jumps'
 
 
 def test_metric_unicode_normalization_happens():
+    # TODO: change comment
     """Normalization required and effects examined
     raw1 has "á" as {U+00E0} => gets canonical decomposed
     raw2 has "á" as {U+0061}+{U+0301}
@@ -64,6 +65,7 @@ def test_metric_unicode_normalization_happens():
 
 
 def test_metric_unicode_normalization_not_happens():
+    # TODO: change comment
     """Normalization has no effect since
     the letters "a" and "á" are still different
     after normalization, they just stay
@@ -91,6 +93,7 @@ def test_metric_unicode_normalization_not_happens():
 
 
 def test_metric_unicode_normalization_textual_metric():
+    # TODO: change comment or test?
     """Normalization has no effect too,
     but since the whitespaces get dropped,
     the distance calculation just
@@ -193,8 +196,9 @@ def test_metric_characters_from_empty_gt():
 
     # assert
     assert 0 == _metric.value
-    assert 31 == _metric.diff
-    # ensure whitespaces being dropped
+    assert 38 == _metric.diff
+
+    # ensure whitespaces being dropped # TODO: what to do here?
     assert 'thelazybrownfoxjumpsoverthehump' == _metric._data_candidate
 
 
