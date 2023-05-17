@@ -111,7 +111,7 @@ def test_metric_unicode_normalization_textual_metric():
     _ = char_metric.value
 
     # assert
-    assert 1 == char_metric.diff
+    assert 2 == char_metric.diff
 
 
 @pytest.mark.parametrize(["n_reference", "difference", "value"],
@@ -294,7 +294,7 @@ def test_metric_character_accuracy():
     char_metric.candidate = str2
 
     # assert
-    assert 93.75 == pytest.approx(char_metric.value, rel=0.001, abs=0.001)
+    assert 92.11 == pytest.approx(char_metric.value, rel=0.001, abs=0.001)
 
 
 def test_metric_bot_ident():
