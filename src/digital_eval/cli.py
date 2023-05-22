@@ -17,7 +17,7 @@ from digital_eval import (
     Evaluator,
     report_stdout,
     ocr_to_text,
-    UC_NORMALIZATION,
+    UC_NORMALIZATION_DEFAULT,
     accuracy_for,
     error_for,
     MetricChars,
@@ -42,7 +42,7 @@ CALC_DICT = {
     'err' : error_for, 
     'error' : error_for,
 }
-DEFAULT_UTF8_NORM = UC_NORMALIZATION
+DEFAULT_UTF8_NORM = UC_NORMALIZATION_DEFAULT
 
 # metrics
 DEFAULT_OCR_METRICS = 'Cs,Ls'

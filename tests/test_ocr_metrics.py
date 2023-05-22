@@ -8,7 +8,8 @@ import unicodedata
 import pytest
 
 from digital_eval.metrics import (
-    UC_NORMALIZATION,
+    UC_NORMALIZATION_DEFAULT,
+    UC_NORMALIZATION_NFKD,
     MetricChars,
     MetricLetters,
     MetricWords,
@@ -23,8 +24,8 @@ from digital_eval.metrics import (
     error_for,
     norm_percentual,
     bag_of_tokens,
+    _filter_whitespaces,
 )
-
 
 # default reference
 THE_COMBINED_A_FOX = 'the á lazy brown fox jumps over the hump'
@@ -34,7 +35,6 @@ THE_FOX_INPUT_IR = 'the hump lazy brown fox fox fox jumps'
 
 
 def test_metric_unicode_normalization_happens():
-    # TODO: change comment
     """Normalization required and effects examined
     raw1 has "á" as {U+00E0} => gets canonical decomposed
     raw2 has "á" as {U+0061}+{U+0301}
@@ -43,8 +43,8 @@ def test_metric_unicode_normalization_happens():
     # arrange
     raw1 = 'the á lazy brown fox jumps over the hump'
     raw2 = THE_COMBINED_A_FOX
-    norm1 = normalize_unicode(raw1)
-    norm2 = normalize_unicode(raw2)
+    norm1 = normalize_unicode(raw1, uc_norm_by=UC_NORMALIZATION_NFKD)
+    norm2 = normalize_unicode(raw2, uc_norm_by=UC_NORMALIZATION_NFKD)
 
     # act
     dist = edit_distance(norm1, norm2)
@@ -55,51 +55,41 @@ def test_metric_unicode_normalization_happens():
     # after normalization, they *are* similar
     assert norm1 == norm2
     assert 0 == dist
-    assert len(norm1) == 40
+    assert len(norm1) == 41
     # the "á" char from raw1 string gets
     # decomposed into {U+0061}+{U+0301}
     # by normalization with de-composition
     # therefore normalised str is
     # one char longer
-    assert len(raw1) == len(norm1)
+    assert len(raw1) + 1 == len(norm1)
 
 
 def test_metric_unicode_normalization_not_happens():
-    # TODO: change comment
     """Normalization has no effect since
     the letters "a" and "á" are still different
     after normalization, they just stay
-    {U+0061} and {U+0061}+{U+0301}
-
-    =>
-
-    results in this case in a *raw* edit distance
-    of "3" since the "á" gets decomposed into 2
-    unicode points and still there is one whitespace
-    too much left
+    {U+0061} and {U+00e1} for NFC or {U+0061}+{U+0301} for NFKD
     """
 
     # arrange
     raw1 = THE_LAZY_FOX
     raw2 = THE_COMBINED_A_FOX
-    norm1 = unicodedata.normalize(UC_NORMALIZATION, raw1)
-    norm2 = unicodedata.normalize(UC_NORMALIZATION, raw2)
+    norm1_nfc = normalize_unicode(raw1, uc_norm_by=UC_NORMALIZATION_DEFAULT)
+    norm1_nfkd = normalize_unicode(raw1, uc_norm_by=UC_NORMALIZATION_NFKD)
+    norm2_nfc = normalize_unicode(raw2, uc_norm_by=UC_NORMALIZATION_DEFAULT)
+    norm2_nfkd = normalize_unicode(raw2, uc_norm_by=UC_NORMALIZATION_NFKD)
 
     # act
-    dist = edit_distance(norm1, norm2)
+    dist_nfc = edit_distance(norm1_nfc, norm2_nfc)
+    dist_nfkd = edit_distance(norm1_nfkd, norm2_nfkd)
 
     # assert
-    assert 2 == dist
+    assert 2 == dist_nfc
+    assert 3 == dist_nfkd
 
 
 def test_metric_unicode_normalization_textual_metric():
-    # TODO: change comment or test?
-    """Normalization has no effect too,
-    but since the whitespaces get dropped,
-    the distance calculation just
-    only concerns the *real* characters
-
-    => distance decreases to "2"
+    """OCR-D compliance UTF-8 normalization leads to edit distance of "2"
     """
 
     # arrange
@@ -187,18 +177,18 @@ def test_metric_calculate_character_edit_distance():
 
 
 def test_metric_characters_from_empty_gt():
-    """What happens when there's something reported"""
+    """Edit distance when no whitespaces has been dropped"""
 
     # arrange
     _metric = MetricChars()
+    _metric.preprocessings = [_filter_whitespaces]
     _metric.reference = ''
     _metric.candidate = THE_LAZY_FOX
 
     # assert
     assert 0 == _metric.value
-    assert 38 == _metric.diff
+    assert 31 == _metric.diff
 
-    # ensure whitespaces being dropped # TODO: what to do here?
     assert 'thelazybrownfoxjumpsoverthehump' == _metric._data_candidate
 
 

@@ -13,7 +13,7 @@ from .evaluation import (
 from .metrics import (
     accuracy_for,
     error_for,
-    UC_NORMALIZATION,
+    UC_NORMALIZATION_DEFAULT,
     MetricChars,
     MetricLetters,
     MetricWords,

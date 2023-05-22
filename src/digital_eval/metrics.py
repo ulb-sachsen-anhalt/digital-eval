@@ -33,7 +33,8 @@ from rapidfuzz.string_metric import (
 
 # Python3 standard Unicode Normalization
 #
-UC_NORMALIZATION = 'NFC'
+UC_NORMALIZATION_DEFAULT = 'NFC'
+UC_NORMALIZATION_NFKD = 'NFKD'
 
 # whitespaces
 #
@@ -144,7 +145,7 @@ def _strip_stopwords_for(languages):
     return partial(_strip_languages_stopwords, languages=languages)
 
 
-def normalize_unicode(input_str: str, uc_norm_by=UC_NORMALIZATION) -> str:
+def normalize_unicode(input_str: str, uc_norm_by=UC_NORMALIZATION_DEFAULT) -> str:
     """Apply basic unicode normalization
     """
 
@@ -354,7 +355,7 @@ class OCRDifferenceMetric:
 class MetricChars(OCRDifferenceMetric):
     """Calculate plain sequent character based metric"""
 
-    def __init__(self, precision=2, normalization=UC_NORMALIZATION, calc_func=accuracy_for,
+    def __init__(self, precision=2, normalization=UC_NORMALIZATION_DEFAULT, calc_func=accuracy_for,
                  preprocessings=None, postprocessings=None):
         super().__init__(
             precision,
@@ -375,7 +376,7 @@ class MetricLetters(OCRDifferenceMetric):
     """Calculate metric for only a certain sub-set of
     character sequence"""
 
-    def __init__(self, precision=2, normalization=UC_NORMALIZATION, calc_func=accuracy_for,
+    def __init__(self, precision=2, normalization=UC_NORMALIZATION_DEFAULT, calc_func=accuracy_for,
                  preprocessings=None, postprocessings=None):
         super().__init__(
             precision,
@@ -396,7 +397,7 @@ class MetricLetters(OCRDifferenceMetric):
 class MetricWords(OCRDifferenceMetric):
     """Calculate metric for a sequence of word tokens"""
 
-    def __init__(self, precision=2, normalization=UC_NORMALIZATION, calc_func=accuracy_for,
+    def __init__(self, precision=2, normalization=UC_NORMALIZATION_DEFAULT, calc_func=accuracy_for,
                  preprocessings=None, postprocessings=None):
         super().__init__(
             precision,
@@ -414,7 +415,7 @@ class MetricWords(OCRDifferenceMetric):
 class MetricBoW(OCRDifferenceMetric):
     """Calculate metric for a multiset of word tokens"""
 
-    def __init__(self, precision=2, normalization=UC_NORMALIZATION, calc_func=accuracy_for,
+    def __init__(self, precision=2, normalization=UC_NORMALIZATION_DEFAULT, calc_func=accuracy_for,
                  preprocessings=None, postprocessings=None):
         super().__init__(
             precision,
@@ -432,7 +433,7 @@ class MetricBoW(OCRDifferenceMetric):
 class MetricIR(OCRDifferenceMetric):
     """Calculate information retrival metrics"""
 
-    def __init__(self, precision=2, normalization=UC_NORMALIZATION, calc_func=accuracy_for,
+    def __init__(self, precision=2, normalization=UC_NORMALIZATION_DEFAULT, calc_func=accuracy_for,
                  preprocessings=None, postprocessings=None, languages=None):
         super().__init__(
             precision,
@@ -457,7 +458,7 @@ class MetricIR(OCRDifferenceMetric):
 class MetricIRPre(MetricIR):
     """Calculate precision"""
 
-    def __init__(self, precision=2, normalization=UC_NORMALIZATION, calc_func=accuracy_for,
+    def __init__(self, precision=2, normalization=UC_NORMALIZATION_DEFAULT, calc_func=accuracy_for,
                  preprocessings=None, postprocessings=None, languages=None):
         super().__init__(
             precision,
@@ -475,7 +476,7 @@ class MetricIRPre(MetricIR):
 class MetricIRRec(MetricIR):
     "Calculate recall"
 
-    def __init__(self, precision=2, normalization=UC_NORMALIZATION, calc_func=accuracy_for,
+    def __init__(self, precision=2, normalization=UC_NORMALIZATION_DEFAULT, calc_func=accuracy_for,
                  preprocessings=None, postprocessings=None, languages=None):
         super().__init__(
             precision,
@@ -493,7 +494,7 @@ class MetricIRRec(MetricIR):
 class MetricIRFM(MetricIR):
     """Calculate harmonic mean for precision/recall"""
 
-    def __init__(self, precision=2, normalization=UC_NORMALIZATION, calc_func=accuracy_for,
+    def __init__(self, precision=2, normalization=UC_NORMALIZATION_DEFAULT, calc_func=accuracy_for,
                  preprocessings=None, postprocessings=None, languages=None):
         super().__init__(
             precision,
