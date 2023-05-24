@@ -3,8 +3,6 @@
 
 import random
 
-import unicodedata
-
 import pytest
 
 from digital_eval.metrics import (
