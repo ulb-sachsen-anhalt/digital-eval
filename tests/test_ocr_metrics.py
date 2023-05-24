@@ -270,6 +270,23 @@ def test_metric_bow_from_empty_gt_and_empty_candidate():
     assert 100 == _actual
 
 
+def test_bow_error_rate():
+    """Behavior for bow error rate of two strings"""
+    # TODO: deconfuse error/accuracy rate
+
+    # arrange
+    _metric = MetricBoW()
+    _metric.reference = "der Mann steht an der Ampel"
+    _metric.candidate = "cer Mann fteht an der Ampel"
+
+    # act
+    _actual = _metric.value
+
+    # assert
+    assert 4 == _metric.diff
+    assert 33.33 == pytest.approx(_actual, rel=1e-2)
+
+
 def test_metric_character_accuracy():
     """simple usage of MetricsCA"""
 
