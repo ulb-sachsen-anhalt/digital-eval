@@ -529,8 +529,9 @@ def bag_of_tokens(reference_tokens: List[str],
     """Calculate intersection/difference
     between reference and candidate token list
     """
-
-    return len(_diff(reference_tokens, candidate_tokens))
+    false_negatives: List[str] = _diff(reference_tokens, candidate_tokens)
+    false_positives: List[str] = _diff(candidate_tokens, reference_tokens)
+    return len(false_negatives) + len(false_positives)
 
 
 def _diff(gt_tokens, cd_tokens) -> List[str]:

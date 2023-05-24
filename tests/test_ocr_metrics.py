@@ -295,9 +295,9 @@ def test_metric_bot_ident():
     random.shuffle(list2)
     str2 = ' '.join(list2)
 
-    n_diffs = bag_of_tokens(gt1, str2)
+    n_diffs = bag_of_tokens(gt1.split(), str2.split())
     assert n_diffs == 0
-    assert len(str2) == len(gt1)
+    assert len(gt1.split()) == len(str2.split())
 
 
 def test_metric_bot_candidate_with_only_repetitions():
@@ -309,7 +309,7 @@ def test_metric_bot_candidate_with_only_repetitions():
     str2 = "the dizzy brown fox fox fox jumps"
 
     # actsert
-    assert 0 == bag_of_tokens(gt1, str2)
+    assert 2 == bag_of_tokens(gt1.split(), str2.split())
 
 
 def test_metric_bot_miss_tokens():
@@ -319,7 +319,7 @@ def test_metric_bot_miss_tokens():
     str2 = "the brown fux jumps"
 
     # acsert
-    assert 2 == bag_of_tokens(gt1.split(), str2.split())
+    assert 3 == bag_of_tokens(gt1.split(), str2.split())
 
 
 def test_ir_metric_precision_fox():
