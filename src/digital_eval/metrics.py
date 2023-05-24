@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 """Metrics Module"""
 
+from __future__ import annotations
+
 from collections import (
     Counter
 )
@@ -186,7 +188,7 @@ def _inspect_calculation_object(an_object):
         raise DigitalEvalMetricException(_ae.args[0]) from _ae
 
 
-def accuracy_for(the_obj) -> float:
+def accuracy_for(metric_obj: OCRDifferenceMetric) -> float:
     """Calculate accuracy as ratio of
     correct items, with correct items
     being expected items minus
@@ -199,16 +201,16 @@ def accuracy_for(the_obj) -> float:
       (i.e. no false-positives)
 
     Args:
-        the_obj (object): object containing information
+        metric_obj (OCRDifferenceMetric): object containing information
         about reference data and difference
 
     Returns:
         float: accuracy in range 0.0 - 1.0
     """
 
-    _inspect_calculation_object(the_obj)
-    diffs = the_obj.diff
-    n_refs = len(the_obj._data_reference)
+    _inspect_calculation_object(metric_obj)
+    diffs = metric_obj.diff
+    n_refs = len(metric_obj._data_reference)
     if (n_refs - diffs) < 0:
         return 0.0
     if n_refs == 0 and diffs == 0:
@@ -219,7 +221,7 @@ def accuracy_for(the_obj) -> float:
         return 0.0
 
 
-def error_for(the_obj) -> float:
+def error_for(metric_obj: OCRDifferenceMetric) -> float:
     """Calculate error as ratio of
     difference and number of
     expected items.
@@ -231,16 +233,16 @@ def error_for(the_obj) -> float:
       (i.e. no false-positives)
 
     Args:
-        the_obj (object): object containing information
+        metric_obj (OCRDifferenceMetric): object containing information
         about reference data and difference
 
     Returns:
         float: error in range 0.0 - 1.0
     """
 
-    _inspect_calculation_object(the_obj)
-    diffs = the_obj.diff
-    n_refs = len(the_obj._data_reference)
+    _inspect_calculation_object(metric_obj)
+    diffs = metric_obj.diff
+    n_refs = len(metric_obj._data_reference)
     if (n_refs - diffs) < 0:
         return 0.0
     if n_refs == 0 and diffs == 0:
