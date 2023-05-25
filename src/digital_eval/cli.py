@@ -37,10 +37,10 @@ EVAL_VERBOSITY = DEFAULT_VERBOSITY
 # calculations
 DEFAULT_CALCULCATION = 'acc'
 CALC_DICT = {
-    'acc' : accuracy_for,
-    'accuracy' : accuracy_for,
-    'err' : error_for, 
-    'error' : error_for,
+    'acc': accuracy_for,
+    'accuracy': accuracy_for,
+    'err': error_for,
+    'error': error_for,
 }
 DEFAULT_UTF8_NORM = UC_NORMALIZATION_DEFAULT
 
@@ -49,21 +49,21 @@ DEFAULT_OCR_METRICS = 'Cs,Ls'
 DEFAULT_OCR_METRIC_PREPROCESSINGS = ''
 DEFAULT_OCR_METRIC_POSTPROCESSINGS = ''
 METRIC_DICT = {
-    'Cs' : MetricChars,
-    'Characters' : MetricChars,
-    'Ls' : MetricLetters,
-    'Letters' : MetricLetters,
-    'Ws' : MetricWords,
-    'Words' : MetricWords,
-    'BoWs' : MetricBoW,
-    'BagOfWords' : MetricBoW,
-    'IRPre' : MetricIRPre,
+    'Cs': MetricChars,
+    'Characters': MetricChars,
+    'Ls': MetricLetters,
+    'Letters': MetricLetters,
+    'Ws': MetricWords,
+    'Words': MetricWords,
+    'BoWs': MetricBoW,
+    'BagOfWords': MetricBoW,
+    'IRPre': MetricIRPre,
     'Pre': MetricIRPre,
-    'Precision' : MetricIRPre,
-    'IRRec' : MetricIRRec,
+    'Precision': MetricIRPre,
+    'IRRec': MetricIRRec,
     'Rec': MetricIRRec,
-    'IRFMeasure' : MetricIRFM,
-    'FM' : MetricIRFM,
+    'IRFMeasure': MetricIRFM,
+    'FM': MetricIRFM,
 }
 
 
@@ -101,7 +101,7 @@ def _main(path_candidates, path_reference, metrics, utf8norm, calc, xtra, is_leg
     evaluator.calc = calc
     if VERBOSITY >= 1:
         print(f"[DEBUG] text normalized using '{utf8norm}' calculate '{calc}' metric values for '{metrics}'")
-    
+
     if is_legacy:
         evaluator.to_text_func = ocr_to_text
     evaluator.is_sequential = is_sequential
@@ -123,7 +123,7 @@ def _main(path_candidates, path_reference, metrics, utf8norm, calc, xtra, is_leg
     gt_entries = [c for c in candidates if c.path_g]
     n_entries = len(candidates)
     n_diff = n_entries - len(gt_entries)
-    gt_missing = set(gt_entries) ^ set (candidates)
+    gt_missing = set(gt_entries) ^ set(candidates)
     rnd_str = f" ({gt_missing})" if gt_missing else ""
     if VERBOSITY >= 1:
         print(f'[DEBUG] from "{n_entries}" filtered "{n_diff}" candidates missing groundtruth{rnd_str}')
@@ -150,49 +150,49 @@ def start():
         Evaluate Mass Digital Data. ({_get_info()})
         """)
     PARSER.add_argument(
-        "candidates", 
+        "candidates",
         help="Root Directory to inspect"
-        )
-    PARSER.add_argument("-ref", "--reference", 
-        required=False,
-        help="Root Reference directory for Groundtruth or alike (optional)"
-        )
-    PARSER.add_argument("-v", "--VERBOSITY", 
-        action='count', 
-        default=DEFAULT_VERBOSITY,
-        required=False, 
-        help=f"Verbosity flag. To increase, append multiple 'v's (optional; default: '{DEFAULT_VERBOSITY}')"
-        )
-    PARSER.add_argument("--calc", 
-        default=DEFAULT_CALCULCATION,
-        required=False,
-        help=f"Calculation to perform (optional; default: '{DEFAULT_CALCULCATION}'; available: '{','.join(CALC_DICT.keys())}')"
-        )
+    )
+    PARSER.add_argument("-ref", "--reference",
+                        required=False,
+                        help="Root Reference directory for Groundtruth or alike (optional)"
+                        )
+    PARSER.add_argument("-v", "--VERBOSITY",
+                        action='count',
+                        default=DEFAULT_VERBOSITY,
+                        required=False,
+                        help=f"Verbosity flag. To increase, append multiple 'v's (optional; default: '{DEFAULT_VERBOSITY}')"
+                        )
+    PARSER.add_argument("--calc",
+                        default=DEFAULT_CALCULCATION,
+                        required=False,
+                        help=f"Calculation to perform (optional; default: '{DEFAULT_CALCULCATION}'; available: '{','.join(CALC_DICT.keys())}')"
+                        )
     # metrics
     PARSER.add_argument("--metrics",
-        default=DEFAULT_OCR_METRICS,
-        required=False, 
-        help=f"List of metrics to use (optional, default: '{DEFAULT_OCR_METRICS}'; available: '{','.join(METRIC_DICT.keys())}')"
-        )
-    PARSER.add_argument("--legacy", 
-        action='store_true',
-        required=False,
-        help="legacy evaluation with naive rectangular geometry (optional; default: 'False')", 
-        )
+                        default=DEFAULT_OCR_METRICS,
+                        required=False,
+                        help=f"List of metrics to use (optional, default: '{DEFAULT_OCR_METRICS}'; available: '{','.join(METRIC_DICT.keys())}')"
+                        )
+    PARSER.add_argument("--legacy",
+                        action='store_true',
+                        required=False,
+                        help="legacy evaluation with naive rectangular geometry (optional; default: 'False')",
+                        )
     PARSER.add_argument("--utf8",
-        default=DEFAULT_UTF8_NORM,
-        required=False,
-        help=f"UTF-8 Unicode Python Normalization (optional; default: '{DEFAULT_UTF8_NORM}'; available: 'NFC','NFKC','NFD','NFKD')",
-        )
-    PARSER.add_argument("--sequential", 
-        action='store_true',
-        required=False,
-        help="Execute calculations sequentially (optional; default: 'False')", 
-        )
-    PARSER.add_argument("-x", "--extra", 
-        required=False, 
-        help="pass additional information to evaluation, like 'ignore_geometry' (compare only text, ignore coords)"
-        )
+                        default=DEFAULT_UTF8_NORM,
+                        required=False,
+                        help=f"UTF-8 Unicode Python Normalization (optional; default: '{DEFAULT_UTF8_NORM}'; available: 'NFC','NFKC','NFD','NFKD')",
+                        )
+    PARSER.add_argument("--sequential",
+                        action='store_true',
+                        required=False,
+                        help="Execute calculations sequentially (optional; default: 'False')",
+                        )
+    PARSER.add_argument("-x", "--extra",
+                        required=False,
+                        help="pass additional information to evaluation, like 'ignore_geometry' (compare only text, ignore coords)"
+                        )
     PARSER.set_defaults(legacy=False)
     PARSER.set_defaults(sequential=False)
 
@@ -232,9 +232,10 @@ def start():
     if VERBOSITY >= 2:
         args = f"{path_candidates}, {path_reference}, {VERBOSITY}, {xtra}"
         print(f'[DEBUG] called with {args}')
-    
+
     # here we go
-    _main(path_candidates, path_reference, metrics, utf8norm, calc, xtra, is_legacy=IS_LEGACY, is_sequential=IS_SEQUENTIAL)
+    _main(path_candidates, path_reference, metrics, utf8norm, calc, xtra, is_legacy=IS_LEGACY,
+          is_sequential=IS_SEQUENTIAL)
 
 
 if __name__ == "__main__":
