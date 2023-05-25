@@ -12,7 +12,7 @@ import string
 
 from typing import (
     List,
-    Set,
+    Set, Callable,
 )
 
 import unicodedata
@@ -211,14 +211,21 @@ def accuracy_for(metric_obj: OCRDifferenceMetric) -> float:
     _inspect_calculation_object(metric_obj)
     diffs = metric_obj.diff
     n_refs = len(metric_obj._data_reference)
-    if (n_refs - diffs) < 0:
-        return 0.0
-    if n_refs == 0 and diffs == 0:
-        return 1.0
-    elif n_refs > 0:
-        return (n_refs - diffs) / n_refs
-    else:
-        return 0.0
+    return _calculate(lambda d, n: (n - d) / n, diffs, n_refs)
+
+
+def error_for_bow(metric_obj: OCRDifferenceMetric) -> float:
+    _inspect_calculation_object(metric_obj)
+    diffs = metric_obj.diff
+    n_refs = len(metric_obj._data_reference) + len(metric_obj._data_candidate)
+    return _calculate(lambda d, n: d / n, diffs, n_refs)
+
+
+def accuracy_for_bow(metric_obj: OCRDifferenceMetric) -> float:
+    _inspect_calculation_object(metric_obj)
+    diffs = metric_obj.diff
+    n_refs = len(metric_obj._data_reference) + len(metric_obj._data_candidate)
+    return _calculate(lambda d, n: 1 - (d / n), diffs, n_refs)
 
 
 def error_for(metric_obj: OCRDifferenceMetric) -> float:
@@ -239,16 +246,19 @@ def error_for(metric_obj: OCRDifferenceMetric) -> float:
     Returns:
         float: error in range 0.0 - 1.0
     """
-
     _inspect_calculation_object(metric_obj)
     diffs = metric_obj.diff
     n_refs = len(metric_obj._data_reference)
+    return _calculate(lambda d, n: d / n, diffs, n_refs)
+
+
+def _calculate(calculate: Callable[[int, int], float], diffs: int, n_refs: int) -> float:
     if (n_refs - diffs) < 0:
         return 0.0
     if n_refs == 0 and diffs == 0:
         return 1.0
     elif n_refs > 0:
-        return diffs / n_refs
+        return calculate(diffs, n_refs)
     else:
         return 0.0
 

@@ -23,6 +23,8 @@ from digital_eval.metrics import (
     norm_percentual,
     bag_of_tokens,
     _filter_whitespaces,
+    error_for_bow,
+    accuracy_for_bow,
 )
 
 # default reference
@@ -270,12 +272,14 @@ def test_metric_bow_from_empty_gt_and_empty_candidate():
     assert 100 == _actual
 
 
-def test_bow_error_rate():
-    """Behavior for bow error rate of two strings"""
-    # TODO: deconfuse error/accuracy rate
+def test_bow_ocrd_spec_error_rate():
+    """
+    Behavior for bow error rate of two strings
+    OCR-D spec: https://github.com/OCR-D/spec/blob/master/ocrd_eval.md#bag-of-words-error-rate
+    """
 
     # arrange
-    _metric = MetricBoW()
+    _metric = MetricBoW(calc_func=error_for_bow)
     _metric.reference = "der Mann steht an der Ampel"
     _metric.candidate = "cer Mann fteht an der Ampel"
 
@@ -285,6 +289,63 @@ def test_bow_error_rate():
     # assert
     assert 4 == _metric.diff
     assert 33.33 == pytest.approx(_actual, rel=1e-2)
+
+
+def test_bow_ocrd_spec_accuracy_rate():
+    """
+    Behavior for bow error rate of two strings
+    OCR-D spec: https://github.com/OCR-D/spec/blob/master/ocrd_eval.md#bag-of-words-error-rate
+    """
+
+    # arrange
+    _metric = MetricBoW(calc_func=accuracy_for_bow)
+    _metric.reference = "der Mann steht an der Ampel"
+    _metric.candidate = "cer Mann fteht an der Ampel"
+
+    # act
+    _actual = _metric.value
+
+    # assert
+    assert 4 == _metric.diff
+    assert 66.66 == pytest.approx(_actual, rel=1e-2)
+
+
+def test_bow_ocrd_spec_error_rate_ref_contains_more_data():
+    """
+    Behavior for bow error rate of two strings
+    OCR-D spec: https://github.com/OCR-D/spec/blob/master/ocrd_eval.md#bag-of-words-error-rate
+    """
+
+    # arrange
+    _metric = MetricBoW(calc_func=error_for_bow)
+    _metric.reference = "der Mann steht an der roten Ampel"
+    _metric.candidate = "cer Mann fteht an der Ampel"
+
+    # act
+    _actual = _metric.value
+
+    # assert
+    assert 5 == _metric.diff
+    assert 38.46 == pytest.approx(_actual, rel=1e-2)
+
+
+def test_bow_ocrd_spec_error_rate_ref_contains_less_data():
+    """
+    Behavior for bow error rate of two strings
+    OCR-D spec: https://github.com/OCR-D/spec/blob/master/ocrd_eval.md#bag-of-words-error-rate
+    """
+
+    # arrange
+    _metric = MetricBoW(calc_func=error_for_bow)
+    _metric.reference = "der Mann steht an der Ampel"
+    _metric.candidate = "cer Mann fteht an der schönen roten Ampel"
+
+    # act
+    _actual = _metric.value
+
+    # assert
+    assert 6 == _metric.diff
+    assert 42.85 == pytest.approx(_actual, rel=1e-2)
 
 
 def test_metric_character_accuracy():
