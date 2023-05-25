@@ -8,7 +8,7 @@ import sys
 import datetime as dt
 
 from typing import (
-    List
+    List, Type
 )
 
 from digital_eval import (
@@ -28,6 +28,7 @@ from digital_eval import (
     MetricIRRec,
     MetricIRFM
 )
+from digital_eval.metrics import OCRDifferenceMetric, accuracy_for_bow, error_for_bow
 
 # script constants
 DEFAULT_VERBOSITY = 0
@@ -42,6 +43,14 @@ CALC_DICT = {
     'err': error_for,
     'error': error_for,
 }
+
+CALC_DICT_BOW = {
+    'acc': accuracy_for_bow,
+    'accuracy': accuracy_for_bow,
+    'err': error_for_bow,
+    'error': error_for_bow,
+}
+
 DEFAULT_UTF8_NORM = UC_NORMALIZATION_DEFAULT
 
 # metrics
@@ -78,11 +87,18 @@ def _get_info():
     return f'v{_v}/{_t}'
 
 
-def _initialize_metrics(the_metrics, norm, calc) -> List:
+def _initialize_metrics(the_metrics, norm, calc) -> List[OCRDifferenceMetric]:
     _tokens = the_metrics.split(',')
     try:
-        return [METRIC_DICT[m](normalization=norm, calc_func=CALC_DICT[calc]) 
-                for m in _tokens]
+        metric_objects: List[OCRDifferenceMetric] = []
+        for m in _tokens:
+            clazz: Type[OCRDifferenceMetric] = METRIC_DICT[m]
+            calc_func = CALC_DICT[calc]
+            if m == 'BoWs' or m == 'BagOfWords':
+                calc_func = CALC_DICT_BOW[calc]
+            metric_inst: OCRDifferenceMetric = clazz(normalization=norm, calc_func=calc_func)
+            metric_objects.append(metric_inst)
+        return metric_objects
     except KeyError as _err:
         _keys = ','.join(METRIC_DICT.keys()) + ','.join(CALC_DICT.keys())
         _msg = f"Unknown: '{_err.args[0]}'.\nPlease use one of the following keys: '{_keys}'."

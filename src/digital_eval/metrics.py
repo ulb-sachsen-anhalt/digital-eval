@@ -276,8 +276,14 @@ def norm_percentual(value):
 class OCRDifferenceMetric:
     """Basic definition of a OCRDifferenceMetric"""
 
-    def __init__(self, precision, normalization, calc_func,
-                 preprocessings=None, postprocessings=None) -> None:
+    def __init__(
+            self,
+            precision=2,
+            normalization=UC_NORMALIZATION_DEFAULT,
+            calc_func=accuracy_for,
+            preprocessings=None,
+            postprocessings=None
+    ) -> None:
         self.precision = precision
         self._value = None
         self.diff = None
