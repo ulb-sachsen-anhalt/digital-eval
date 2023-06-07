@@ -29,8 +29,8 @@ from nltk.metrics import (
 )
 from nltk.metrics import precision as nltk_precision
 
-from rapidfuzz.string_metric import (
-    levenshtein
+from rapidfuzz.distance import (
+    Levenshtein
 )
 
 # Python3 standard Unicode Normalization
@@ -539,7 +539,7 @@ def edit_distance(reference_data, candidate_data) -> int:
     * split-up words (line endings/beginnings)
     """
 
-    return levenshtein(reference_data, candidate_data)
+    return Levenshtein.distance(reference_data, candidate_data)
 
 
 def bag_of_tokens(reference_tokens: List[str],
