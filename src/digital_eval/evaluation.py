@@ -241,7 +241,7 @@ def get_bbox_data(file_path):
             raw_elements = root_element.findall('.//alto:String', XML_NS)
             non_empty = [s for s in raw_elements if s.attrib['CONTENT'].strip(
             ) and re.match(r'[^\d]', s.attrib['CONTENT'])]
-            return extract_from_geometric_data(non_empty, _map_alto)
+            return calculate_bounding_box(non_empty, _map_alto)
 
         elif 'PcGts' in start_token:
             # read from given page coordinates
@@ -252,12 +252,12 @@ def get_bbox_data(file_path):
             _xpr_page_borders = f'{{{name_space}}}Page/{{{name_space}}}Border/{{{name_space}}}Coords'
             _page_coords = root_element.findall(_xpr_page_borders)
             if len(_page_coords) > 0:
-                _frame_points = extract_from_geometric_data(_page_coords, _map_page2013)
+                _frame_points = calculate_bounding_box(_page_coords, _map_page2013)
             # step two: if possible, go for sub-part geometry
             _xpr_line_coords = f'.//{{{name_space}}}TextLine/{{{name_space}}}Coords'
             _line_coords = root_element.findall(_xpr_line_coords)
             if len(_line_coords) > 0:
-                _frame_points = extract_from_geometric_data(_line_coords, _map_page2013)
+                _frame_points = calculate_bounding_box(_line_coords, _map_page2013)
             if _frame_points:
                 return _frame_points
             else:
@@ -274,16 +274,18 @@ def _map_alto(e: ET.Element) -> Tuple[str, int, int, int, int]:
     return (i, x0, y0, x1, y1)
 
 
-def _map_page2013(e: ET.Element) -> Tuple[str, int, int, int, int]:
-    points = e.attrib['points'].split(' ')
-    xs = [int(p.split(',')[0]) for p in points]
-    ys = [int(p.split(',')[1]) for p in points]
-    return (NOT_SET, min(xs), min(ys), max(xs), max(ys))
+def _map_page2013(elem: ET.Element) -> Tuple[str, int, int, int, int]:
+    points = elem.attrib['points'].strip().split(' ')
+    _xs = [int(p.split(',')[0]) for p in points]
+    _ys = [int(p.split(',')[1]) for p in points]
+    return (NOT_SET, min(_xs), min(_ys), max(_xs), max(_ys))
 
 
-def extract_from_geometric_data(elements: List[ET.Element], map_func) -> Tuple[int, int, int, int]:
+def calculate_bounding_box(elements: List[ET.Element], map_func) -> Tuple[int, int, int, int]:
+    """Review element's points to get points for
+    minimum (top-left) and maximum (bottom-right)"""
+
     all_points = [map_func(e) for e in elements]
-    # comprehend all elements to get minimum and maximum
     all_x1 = [p[1] for p in all_points]
     all_y1 = [p[2] for p in all_points]
     all_x2 = [p[3] for p in all_points]

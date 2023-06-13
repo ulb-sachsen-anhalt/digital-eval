@@ -1,0 +1,152 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<PcGts xmlns="http://schema.primaresearch.org/PAGE/gts/pagecontent/2013-07-15" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://schema.primaresearch.org/PAGE/gts/pagecontent/2013-07-15 http://schema.primaresearch.org/PAGE/gts/pagecontent/2013-07-15/pagecontent.xsd">
+    <Metadata>
+        <Creator></Creator>
+        <Created>2022-06-27T12:33:22.051+02:00</Created>
+        <LastChange>2023-05-16T12:09:22.920+02:00</LastChange>
+        <Comments>
+                Measurement unit: pixel
+                PrimaryLanguage: </Comments>
+        <TranskribusMetadata docId="-1" pageId="-1" pageNr="1" status="IN_PROGRESS"/>
+    </Metadata>
+    <Page imageFilename="00000040.tif" imageWidth="1965" imageHeight="2860">
+        <PrintSpace>
+            <Coords points="37,-2 2002,-2 2002,2858 37,2858"/>
+        </PrintSpace>
+        <ReadingOrder>
+            <OrderedGroup id="ro_1684231762983" caption="Regions reading order">
+                <RegionRefIndexed index="0" regionRef="textblock_1"/>
+                <RegionRefIndexed index="1" regionRef="region_1684231753871_1174"/>
+            </OrderedGroup>
+        </ReadingOrder>
+        <TextRegion id="textblock_1" custom="readingOrder {index:0;}">
+            <Coords points="386,619 1127,619 1127,679 386,679"/>
+            <TextLine id="tl_1" custom="readingOrder {index:0;}">
+                <Coords points="386,619 386,679 1127,679 1127,619 "/>
+                <TextEquiv>
+                    <Unicode>.آن نعت بگردان که مرا خواهی گفت</Unicode>
+                </TextEquiv>
+            </TextLine>
+            <TextLine id="tl_2" custom="readingOrder {index:1;}">
+                <Coords points="385,712 385,781 1127,781 1127,712 "/>
+                <TextEquiv>
+                    <Unicode>.و آن ذمم درساز که داری به نهفت</Unicode>
+                </TextEquiv>
+            </TextLine>
+            <TextLine id="tl_3" custom="readingOrder {index:2;}">
+                <Coords points="380,803 380,870 1127,870 1127,803 "/>
+                <TextEquiv>
+                    <Unicode>خواهى علمم بركش و خواهى قلمم</Unicode>
+                </TextEquiv>
+            </TextLine>
+            <TextLine id="tl_4" custom="readingOrder {index:3;}">
+                <Coords points="383,890 383,960 1126,960 1126,890 "/>
+                <TextEquiv>
+                    <Unicode>من ذره به طبع خود نخواهم آشفت</Unicode>
+                </TextEquiv>
+            </TextLine>
+            <TextLine id="tl_5" custom="readingOrder {index:4;}">
+                <Coords points="383,1040 383,1102 1144,1102 1144,1040 "/>
+                <TextEquiv>
+                    <Unicode>گفتا چه تو از بهشت بتوانی گفت</Unicode>
+                </TextEquiv>
+            </TextLine>
+            <TextLine id="tl_6" custom="readingOrder {index:5;}">
+                <Coords points="381,1132 381,1202 1123,1202 1123,1132 "/>
+                <TextEquiv>
+                    <Unicode>گفتم بود ار شبی دلى با دل جفت.</Unicode>
+                </TextEquiv>
+            </TextLine>
+            <TextLine id="tl_7" custom="readingOrder {index:6;}">
+                <Coords points="378,1222 378,1281 1139,1280 1139,1221"/>
+                <TextEquiv>
+                    <Unicode>گفتا بود این ولی به​ شوری که تراست</Unicode>
+                </TextEquiv>
+            </TextLine>
+            <TextLine id="tl_8" custom="readingOrder {index:7;}">
+                <Coords points="380,1311 380,1379 1123,1379 1123,1311 "/>
+                <TextEquiv>
+                    <Unicode>خواهی تو بهشت را هم از خود آشفت.</Unicode>
+                </TextEquiv>
+            </TextLine>
+            <TextLine id="tl_9" custom="readingOrder {index:8;}">
+                <Coords points="376,1461 376,1533 1126,1533 1126,1461 "/>
+                <TextEquiv>
+                    <Unicode>گفتم دلم از کوی تو چه سود گرفت</Unicode>
+                </TextEquiv>
+            </TextLine>
+            <TextLine id="tl_10" custom="readingOrder {index:9;}">
+                <Coords points="377,1551 377,1623 1139,1623 1139,1551 "/>
+                <TextEquiv>
+                    <Unicode>چون آتشم از تو تار تا پود گرفت؟</Unicode>
+                </TextEquiv>
+            </TextLine>
+            <TextLine id="tl_11" custom="readingOrder {index:10;}">
+                <Coords points="376,1643 376,1702 1140,1702 1140,1643 "/>
+                <TextEquiv>
+                    <Unicode> گفتا :دلت از سرشك من بی خبر است.</Unicode>
+                </TextEquiv>
+            </TextLine>
+            <TextLine id="tl_12" custom="readingOrder {index:11;}">
+                <Coords points="376,1730 376,1801 1117,1801 1117,1730 "/>
+                <TextEquiv>
+                    <Unicode>گفتم :چکنم کآینه را دود گرفت.</Unicode>
+                </TextEquiv>
+            </TextLine>
+            <TextLine id="tl_13" custom="readingOrder {index:12;}">
+                <Coords points="372,1883 372,1944 1126,1944 1126,1883 "/>
+                <TextEquiv>
+                    <Unicode>ابر آمد  و روى كوه و صحرا بگرفت</Unicode>
+                </TextEquiv>
+            </TextLine>
+            <TextLine id="tl_14" custom="readingOrder {index:13;}">
+                <Coords points="373,1971 373,2039 1112,2039 1112,1971 "/>
+                <TextEquiv>
+                    <Unicode>از دامن دشت تا به دریا بگرفت.</Unicode>
+                </TextEquiv>
+            </TextLine>
+            <TextLine id="tl_15" custom="readingOrder {index:14;}">
+                <Coords points="368,2052 368,2123 1123,2123 1123,2052 "/>
+                <TextEquiv>
+                    <Unicode>دنيای غمی ساخت دلم را آنگاه</Unicode>
+                </TextEquiv>
+            </TextLine>
+            <TextLine id="tl_16" custom="readingOrder {index:15;}">
+                <Coords points="373,2133 373,2203 1111,2203 1111,2133 "/>
+                <TextEquiv>
+                    <Unicode>آسان با من تمام دنيا بگرفت.</Unicode>
+                </TextEquiv>
+            </TextLine>
+            <TextEquiv>
+                <Unicode>آن نعت بگردان که مرا خواهی گفت.&#13;
+و آن ذمم درساز که داری به نهفت.&#13;
+خواهى علمم بركش و خواهى قلمم&#13;
+من ذره به طبع خود نخواهم آشفت&#13;
+گفتا چه تو از بهشت بتوانی گفت&#13;
+گفتم بود ار شبی دلى با دل جفت.&#13;
+گفتا بود این ولی به​ شوری که تراست&#13;
+خواهی تو بهشت را هم از خود آشفت.&#13;
+گفتم دلم از کوی تو چه سود گرفت&#13;
+چون آتشم از تو تار تا پود گرفت؟&#13;
+ گفتا :دلت از سرشك من بی خبر است.&#13;
+گفتم :چکنم کآینه را دود گرفت.&#13;
+ابر آمد  و روى كوه و صحرا بگرفت&#13;
+از دامن دشت تا به دریا بگرفت.&#13;
+دنيای غمی ساخت دلم را آنگاه&#13;
+آسان با من تمام دنيا بگرفت.</Unicode>
+            </TextEquiv>
+        </TextRegion>
+        <TextRegion id="region_1684231753871_1174" custom="readingOrder {index:1;}">
+            <Coords points="1204,2220 1204,2314 1298,2314 1298,2220"/>
+            <TextLine id="line_1684231753919_1177" custom="readingOrder {index:0;}">
+                <Coords points="1298,2314 1204,2314 1204,2220 1298,2220"/>
+                <TextEquiv>
+                    <Unicode>40</Unicode>
+                </TextEquiv>
+            </TextLine>
+            <TextEquiv>
+                <Unicode>40</Unicode>
+            </TextEquiv>
+        </TextRegion>
+    </Page>
+</PcGts>

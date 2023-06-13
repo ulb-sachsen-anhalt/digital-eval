@@ -1,0 +1,1835 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<PcGts xmlns="http://schema.primaresearch.org/PAGE/gts/pagecontent/2013-07-15" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://schema.primaresearch.org/PAGE/gts/pagecontent/2013-07-15 http://schema.primaresearch.org/PAGE/gts/pagecontent/2013-07-15/pagecontent.xsd">
+  <Metadata>
+    <Creator/>
+    <Created>2022-06-27T12:27:00.691+02:00</Created>
+    <LastChange>2023-04-28T10:45:06.200+02:00</LastChange>
+    <Comments>
+                Measurement unit: pixel
+                PrimaryLanguage: </Comments>
+    <TranskribusMetadata docId="-1" pageId="-1" pageNr="11" status="IN_PROGRESS"/>
+  </Metadata>
+  <Page imageFilename="00000086.tif" imageWidth="2880" imageHeight="2196">
+    <PrintSpace>
+      <Coords points="0,0 2880,0 2880,2196 0,2196"/>
+    </PrintSpace>
+    <ReadingOrder>
+      <OrderedGroup id="ro_1682671506321" caption="Regions reading order">
+        <RegionRefIndexed index="0" regionRef="textblock_1"/>
+        <RegionRefIndexed index="1" regionRef="region_1682671406008_495"/>
+        <RegionRefIndexed index="2" regionRef="region_1682671484364_516"/>
+      </OrderedGroup>
+    </ReadingOrder>
+    <TextRegion id="textblock_1" custom="readingOrder {index:0;}">
+      <Coords points="570,309 2489,309 2489,1910 570,1910"/>
+      <TextLine id="tl_2" custom="readingOrder {index:0;}">
+        <Coords points="590,309 592,389 2331,389 2329,309"/>
+        <Baseline points=""/>
+        <Word id="w_2" custom="readingOrder {index:0;}">
+          <Coords points="2270,331 2330,331 2330,389 2270,389"/>
+          <TextEquiv>
+            <Unicode>ازسال</Unicode>
+          </TextEquiv>
+        </Word>
+        <Word id="w_3" custom="readingOrder {index:1;}">
+          <Coords points="2155,331 2223,331 2223,389 2155,389"/>
+          <TextEquiv>
+            <Unicode>1903</Unicode>
+          </TextEquiv>
+        </Word>
+        <Word id="w_4" custom="readingOrder {index:2;}">
+          <Coords points="2000,331 2126,331 2126,389 2000,389"/>
+          <TextEquiv>
+            <Unicode>تا1951،</Unicode>
+          </TextEquiv>
+        </Word>
+        <Word id="w_5" custom="readingOrder {index:3;}">
+          <Coords points="1942,331 1978,331 1978,389 1942,389"/>
+          <TextEquiv>
+            <Unicode>درد</Unicode>
+          </TextEquiv>
+        </Word>
+        <Word id="w_6" custom="readingOrder {index:4;}">
+          <Coords points="1877,331 1917,331 1917,389 1877,389"/>
+          <TextEquiv>
+            <Unicode>وران</Unicode>
+          </TextEquiv>
+        </Word>
+        <Word id="w_7" custom="readingOrder {index:5;}">
+          <Coords points="1823,331 1845,331 1845,389 1823,389"/>
+          <TextEquiv>
+            <Unicode>سد</Unicode>
+          </TextEquiv>
+        </Word>
+        <Word id="w_8" custom="readingOrder {index:6;}">
+          <Coords points="1784,331 1784,331 1784,389 1784,389"/>
+          <TextEquiv>
+            <Unicode>ه</Unicode>
+          </TextEquiv>
+        </Word>
+        <Word id="w_9" custom="readingOrder {index:7;}">
+          <Coords points="1759,331 1759,331 1759,389 1759,389"/>
+          <TextEquiv>
+            <Unicode>ی</Unicode>
+          </TextEquiv>
+        </Word>
+        <Word id="w_10" custom="readingOrder {index:8;}">
+          <Coords points="1669,331 1723,331 1723,389 1669,389"/>
+          <TextEquiv>
+            <Unicode>شرکت</Unicode>
+          </TextEquiv>
+        </Word>
+        <Word id="w_11" custom="readingOrder {index:9;}">
+          <Coords points="1593,331 1640,331 1640,389 1593,389"/>
+          <TextEquiv>
+            <Unicode>سابق</Unicode>
+          </TextEquiv>
+        </Word>
+        <Word id="w_12" custom="readingOrder {index:10;}">
+          <Coords points="1525,331 1561,331 1561,389 1525,389"/>
+          <TextEquiv>
+            <Unicode>نفت</Unicode>
+          </TextEquiv>
+        </Word>
+        <Word id="w_13" custom="readingOrder {index:11;}">
+          <Coords points="1431,331 1499,331 1499,389 1431,389"/>
+          <TextEquiv>
+            <Unicode>انگلیس</Unicode>
+          </TextEquiv>
+        </Word>
+        <Word id="w_14" custom="readingOrder {index:12;}">
+          <Coords points="1388,331 1388,331 1388,389 1388,389"/>
+          <TextEquiv>
+            <Unicode>و</Unicode>
+          </TextEquiv>
+        </Word>
+        <Word id="w_15" custom="readingOrder {index:13;}">
+          <Coords points="1308,331 1366,331 1366,389 1308,389"/>
+          <TextEquiv>
+            <Unicode>ایران</Unicode>
+          </TextEquiv>
+        </Word>
+        <Word id="w_16" custom="readingOrder {index:14;}">
+          <Coords points="1218,331 1280,331 1280,389 1218,389"/>
+          <TextEquiv>
+            <Unicode>درامد</Unicode>
+          </TextEquiv>
+        </Word>
+        <Word id="w_17" custom="readingOrder {index:15;}">
+          <Coords points="1161,331 1193,331 1193,389 1161,389"/>
+          <TextEquiv>
+            <Unicode>نفت</Unicode>
+          </TextEquiv>
+        </Word>
+        <Word id="w_18" custom="readingOrder {index:16;}">
+          <Coords points="1071,331 1132,331 1132,389 1071,389"/>
+          <TextEquiv>
+            <Unicode>درحد</Unicode>
+          </TextEquiv>
+        </Word>
+        <Word id="w_19" custom="readingOrder {index:17;}">
+          <Coords points="1035,331 1046,331 1046,389 1035,389"/>
+          <TextEquiv>
+            <Unicode>ود</Unicode>
+          </TextEquiv>
+        </Word>
+        <Word id="w_20" custom="readingOrder {index:18;}">
+          <Coords points="977,331 977,331 977,389 977,389"/>
+          <TextEquiv>
+            <Unicode>ک</Unicode>
+          </TextEquiv>
+        </Word>
+        <Word id="w_21" custom="readingOrder {index:19;}">
+          <Coords points="884,331 930,331 930,389 884,389"/>
+          <TextEquiv>
+            <Unicode>بخش</Unicode>
+          </TextEquiv>
+        </Word>
+        <Word id="w_22" custom="readingOrder {index:20;}">
+          <Coords points="779,331 840,331 840,389 779,389"/>
+          <TextEquiv>
+            <Unicode>درامد</Unicode>
+          </TextEquiv>
+        </Word>
+        <Word id="w_23" custom="readingOrder {index:21;}">
+          <Coords points="729,331 758,331 758,389 729,389"/>
+          <TextEquiv>
+            <Unicode>بود</Unicode>
+          </TextEquiv>
+        </Word>
+        <Word id="w_24" custom="readingOrder {index:22;}">
+          <Coords points="678,331 696,331 696,389 678,389"/>
+          <TextEquiv>
+            <Unicode>جه</Unicode>
+          </TextEquiv>
+        </Word>
+        <Word id="w_25" custom="readingOrder {index:23;}">
+          <Coords points="606,331 650,331 650,389 606,389"/>
+          <TextEquiv>
+            <Unicode>یایر</Unicode>
+          </TextEquiv>
+        </Word>
+        <TextEquiv>
+          <Unicode>از سال ۱۹۰۳ تا۱۹۵۱ ، درد وران سده ی شرکت سابق نفت انگلیس و ایران درآمد نفت درحدود ۱/۶ بخش درآمد بودجه ایران</Unicode>
+        </TextEquiv>
+      </TextLine>
+      <TextLine id="tl_3" custom="readingOrder {index:1;}">
+        <Coords points="592,402 592,469 2489,469 2489,402 "/>
+        <Baseline points=""/>
+        <Word id="w_26" custom="readingOrder {index:0;}">
+          <Coords points="2402,402 2482,402 2482,469 2402,469"/>
+          <TextEquiv>
+            <Unicode>راتشکیل</Unicode>
+          </TextEquiv>
+        </Word>
+        <Word id="w_27" custom="readingOrder {index:1;}">
+          <Coords points="2343,402 2364,402 2364,469 2343,469"/>
+          <TextEquiv>
+            <Unicode>مید</Unicode>
+          </TextEquiv>
+        </Word>
+        <Word id="w_28" custom="readingOrder {index:2;}">
+          <Coords points="2284,402 2319,402 2319,469 2284,469"/>
+          <TextEquiv>
+            <Unicode>اد.</Unicode>
+          </TextEquiv>
+        </Word>
+        <Word id="w_29" custom="readingOrder {index:3;}">
+          <Coords points="2225,402 2257,402 2257,469 2225,469"/>
+          <TextEquiv>
+            <Unicode>این</Unicode>
+          </TextEquiv>
+        </Word>
+        <Word id="w_30" custom="readingOrder {index:4;}">
+          <Coords points="2111,402 2194,402 2194,469 2111,469"/>
+          <TextEquiv>
+            <Unicode>وابستگی</Unicode>
+          </TextEquiv>
+        </Word>
+        <Word id="w_31" custom="readingOrder {index:5;}">
+          <Coords points="2003,402 2076,402 2076,469 2003,469"/>
+          <TextEquiv>
+            <Unicode>درحال</Unicode>
+          </TextEquiv>
+        </Word>
+        <Word id="w_32" custom="readingOrder {index:6;}">
+          <Coords points="1906,402 1958,402 1958,469 1906,469"/>
+          <TextEquiv>
+            <Unicode>حاضر</Unicode>
+          </TextEquiv>
+        </Word>
+        <Word id="w_33" custom="readingOrder {index:7;}">
+          <Coords points="1854,402 1886,402 1886,469 1854,469"/>
+          <TextEquiv>
+            <Unicode>بیش</Unicode>
+          </TextEquiv>
+        </Word>
+        <Word id="w_34" custom="readingOrder {index:8;}">
+          <Coords points="1757,402 1813,402 1813,469 1757,469"/>
+          <TextEquiv>
+            <Unicode>ازپیش</Unicode>
+          </TextEquiv>
+        </Word>
+        <Word id="w_35" custom="readingOrder {index:9;}">
+          <Coords points="1643,402 1716,402 1716,469 1643,469"/>
+          <TextEquiv>
+            <Unicode>تشدید</Unicode>
+          </TextEquiv>
+        </Word>
+        <Word id="w_36" custom="readingOrder {index:10;}">
+          <Coords points="1570,402 1619,402 1619,469 1570,469"/>
+          <TextEquiv>
+            <Unicode>یافته</Unicode>
+          </TextEquiv>
+        </Word>
+        <Word id="w_37" custom="readingOrder {index:11;}">
+          <Coords points="1476,402 1546,402 1546,469 1476,469"/>
+          <TextEquiv>
+            <Unicode>است.</Unicode>
+          </TextEquiv>
+        </Word>
+        <Word id="w_38" custom="readingOrder {index:12;}">
+          <Coords points="1386,402 1449,402 1449,469 1386,469"/>
+          <TextEquiv>
+            <Unicode>درامد</Unicode>
+          </TextEquiv>
+        </Word>
+        <Word id="w_39" custom="readingOrder {index:13;}">
+          <Coords points="1331,402 1365,402 1365,469 1331,469"/>
+          <TextEquiv>
+            <Unicode>نفت</Unicode>
+          </TextEquiv>
+        </Word>
+        <Word id="w_40" custom="readingOrder {index:14;}">
+          <Coords points="1289,402 1306,402 1306,469 1289,469"/>
+          <TextEquiv>
+            <Unicode>په</Unicode>
+          </TextEquiv>
+        </Word>
+        <Word id="w_41" custom="readingOrder {index:15;}">
+          <Coords points="1241,402 1261,402 1261,469 1241,469"/>
+          <TextEquiv>
+            <Unicode>سه</Unicode>
+          </TextEquiv>
+        </Word>
+        <Word id="w_42" custom="readingOrder {index:16;}">
+          <Coords points="1178,402 1213,402 1213,469 1178,469"/>
+          <TextEquiv>
+            <Unicode>شکل</Unicode>
+          </TextEquiv>
+        </Word>
+        <Word id="w_43" custom="readingOrder {index:17;}">
+          <Coords points="1119,402 1143,402 1143,469 1119,469"/>
+          <TextEquiv>
+            <Unicode>زیر</Unicode>
+          </TextEquiv>
+        </Word>
+        <Word id="w_44" custom="readingOrder {index:18;}">
+          <Coords points="1071,402 1095,402 1095,469 1071,469"/>
+          <TextEquiv>
+            <Unicode>در</Unicode>
+          </TextEquiv>
+        </Word>
+        <Word id="w_45" custom="readingOrder {index:19;}">
+          <Coords points="1022,402 1050,402 1050,469 1022,469"/>
+          <TextEquiv>
+            <Unicode>بود</Unicode>
+          </TextEquiv>
+        </Word>
+        <Word id="w_46" custom="readingOrder {index:20;}">
+          <Coords points="970,402 991,402 991,469 970,469"/>
+          <TextEquiv>
+            <Unicode>جه</Unicode>
+          </TextEquiv>
+        </Word>
+        <Word id="w_47" custom="readingOrder {index:21;}">
+          <Coords points="942,402 942,402 942,469 942,469"/>
+          <TextEquiv>
+            <Unicode>ی</Unicode>
+          </TextEquiv>
+        </Word>
+        <Word id="w_48" custom="readingOrder {index:22;}">
+          <Coords points="901,402 915,402 915,469 901,469"/>
+          <TextEquiv>
+            <Unicode>کل</Unicode>
+          </TextEquiv>
+        </Word>
+        <Word id="w_49" custom="readingOrder {index:23;}">
+          <Coords points="717,402 866,402 866,469 717,469"/>
+          <TextEquiv>
+            <Unicode>کشوردرسال</Unicode>
+          </TextEquiv>
+        </Word>
+        <Word id="w_50" custom="readingOrder {index:24;}">
+          <Coords points="599,402 672,402 672,469 599,469"/>
+          <TextEquiv>
+            <Unicode>1438</Unicode>
+          </TextEquiv>
+        </Word>
+        <TextEquiv>
+          <Unicode>را تشکیل میداد. این وابستگی درحال حاضر بیش از پیش تشدید یافته است. درآمد نفت به سه شکل زیر در بودجه ی کل کشوردرسال ۱۴۳۸</Unicode>
+        </TextEquiv>
+      </TextLine>
+      <TextLine id="tl_4" custom="readingOrder {index:2;}">
+        <Coords points="2169,466 2169,512 2488,512 2488,466 "/>
+        <Baseline points=""/>
+        <Word id="w_51" custom="readingOrder {index:0;}">
+          <Coords points="2349,466 2481,466 2481,512 2349,512"/>
+          <TextEquiv>
+            <Unicode>درنظرگرفته</Unicode>
+          </TextEquiv>
+        </Word>
+        <Word id="w_52" custom="readingOrder {index:1;}">
+          <Coords points="2304,466 2325,466 2325,512 2304,512"/>
+          <TextEquiv>
+            <Unicode>شد</Unicode>
+          </TextEquiv>
+        </Word>
+        <Word id="w_53" custom="readingOrder {index:2;}">
+          <Coords points="2276,466 2276,466 2276,512 2276,512"/>
+          <TextEquiv>
+            <Unicode>ه</Unicode>
+          </TextEquiv>
+        </Word>
+        <Word id="w_54" custom="readingOrder {index:3;}">
+          <Coords points="2211,466 2259,466 2259,512 2211,512"/>
+          <TextEquiv>
+            <Unicode>است</Unicode>
+          </TextEquiv>
+        </Word>
+        <TextEquiv>
+          <Unicode>درنظر گرفته شده است.</Unicode>
+        </TextEquiv>
+      </TextLine>
+      <TextLine id="tl_10" custom="readingOrder {index:3;}">
+        <Coords points="1799,514 1799,567 2320,567 2320,514 "/>
+        <Baseline points=""/>
+        <Word id="w_65" custom="readingOrder {index:0;}">
+          <Coords points="2292,514 2319,514 2319,567 2292,567"/>
+          <TextEquiv>
+            <Unicode>1)</Unicode>
+          </TextEquiv>
+        </Word>
+        <Word id="w_66" custom="readingOrder {index:1;}">
+          <Coords points="2268,514 2268,514 2268,567 2268,567"/>
+          <TextEquiv>
+            <Unicode>د</Unicode>
+          </TextEquiv>
+        </Word>
+        <Word id="w_67" custom="readingOrder {index:2;}">
+          <Coords points="2209,514 2244,514 2244,567 2209,567"/>
+          <TextEquiv>
+            <Unicode>رامد</Unicode>
+          </TextEquiv>
+        </Word>
+        <Word id="w_68" custom="readingOrder {index:3;}">
+          <Coords points="2171,514 2185,514 2185,567 2171,567"/>
+          <TextEquiv>
+            <Unicode>از</Unicode>
+          </TextEquiv>
+        </Word>
+        <Word id="w_69" custom="readingOrder {index:4;}">
+          <Coords points="2035,514 2150,514 2150,567 2035,567"/>
+          <TextEquiv>
+            <Unicode>كنسرسيوم</Unicode>
+          </TextEquiv>
+        </Word>
+        <Word id="w_70" custom="readingOrder {index:5;}">
+          <Coords points="1983,514 2018,514 2018,567 1983,567"/>
+          <TextEquiv>
+            <Unicode>بين</Unicode>
+          </TextEquiv>
+        </Word>
+        <Word id="w_71" custom="readingOrder {index:6;}">
+          <Coords points="1893,514 1955,514 1955,567 1893,567"/>
+          <TextEquiv>
+            <Unicode>المللى</Unicode>
+          </TextEquiv>
+        </Word>
+        <Word id="w_72" custom="readingOrder {index:7;}">
+          <Coords points="1837,514 1872,514 1872,567 1837,567"/>
+          <TextEquiv>
+            <Unicode>نفت</Unicode>
+          </TextEquiv>
+        </Word>
+        <TextEquiv>
+          <Unicode>۱) درآمد از كنسرسيوم بين المللى نفت،</Unicode>
+        </TextEquiv>
+      </TextLine>
+      <TextLine id="tl_11" custom="readingOrder {index:4;}">
+        <Coords points="1647,564 1647,613 2383,613 2383,564 "/>
+        <Baseline points=""/>
+        <Word id="w_73" custom="readingOrder {index:0;}">
+          <Coords points="2293,564 2318,564 2318,613 2293,613"/>
+          <TextEquiv>
+            <Unicode>2)</Unicode>
+          </TextEquiv>
+        </Word>
+        <Word id="w_74" custom="readingOrder {index:1;}">
+          <Coords points="2206,564 2268,564 2268,613 2206,613"/>
+          <TextEquiv>
+            <Unicode>درامد</Unicode>
+          </TextEquiv>
+        </Word>
+        <Word id="w_75" custom="readingOrder {index:2;}">
+          <Coords points="2170,564 2185,564 2185,613 2170,613"/>
+          <TextEquiv>
+            <Unicode>از</Unicode>
+          </TextEquiv>
+        </Word>
+        <Word id="w_76" custom="readingOrder {index:3;}">
+          <Coords points="1972,564 2148,564 2148,613 1972,613"/>
+          <TextEquiv>
+            <Unicode>دیکرکمهانیهای</Unicode>
+          </TextEquiv>
+        </Word>
+        <Word id="w_77" custom="readingOrder {index:4;}">
+          <Coords points="1907,564 1943,564 1943,613 1907,613"/>
+          <TextEquiv>
+            <Unicode>نفتی</Unicode>
+          </TextEquiv>
+        </Word>
+        <Word id="w_78" custom="readingOrder {index:5;}">
+          <Coords points="1867,564 1871,564 1871,613 1867,613"/>
+          <TextEquiv>
+            <Unicode>و</Unicode>
+          </TextEquiv>
+        </Word>
+        <Word id="w_79" custom="readingOrder {index:6;}">
+          <Coords points="1795,564 1849,564 1849,613 1795,613"/>
+          <TextEquiv>
+            <Unicode>بطور</Unicode>
+          </TextEquiv>
+        </Word>
+        <Word id="w_80" custom="readingOrder {index:7;}">
+          <Coords points="1708,564 1773,564 1773,613 1708,613"/>
+          <TextEquiv>
+            <Unicode>مشخص</Unicode>
+          </TextEquiv>
+        </Word>
+        <TextEquiv>
+          <Unicode>۲) درآمد از دیگر کمپانیهای نفتی و بطور مشخص:</Unicode>
+        </TextEquiv>
+      </TextLine>
+      <TextLine id="tl_7" custom="readingOrder {index:5;}">
+        <Coords points="1461,614 1461,654 1616,654 1616,614 "/>
+        <Baseline points=""/>
+        <Word id="w_59" custom="readingOrder {index:0;}">
+          <Coords points="1562,614 1612,614 1612,654 1562,654"/>
+          <TextEquiv>
+            <Unicode>شرکت</Unicode>
+          </TextEquiv>
+        </Word>
+        <Word id="w_60" custom="readingOrder {index:1;}">
+          <Coords points="1478,614 1532,614 1532,654 1478,654"/>
+          <TextEquiv>
+            <Unicode>لاوان</Unicode>
+          </TextEquiv>
+        </Word>
+        <TextEquiv>
+          <Unicode>شرکت لاوان</Unicode>
+        </TextEquiv>
+      </TextLine>
+      <TextLine id="tl_5" custom="readingOrder {index:6;}">
+        <Coords points="927,610 927,651 1244,651 1244,610 "/>
+        <Baseline points=""/>
+        <Word id="w_55" custom="readingOrder {index:0;}">
+          <Coords points="1192,610 1220,610 1220,651 1192,651"/>
+          <TextEquiv>
+            <Unicode>43</Unicode>
+          </TextEquiv>
+        </Word>
+        <Word id="w_56" custom="readingOrder {index:1;}">
+          <Coords points="1038,610 1105,610 1105,651 1038,651"/>
+          <TextEquiv>
+            <Unicode>ميليون</Unicode>
+          </TextEquiv>
+        </Word>
+        <Word id="w_57" custom="readingOrder {index:2;}">
+          <Coords points="948,610 983,610 983,651 948,651"/>
+          <TextEquiv>
+            <Unicode>ريال</Unicode>
+          </TextEquiv>
+        </Word>
+        <TextEquiv>
+          <Unicode>۴۳۵  ميليون ريال</Unicode>
+        </TextEquiv>
+      </TextLine>
+      <TextLine id="tl_8" custom="readingOrder {index:7;}">
+        <Coords points="1460,666 1460,707 1616,707 1616,666 "/>
+        <Baseline points=""/>
+        <Word id="w_61" custom="readingOrder {index:0;}">
+          <Coords points="1557,666 1612,666 1612,707 1557,707"/>
+          <TextEquiv>
+            <Unicode>شرکت</Unicode>
+          </TextEquiv>
+        </Word>
+        <Word id="w_62" custom="readingOrder {index:1;}">
+          <Coords points="1476,666 1530,666 1530,707 1476,707"/>
+          <TextEquiv>
+            <Unicode>ایپاك</Unicode>
+          </TextEquiv>
+        </Word>
+        <TextEquiv>
+          <Unicode>شرکت ایپاک</Unicode>
+        </TextEquiv>
+      </TextLine>
+      <TextLine id="tl_6" custom="readingOrder {index:8;}">
+        <Coords points="945,663 945,693 1245,693 1245,663 "/>
+        <Baseline points=""/>
+        <Word id="w_58" custom="readingOrder {index:0;}">
+          <Coords points="1190,663 1215,663 1215,693 1190,693"/>
+          <TextEquiv>
+            <Unicode>32</Unicode>
+          </TextEquiv>
+        </Word>
+        <TextEquiv>
+          <Unicode>۳۲۵ " "</Unicode>
+        </TextEquiv>
+      </TextLine>
+      <TextLine id="tl_9" custom="readingOrder {index:9;}">
+        <Coords points="1440,710 1440,758 1616,759 1616,711"/>
+        <Baseline points=""/>
+        <Word id="w_63" custom="readingOrder {index:0;}">
+          <Coords points="1559,719 1611,719 1611,759 1559,759"/>
+          <TextEquiv>
+            <Unicode>شرکت</Unicode>
+          </TextEquiv>
+        </Word>
+        <Word id="w_64" custom="readingOrder {index:1;}">
+          <Coords points="1494,719 1527,719 1527,759 1494,759"/>
+          <TextEquiv>
+            <Unicode>میر</Unicode>
+          </TextEquiv>
+        </Word>
+        <TextEquiv>
+          <Unicode>شرکت سیریپ </Unicode>
+        </TextEquiv>
+      </TextLine>
+      <TextLine id="line_1682671406083_498" custom="readingOrder {index:10;}">
+        <Coords points="1252,712 938,712 938,748 1252,748"/>
+        <TextEquiv>
+          <Unicode>۴۰ " "</Unicode>
+        </TextEquiv>
+      </TextLine>
+      <TextLine id="tl_12" custom="readingOrder {index:11;}">
+        <Coords points="1174,766 1174,818 2322,818 2322,766 "/>
+        <Baseline points=""/>
+        <Word id="w_81" custom="readingOrder {index:0;}">
+          <Coords points="2293,766 2318,766 2318,818 2293,818"/>
+          <TextEquiv>
+            <Unicode>3)</Unicode>
+          </TextEquiv>
+        </Word>
+        <Word id="w_82" custom="readingOrder {index:1;}">
+          <Coords points="2206,766 2268,766 2268,818 2206,818"/>
+          <TextEquiv>
+            <Unicode>درامد</Unicode>
+          </TextEquiv>
+        </Word>
+        <Word id="w_83" custom="readingOrder {index:2;}">
+          <Coords points="2127,766 2181,766 2181,818 2127,818"/>
+          <TextEquiv>
+            <Unicode>شرکت</Unicode>
+          </TextEquiv>
+        </Word>
+        <Word id="w_84" custom="readingOrder {index:3;}">
+          <Coords points="2073,766 2098,766 2098,818 2073,818"/>
+          <TextEquiv>
+            <Unicode>ملی</Unicode>
+          </TextEquiv>
+        </Word>
+        <Word id="w_85" custom="readingOrder {index:4;}">
+          <Coords points="2019,766 2051,766 2051,818 2019,818"/>
+          <TextEquiv>
+            <Unicode>نفت</Unicode>
+          </TextEquiv>
+        </Word>
+        <Word id="w_86" custom="readingOrder {index:5;}">
+          <Coords points="1918,766 1993,766 1993,818 1918,818"/>
+          <TextEquiv>
+            <Unicode>ازطریق</Unicode>
+          </TextEquiv>
+        </Word>
+        <Word id="w_87" custom="readingOrder {index:6;}">
+          <Coords points="1842,766 1885,766 1885,818 1842,818"/>
+          <TextEquiv>
+            <Unicode>فروش</Unicode>
+          </TextEquiv>
+        </Word>
+        <Word id="w_88" custom="readingOrder {index:7;}">
+          <Coords points="1719,766 1799,766 1799,818 1719,818"/>
+          <TextEquiv>
+            <Unicode>مستقیم</Unicode>
+          </TextEquiv>
+        </Word>
+        <Word id="w_89" custom="readingOrder {index:8;}">
+          <Coords points="1669,766 1701,766 1701,818 1669,818"/>
+          <TextEquiv>
+            <Unicode>نفت</Unicode>
+          </TextEquiv>
+        </Word>
+        <Word id="w_90" custom="readingOrder {index:9;}">
+          <Coords points="1546,766 1640,766 1640,818 1546,818"/>
+          <TextEquiv>
+            <Unicode>درخارج</Unicode>
+          </TextEquiv>
+        </Word>
+        <Word id="w_91" custom="readingOrder {index:10;}">
+          <Coords points="1463,766 1524,766 1524,818 1463,818"/>
+          <TextEquiv>
+            <Unicode>بمبلغ</Unicode>
+          </TextEquiv>
+        </Word>
+        <Word id="w_92" custom="readingOrder {index:11;}">
+          <Coords points="1376,766 1423,766 1423,818 1376,818"/>
+          <TextEquiv>
+            <Unicode>210</Unicode>
+          </TextEquiv>
+        </Word>
+        <Word id="w_93" custom="readingOrder {index:12;}">
+          <Coords points="1279,766 1347,766 1347,818 1279,818"/>
+          <TextEquiv>
+            <Unicode>میلیون</Unicode>
+          </TextEquiv>
+        </Word>
+        <Word id="w_94" custom="readingOrder {index:13;}">
+          <Coords points="1214,766 1250,766 1250,818 1214,818"/>
+          <TextEquiv>
+            <Unicode>ریال</Unicode>
+          </TextEquiv>
+        </Word>
+        <TextEquiv>
+          <Unicode>۳) درآمد شرکت ملی نفت ازطریق فروش مستقیم نفت درخارج بمبلغ ۲۱۰ میلیون ریال.</Unicode>
+        </TextEquiv>
+      </TextLine>
+      <TextLine id="tl_13" custom="readingOrder {index:12;}">
+        <Coords points="570,812 570,873 2361,873 2361,812 "/>
+        <Baseline points=""/>
+        <Word id="w_95" custom="readingOrder {index:0;}">
+          <Coords points="2335,812 2339,812 2339,873 2335,873"/>
+          <TextEquiv>
+            <Unicode> </Unicode>
+          </TextEquiv>
+        </Word>
+        <Word id="w_96" custom="readingOrder {index:1;}">
+          <Coords points="2245,812 2327,812 2327,873 2245,873"/>
+          <TextEquiv>
+            <Unicode>از124</Unicode>
+          </TextEquiv>
+        </Word>
+        <Word id="w_97" custom="readingOrder {index:2;}">
+          <Coords points="2148,812 2219,812 2219,873 2148,873"/>
+          <TextEquiv>
+            <Unicode>میلیارد</Unicode>
+          </TextEquiv>
+        </Word>
+        <Word id="w_98" custom="readingOrder {index:3;}">
+          <Coords points="2084,812 2122,812 2122,873 2084,873"/>
+          <TextEquiv>
+            <Unicode>ریال</Unicode>
+          </TextEquiv>
+        </Word>
+        <Word id="w_99" custom="readingOrder {index:4;}">
+          <Coords points="1991,812 2051,812 2051,873 1991,873"/>
+          <TextEquiv>
+            <Unicode>درامد</Unicode>
+          </TextEquiv>
+        </Word>
+        <Word id="w_100" custom="readingOrder {index:5;}">
+          <Coords points="1942,812 1968,812 1968,873 1942,873"/>
+          <TextEquiv>
+            <Unicode>بود</Unicode>
+          </TextEquiv>
+        </Word>
+        <Word id="w_101" custom="readingOrder {index:6;}">
+          <Coords points="1890,812 1909,812 1909,873 1890,873"/>
+          <TextEquiv>
+            <Unicode>جه</Unicode>
+          </TextEquiv>
+        </Word>
+        <Word id="w_102" custom="readingOrder {index:7;}">
+          <Coords points="1852,812 1852,812 1852,873 1852,873"/>
+          <TextEquiv>
+            <Unicode>ی</Unicode>
+          </TextEquiv>
+        </Word>
+        <Word id="w_103" custom="readingOrder {index:8;}">
+          <Coords points="1766,812 1819,812 1819,873 1766,873"/>
+          <TextEquiv>
+            <Unicode>عادی</Unicode>
+          </TextEquiv>
+        </Word>
+        <Word id="w_104" custom="readingOrder {index:9;}">
+          <Coords points="1688,812 1740,812 1740,873 1688,873"/>
+          <TextEquiv>
+            <Unicode>کشور</Unicode>
+          </TextEquiv>
+        </Word>
+        <Word id="w_105" custom="readingOrder {index:10;}">
+          <Coords points="1591,812 1666,812 1666,873 1591,873"/>
+          <TextEquiv>
+            <Unicode>درسال</Unicode>
+          </TextEquiv>
+        </Word>
+        <Word id="w_106" custom="readingOrder {index:11;}">
+          <Coords points="1486,812 1557,812 1557,873 1486,873"/>
+          <TextEquiv>
+            <Unicode>1348</Unicode>
+          </TextEquiv>
+        </Word>
+        <Word id="w_107" custom="readingOrder {index:12;}">
+          <Coords points="1456,812 1460,812 1460,873 1456,873"/>
+          <TextEquiv>
+            <Unicode>د</Unicode>
+          </TextEquiv>
+        </Word>
+        <Word id="w_108" custom="readingOrder {index:13;}">
+          <Coords points="1396,812 1434,812 1434,873 1396,873"/>
+          <TextEquiv>
+            <Unicode>رحد</Unicode>
+          </TextEquiv>
+        </Word>
+        <Word id="w_109" custom="readingOrder {index:14;}">
+          <Coords points="1363,812 1374,812 1374,873 1363,873"/>
+          <TextEquiv>
+            <Unicode>ود</Unicode>
+          </TextEquiv>
+        </Word>
+        <Word id="w_110" custom="readingOrder {index:15;}">
+          <Coords points="1254,812 1314,812 1314,873 1254,873"/>
+          <TextEquiv>
+            <Unicode>5ر28</Unicode>
+          </TextEquiv>
+        </Word>
+        <Word id="w_111" custom="readingOrder {index:16;}">
+          <Coords points="1153,812 1224,812 1224,873 1153,873"/>
+          <TextEquiv>
+            <Unicode>میلیارد</Unicode>
+          </TextEquiv>
+        </Word>
+        <Word id="w_112" custom="readingOrder {index:17;}">
+          <Coords points="1093,812 1131,812 1131,873 1093,873"/>
+          <TextEquiv>
+            <Unicode>ریال</Unicode>
+          </TextEquiv>
+        </Word>
+        <Word id="w_113" custom="readingOrder {index:18;}">
+          <Coords points="996,812 1056,812 1056,873 996,873"/>
+          <TextEquiv>
+            <Unicode>ازمحل</Unicode>
+          </TextEquiv>
+        </Word>
+        <Word id="w_114" custom="readingOrder {index:19;}">
+          <Coords points="899,812 959,812 959,873 899,873"/>
+          <TextEquiv>
+            <Unicode>درامد</Unicode>
+          </TextEquiv>
+        </Word>
+        <Word id="w_115" custom="readingOrder {index:20;}">
+          <Coords points="839,812 877,812 877,873 839,873"/>
+          <TextEquiv>
+            <Unicode>نفت</Unicode>
+          </TextEquiv>
+        </Word>
+        <Word id="w_116" custom="readingOrder {index:21;}">
+          <Coords points="802,812 813,812 813,873 802,873"/>
+          <TextEquiv>
+            <Unicode>تا</Unicode>
+          </TextEquiv>
+        </Word>
+        <Word id="w_117" custom="readingOrder {index:22;}">
+          <Coords points="746,812 776,812 776,873 746,873"/>
+          <TextEquiv>
+            <Unicode>مین</Unicode>
+          </TextEquiv>
+        </Word>
+        <Word id="w_118" custom="readingOrder {index:23;}">
+          <Coords points="656,812 716,812 716,873 656,873"/>
+          <TextEquiv>
+            <Unicode>میشود</Unicode>
+          </TextEquiv>
+        </Word>
+        <Word id="w_119" custom="readingOrder {index:24;}">
+          <Coords points="581,812 634,812 634,873 581,873"/>
+          <TextEquiv>
+            <Unicode>که</Unicode>
+          </TextEquiv>
+        </Word>
+        <TextEquiv>
+          <Unicode>از ۱۲۴میلیارد ریال درآمد بودجه ی عادی کشور درسال ۱۳۴۸ در حدود ۵ر۲۸ میلیارد ریال از محل درآمد نفت تاءمین میشود که</Unicode>
+        </TextEquiv>
+      </TextLine>
+      <TextLine id="tl_14" custom="readingOrder {index:13;}">
+        <Coords points="1959,874 1959,919 2474,919 2474,874 "/>
+        <Baseline points=""/>
+        <Word id="w_120" custom="readingOrder {index:0;}">
+          <Coords points="2447,874 2447,874 2447,919 2447,919"/>
+          <TextEquiv>
+            <Unicode>2</Unicode>
+          </TextEquiv>
+        </Word>
+        <Word id="w_121" custom="readingOrder {index:1;}">
+          <Coords points="2397,874 2397,874 2397,919 2397,919"/>
+          <TextEquiv>
+            <Unicode>د</Unicode>
+          </TextEquiv>
+        </Word>
+        <Word id="w_122" custom="readingOrder {index:2;}">
+          <Coords points="2300,874 2374,874 2374,919 2300,919"/>
+          <TextEquiv>
+            <Unicode>رامدکل</Unicode>
+          </TextEquiv>
+        </Word>
+        <Word id="w_123" custom="readingOrder {index:3;}">
+          <Coords points="2240,874 2270,874 2270,919 2240,919"/>
+          <TextEquiv>
+            <Unicode>بود</Unicode>
+          </TextEquiv>
+        </Word>
+        <Word id="w_124" custom="readingOrder {index:4;}">
+          <Coords points="2190,874 2210,874 2210,919 2190,919"/>
+          <TextEquiv>
+            <Unicode>جه</Unicode>
+          </TextEquiv>
+        </Word>
+        <Word id="w_125" custom="readingOrder {index:5;}">
+          <Coords points="2153,874 2153,874 2153,919 2153,919"/>
+          <TextEquiv>
+            <Unicode>ی</Unicode>
+          </TextEquiv>
+        </Word>
+        <Word id="w_126" custom="readingOrder {index:6;}">
+          <Coords points="2066,874 2120,874 2120,919 2066,919"/>
+          <TextEquiv>
+            <Unicode>عادی</Unicode>
+          </TextEquiv>
+        </Word>
+        <Word id="w_127" custom="readingOrder {index:7;}">
+          <Coords points="1989,874 2036,874 2036,919 1989,919"/>
+          <TextEquiv>
+            <Unicode>است</Unicode>
+          </TextEquiv>
+        </Word>
+        <TextEquiv>
+          <Unicode>۲۰٪ د رآمد کل بودجه ی عادی است.</Unicode>
+        </TextEquiv>
+      </TextLine>
+      <TextLine id="tl_15" custom="readingOrder {index:14;}">
+        <Coords points="1052,920 1052,977 2425,977 2425,920 "/>
+        <Baseline points=""/>
+        <Word id="w_128" custom="readingOrder {index:0;}">
+          <Coords points="2335,920 2339,920 2339,977 2335,977"/>
+          <TextEquiv>
+            <Unicode> </Unicode>
+          </TextEquiv>
+        </Word>
+        <Word id="w_129" custom="readingOrder {index:1;}">
+          <Coords points="2270,920 2320,920 2320,977 2270,977"/>
+          <TextEquiv>
+            <Unicode>سهم</Unicode>
+          </TextEquiv>
+        </Word>
+        <Word id="w_130" custom="readingOrder {index:2;}">
+          <Coords points="2176,920 2248,920 2248,977 2176,977"/>
+          <TextEquiv>
+            <Unicode>سازمان</Unicode>
+          </TextEquiv>
+        </Word>
+        <Word id="w_131" custom="readingOrder {index:3;}">
+          <Coords points="2083,920 2151,920 2151,977 2083,977"/>
+          <TextEquiv>
+            <Unicode>برنامه</Unicode>
+          </TextEquiv>
+        </Word>
+        <Word id="w_132" custom="readingOrder {index:4;}">
+          <Coords points="2050,920 2061,920 2061,977 2050,977"/>
+          <TextEquiv>
+            <Unicode>از</Unicode>
+          </TextEquiv>
+        </Word>
+        <Word id="w_133" custom="readingOrder {index:5;}">
+          <Coords points="1964,920 2025,920 2025,977 1964,977"/>
+          <TextEquiv>
+            <Unicode>درامد</Unicode>
+          </TextEquiv>
+        </Word>
+        <Word id="w_134" custom="readingOrder {index:6;}">
+          <Coords points="1906,920 1942,920 1942,977 1906,977"/>
+          <TextEquiv>
+            <Unicode>نفت</Unicode>
+          </TextEquiv>
+        </Word>
+        <Word id="w_135" custom="readingOrder {index:7;}">
+          <Coords points="1809,920 1881,920 1881,977 1809,977"/>
+          <TextEquiv>
+            <Unicode>دربود</Unicode>
+          </TextEquiv>
+        </Word>
+        <Word id="w_136" custom="readingOrder {index:8;}">
+          <Coords points="1740,920 1776,920 1776,977 1740,977"/>
+          <TextEquiv>
+            <Unicode>جهی</Unicode>
+          </TextEquiv>
+        </Word>
+        <Word id="w_137" custom="readingOrder {index:9;}">
+          <Coords points="1672,920 1708,920 1708,977 1672,977"/>
+          <TextEquiv>
+            <Unicode>سال</Unicode>
+          </TextEquiv>
+        </Word>
+        <Word id="w_138" custom="readingOrder {index:10;}">
+          <Coords points="1567,920 1643,920 1643,977 1567,977"/>
+          <TextEquiv>
+            <Unicode>1348</Unicode>
+          </TextEquiv>
+        </Word>
+        <Word id="w_139" custom="readingOrder {index:11;}">
+          <Coords points="1502,920 1546,920 1546,977 1502,977"/>
+          <TextEquiv>
+            <Unicode>به</Unicode>
+          </TextEquiv>
+        </Word>
+        <Word id="w_140" custom="readingOrder {index:12;}">
+          <Coords points="1409,920 1470,920 1470,977 1409,977"/>
+          <TextEquiv>
+            <Unicode>5ر51</Unicode>
+          </TextEquiv>
+        </Word>
+        <Word id="w_141" custom="readingOrder {index:13;}">
+          <Coords points="1311,920 1384,920 1384,977 1311,977"/>
+          <TextEquiv>
+            <Unicode>میلیارد</Unicode>
+          </TextEquiv>
+        </Word>
+        <Word id="w_142" custom="readingOrder {index:14;}">
+          <Coords points="1250,920 1286,920 1286,977 1250,977"/>
+          <TextEquiv>
+            <Unicode>ریال</Unicode>
+          </TextEquiv>
+        </Word>
+        <Word id="w_143" custom="readingOrder {index:15;}">
+          <Coords points="1167,920 1218,920 1218,977 1167,977"/>
+          <TextEquiv>
+            <Unicode>بالغ</Unicode>
+          </TextEquiv>
+        </Word>
+        <Word id="w_144" custom="readingOrder {index:16;}">
+          <Coords points="1081,920 1138,920 1138,977 1081,977"/>
+          <TextEquiv>
+            <Unicode>میشود</Unicode>
+          </TextEquiv>
+        </Word>
+        <TextEquiv>
+          <Unicode>سهم سازمان برنامه از درآمد نفت دربودجه ی سال ۱۳۴۸ به ۵ر۵۱ میلیارد ریال بالغ میشود.</Unicode>
+        </TextEquiv>
+      </TextLine>
+      <TextLine id="tl_16" custom="readingOrder {index:15;}">
+        <Coords points="581,963 581,1029 2325,1029 2325,963 "/>
+        <Baseline points=""/>
+        <Word id="w_145" custom="readingOrder {index:0;}">
+          <Coords points="2265,963 2317,963 2317,1029 2265,1029"/>
+          <TextEquiv>
+            <Unicode>درحد</Unicode>
+          </TextEquiv>
+        </Word>
+        <Word id="w_146" custom="readingOrder {index:1;}">
+          <Coords points="2229,963 2241,963 2241,1029 2229,1029"/>
+          <TextEquiv>
+            <Unicode>ود</Unicode>
+          </TextEquiv>
+        </Word>
+        <Word id="w_147" custom="readingOrder {index:2;}">
+          <Coords points="2129,963 2181,963 2181,1029 2129,1029"/>
+          <TextEquiv>
+            <Unicode>36.؛</Unicode>
+          </TextEquiv>
+        </Word>
+        <Word id="w_148" custom="readingOrder {index:3;}">
+          <Coords points="2073,963 2109,963 2109,1029 2073,1029"/>
+          <TextEquiv>
+            <Unicode>ازکل</Unicode>
+          </TextEquiv>
+        </Word>
+        <Word id="w_149" custom="readingOrder {index:4;}">
+          <Coords points="1877,963 2037,963 2037,1029 1877,1029"/>
+          <TextEquiv>
+            <Unicode>درامدبودجه</Unicode>
+          </TextEquiv>
+        </Word>
+        <Word id="w_150" custom="readingOrder {index:5;}">
+          <Coords points="1849,963 1849,963 1849,1029 1849,1029"/>
+          <TextEquiv>
+            <Unicode>ی</Unicode>
+          </TextEquiv>
+        </Word>
+        <Word id="w_151" custom="readingOrder {index:6;}">
+          <Coords points="1805,963 1821,963 1821,1029 1805,1029"/>
+          <TextEquiv>
+            <Unicode>کل</Unicode>
+          </TextEquiv>
+        </Word>
+        <Word id="w_152" custom="readingOrder {index:7;}">
+          <Coords points="1717,963 1773,963 1773,1029 1717,1029"/>
+          <TextEquiv>
+            <Unicode>ایران</Unicode>
+          </TextEquiv>
+        </Word>
+        <Word id="w_153" custom="readingOrder {index:8;}">
+          <Coords points="1673,963 1689,963 1689,1029 1673,1029"/>
+          <TextEquiv>
+            <Unicode>که</Unicode>
+          </TextEquiv>
+        </Word>
+        <Word id="w_154" custom="readingOrder {index:9;}">
+          <Coords points="1593,963 1641,963 1641,1029 1593,1029"/>
+          <TextEquiv>
+            <Unicode>221</Unicode>
+          </TextEquiv>
+        </Word>
+        <Word id="w_155" custom="readingOrder {index:10;}">
+          <Coords points="1493,963 1565,963 1565,1029 1493,1029"/>
+          <TextEquiv>
+            <Unicode>میلیارد</Unicode>
+          </TextEquiv>
+        </Word>
+        <Word id="w_156" custom="readingOrder {index:11;}">
+          <Coords points="1429,963 1469,963 1469,1029 1429,1029"/>
+          <TextEquiv>
+            <Unicode>ریال</Unicode>
+          </TextEquiv>
+        </Word>
+        <Word id="w_157" custom="readingOrder {index:12;}">
+          <Coords points="1349,963 1397,963 1397,1029 1349,1029"/>
+          <TextEquiv>
+            <Unicode>است</Unicode>
+          </TextEquiv>
+        </Word>
+        <Word id="w_158" custom="readingOrder {index:13;}">
+          <Coords points="1261,963 1325,963 1325,1029 1261,1029"/>
+          <TextEquiv>
+            <Unicode>ازمحل</Unicode>
+          </TextEquiv>
+        </Word>
+        <Word id="w_159" custom="readingOrder {index:14;}">
+          <Coords points="1165,963 1225,963 1225,1029 1165,1029"/>
+          <TextEquiv>
+            <Unicode>درامد</Unicode>
+          </TextEquiv>
+        </Word>
+        <Word id="w_160" custom="readingOrder {index:15;}">
+          <Coords points="1109,963 1141,963 1141,1029 1109,1029"/>
+          <TextEquiv>
+            <Unicode>نفت</Unicode>
+          </TextEquiv>
+        </Word>
+        <Word id="w_161" custom="readingOrder {index:16;}">
+          <Coords points="1013,963 1081,963 1081,1029 1013,1029"/>
+          <TextEquiv>
+            <Unicode>تاعمین</Unicode>
+          </TextEquiv>
+        </Word>
+        <Word id="w_162" custom="readingOrder {index:17;}">
+          <Coords points="897,963 981,963 981,1029 897,1029"/>
+          <TextEquiv>
+            <Unicode>میشود.</Unicode>
+          </TextEquiv>
+        </Word>
+        <Word id="w_163" custom="readingOrder {index:18;}">
+          <Coords points="817,963 873,963 873,1029 817,1029"/>
+          <TextEquiv>
+            <Unicode>میزان</Unicode>
+          </TextEquiv>
+        </Word>
+        <Word id="w_164" custom="readingOrder {index:19;}">
+          <Coords points="717,963 789,963 789,1029 717,1029"/>
+          <TextEquiv>
+            <Unicode>استقاد</Unicode>
+          </TextEquiv>
+        </Word>
+        <Word id="w_165" custom="readingOrder {index:20;}">
+          <Coords points="689,963 689,963 689,1029 689,1029"/>
+          <TextEquiv>
+            <Unicode>ه</Unicode>
+          </TextEquiv>
+        </Word>
+        <Word id="w_166" custom="readingOrder {index:21;}">
+          <Coords points="641,963 669,963 669,1029 641,1029"/>
+          <TextEquiv>
+            <Unicode>بود</Unicode>
+          </TextEquiv>
+        </Word>
+        <Word id="w_167" custom="readingOrder {index:22;}">
+          <Coords points="593,963 613,963 613,1029 593,1029"/>
+          <TextEquiv>
+            <Unicode>جه</Unicode>
+          </TextEquiv>
+        </Word>
+        <TextEquiv>
+          <Unicode>در حدود ۳۶٪ازکل درآمد بودجه ی کل ایران که ۲۲۱ میلیارد ریال است از محل درآمد نفت تاءمین میشود. میزان استفاده بودجه</Unicode>
+        </TextEquiv>
+      </TextLine>
+      <TextLine id="tl_17" custom="readingOrder {index:16;}">
+        <Coords points="1135,1023 1135,1070 2481,1070 2481,1023 "/>
+        <Baseline points=""/>
+        <Word id="w_168" custom="readingOrder {index:0;}">
+          <Coords points="2438,1023 2470,1023 2470,1070 2438,1070"/>
+          <TextEquiv>
+            <Unicode>های</Unicode>
+          </TextEquiv>
+        </Word>
+        <Word id="w_169" custom="readingOrder {index:1;}">
+          <Coords points="2358,1023 2405,1023 2405,1070 2358,1070"/>
+          <TextEquiv>
+            <Unicode>عادی</Unicode>
+          </TextEquiv>
+        </Word>
+        <Word id="w_170" custom="readingOrder {index:2;}">
+          <Coords points="2326,1023 2326,1023 2326,1070 2326,1070"/>
+          <TextEquiv>
+            <Unicode>و</Unicode>
+          </TextEquiv>
+        </Word>
+        <Word id="w_171" custom="readingOrder {index:3;}">
+          <Coords points="2254,1023 2297,1023 2297,1070 2254,1070"/>
+          <TextEquiv>
+            <Unicode>عومی</Unicode>
+          </TextEquiv>
+        </Word>
+        <Word id="w_172" custom="readingOrder {index:4;}">
+          <Coords points="2178,1023 2232,1023 2232,1070 2178,1070"/>
+          <TextEquiv>
+            <Unicode>ایران</Unicode>
+          </TextEquiv>
+        </Word>
+        <Word id="w_173" custom="readingOrder {index:5;}">
+          <Coords points="2120,1023 2145,1023 2145,1070 2120,1070"/>
+          <TextEquiv>
+            <Unicode>ازد</Unicode>
+          </TextEquiv>
+        </Word>
+        <Word id="w_174" custom="readingOrder {index:6;}">
+          <Coords points="2062,1023 2098,1023 2098,1070 2062,1070"/>
+          <TextEquiv>
+            <Unicode>رامد</Unicode>
+          </TextEquiv>
+        </Word>
+        <Word id="w_175" custom="readingOrder {index:7;}">
+          <Coords points="2005,1023 2037,1023 2037,1070 2005,1070"/>
+          <TextEquiv>
+            <Unicode>نفت</Unicode>
+          </TextEquiv>
+        </Word>
+        <Word id="w_176" custom="readingOrder {index:8;}">
+          <Coords points="1849,1023 1976,1023 1976,1070 1849,1070"/>
+          <TextEquiv>
+            <Unicode>درسالهای</Unicode>
+          </TextEquiv>
+        </Word>
+        <Word id="w_177" custom="readingOrder {index:9;}">
+          <Coords points="1770,1023 1821,1023 1821,1070 1770,1070"/>
+          <TextEquiv>
+            <Unicode>اخیر</Unicode>
+          </TextEquiv>
+        </Word>
+        <Word id="w_178" custom="readingOrder {index:10;}">
+          <Coords points="1691,1023 1752,1023 1752,1070 1691,1070"/>
+          <TextEquiv>
+            <Unicode>بشرح</Unicode>
+          </TextEquiv>
+        </Word>
+        <Word id="w_179" custom="readingOrder {index:11;}">
+          <Coords points="1590,1023 1662,1023 1662,1070 1590,1070"/>
+          <TextEquiv>
+            <Unicode>زیربود</Unicode>
+          </TextEquiv>
+        </Word>
+        <Word id="w_180" custom="readingOrder {index:12;}">
+          <Coords points="1561,1023 1561,1023 1561,1070 1561,1070"/>
+          <TextEquiv>
+            <Unicode>ه</Unicode>
+          </TextEquiv>
+        </Word>
+        <Word id="w_181" custom="readingOrder {index:13;}">
+          <Coords points="1496,1023 1543,1023 1543,1070 1496,1070"/>
+          <TextEquiv>
+            <Unicode>است</Unicode>
+          </TextEquiv>
+        </Word>
+        <Word id="w_182" custom="readingOrder {index:14;}">
+          <Coords points="1391,1023 1463,1023 1463,1070 1391,1070"/>
+          <TextEquiv>
+            <Unicode>(ارقام</Unicode>
+          </TextEquiv>
+        </Word>
+        <Word id="w_183" custom="readingOrder {index:15;}">
+          <Coords points="1359,1023 1377,1023 1377,1070 1359,1070"/>
+          <TextEquiv>
+            <Unicode>به</Unicode>
+          </TextEquiv>
+        </Word>
+        <Word id="w_184" custom="readingOrder {index:16;}">
+          <Coords points="1261,1023 1333,1023 1333,1070 1261,1070"/>
+          <TextEquiv>
+            <Unicode>میلیارد</Unicode>
+          </TextEquiv>
+        </Word>
+        <Word id="w_185" custom="readingOrder {index:17;}">
+          <Coords points="1167,1023 1236,1023 1236,1070 1167,1070"/>
+          <TextEquiv>
+            <Unicode>ریال)</Unicode>
+          </TextEquiv>
+        </Word>
+        <TextEquiv>
+          <Unicode>های عادی و عمومی ایران از درآمد نفت درسالهای اخیر بشرح زیر بوده است (ارقام به میلیارد ریال):</Unicode>
+        </TextEquiv>
+      </TextLine>
+      <TextLine id="tl_18" custom="readingOrder {index:17;}">
+        <Coords points="1237,1108 1237,1172 2323,1172 2323,1108 "/>
+        <Baseline points=""/>
+        <Word id="w_186" custom="readingOrder {index:0;}">
+          <Coords points="1315,1108 2322,1108 2322,1172 1315,1172"/>
+          <TextEquiv>
+            <Unicode>سال134613513413431342</Unicode>
+          </TextEquiv>
+        </Word>
+        <TextEquiv>
+          <Unicode>سال ۱۳۴۲ ۱۳۴۳ ۱۳۴۴ ۱۳۴۵ ۱۳۴۶</Unicode>
+        </TextEquiv>
+      </TextLine>
+      <TextLine id="tl_19" custom="readingOrder {index:18;}">
+        <Coords points="1237,1169 1237,1244 2324,1244 2324,1169 "/>
+        <Baseline points=""/>
+        <Word id="w_187" custom="readingOrder {index:0;}">
+          <Coords points="2238,1169 2238,1169 2238,1244 2238,1244"/>
+          <TextEquiv>
+            <Unicode> </Unicode>
+          </TextEquiv>
+        </Word>
+        <Word id="w_188" custom="readingOrder {index:1;}">
+          <Coords points="2130,1169 2216,1169 2216,1244 2130,1244"/>
+          <TextEquiv>
+            <Unicode>[*7</Unicode>
+          </TextEquiv>
+        </Word>
+        <Word id="w_189" custom="readingOrder {index:2;}">
+          <Coords points="1571,1169 1915,1169 1915,1244 1571,1244"/>
+          <TextEquiv>
+            <Unicode>2م72</Unicode>
+          </TextEquiv>
+        </Word>
+        <TextEquiv>
+          <Unicode>مبلغ ۷ر۲۷ ۴ر۳۴ ۵ر۳۹ ۴۷ ۵۴</Unicode>
+        </TextEquiv>
+      </TextLine>
+      <TextLine id="tl_20" custom="readingOrder {index:19;}">
+        <Coords points="574,1292 574,1351 2322,1351 2322,1292 "/>
+        <Baseline points=""/>
+        <Word id="w_190" custom="readingOrder {index:0;}">
+          <Coords points="2308,1292 2315,1292 2315,1351 2308,1351"/>
+          <TextEquiv>
+            <Unicode>د</Unicode>
+          </TextEquiv>
+        </Word>
+        <Word id="w_191" custom="readingOrder {index:1;}">
+          <Coords points="2261,1292 2297,1292 2297,1351 2261,1351"/>
+          <TextEquiv>
+            <Unicode>رامد</Unicode>
+          </TextEquiv>
+        </Word>
+        <Word id="w_192" custom="readingOrder {index:2;}">
+          <Coords points="2189,1292 2239,1292 2239,1351 2189,1351"/>
+          <TextEquiv>
+            <Unicode>ناشی</Unicode>
+          </TextEquiv>
+        </Word>
+        <Word id="w_193" custom="readingOrder {index:3;}">
+          <Coords points="2109,1292 2167,1292 2167,1351 2109,1351"/>
+          <TextEquiv>
+            <Unicode>ازنفت</Unicode>
+          </TextEquiv>
+        </Word>
+        <Word id="w_194" custom="readingOrder {index:4;}">
+          <Coords points="1951,1292 2088,1292 2088,1351 1951,1351"/>
+          <TextEquiv>
+            <Unicode>بطورمتوسط</Unicode>
+          </TextEquiv>
+        </Word>
+        <Word id="w_195" custom="readingOrder {index:5;}">
+          <Coords points="1853,1292 1926,1292 1926,1351 1853,1351"/>
+          <TextEquiv>
+            <Unicode>معادل</Unicode>
+          </TextEquiv>
+        </Word>
+        <Word id="w_196" custom="readingOrder {index:6;}">
+          <Coords points="1807,1292 1807,1292 1807,1351 1807,1351"/>
+          <TextEquiv>
+            <Unicode>8</Unicode>
+          </TextEquiv>
+        </Word>
+        <Word id="w_197" custom="readingOrder {index:7;}">
+          <Coords points="1760,1292 1781,1292 1781,1351 1760,1351"/>
+          <TextEquiv>
+            <Unicode>ر8</Unicode>
+          </TextEquiv>
+        </Word>
+        <Word id="w_198" custom="readingOrder {index:8;}">
+          <Coords points="1731,1292 1731,1292 1731,1351 1731,1351"/>
+          <TextEquiv>
+            <Unicode>د</Unicode>
+          </TextEquiv>
+        </Word>
+        <Word id="w_199" custom="readingOrder {index:9;}">
+          <Coords points="1670,1292 1709,1292 1709,1351 1670,1351"/>
+          <TextEquiv>
+            <Unicode>رصد</Unicode>
+          </TextEquiv>
+        </Word>
+        <Word id="w_200" custom="readingOrder {index:10;}">
+          <Coords points="1608,1292 1648,1292 1648,1351 1608,1351"/>
+          <TextEquiv>
+            <Unicode>ازکل</Unicode>
+          </TextEquiv>
+        </Word>
+        <Word id="w_201" custom="readingOrder {index:11;}">
+          <Coords points="1515,1292 1576,1292 1576,1351 1515,1351"/>
+          <TextEquiv>
+            <Unicode>درامد</Unicode>
+          </TextEquiv>
+        </Word>
+        <Word id="w_202" custom="readingOrder {index:12;}">
+          <Coords points="1464,1292 1489,1292 1489,1351 1464,1351"/>
+          <TextEquiv>
+            <Unicode>ملی</Unicode>
+          </TextEquiv>
+        </Word>
+        <Word id="w_203" custom="readingOrder {index:13;}">
+          <Coords points="1392,1292 1446,1292 1446,1351 1392,1351"/>
+          <TextEquiv>
+            <Unicode>کشور</Unicode>
+          </TextEquiv>
+        </Word>
+        <Word id="w_204" custom="readingOrder {index:14;}">
+          <Coords points="1345,1292 1374,1292 1374,1351 1345,1351"/>
+          <TextEquiv>
+            <Unicode>بود</Unicode>
+          </TextEquiv>
+        </Word>
+        <Word id="w_205" custom="readingOrder {index:15;}">
+          <Coords points="1280,1292 1320,1292 1320,1351 1280,1351"/>
+          <TextEquiv>
+            <Unicode>هکه</Unicode>
+          </TextEquiv>
+        </Word>
+        <Word id="w_206" custom="readingOrder {index:16;}">
+          <Coords points="1230,1292 1262,1292 1262,1351 1230,1351"/>
+          <TextEquiv>
+            <Unicode>این</Unicode>
+          </TextEquiv>
+        </Word>
+        <Word id="w_207" custom="readingOrder {index:17;}">
+          <Coords points="1176,1292 1201,1292 1201,1351 1176,1351"/>
+          <TextEquiv>
+            <Unicode>نیز</Unicode>
+          </TextEquiv>
+        </Word>
+        <Word id="w_208" custom="readingOrder {index:18;}">
+          <Coords points="1061,1292 1154,1292 1154,1351 1061,1351"/>
+          <TextEquiv>
+            <Unicode>بزرگترین</Unicode>
+          </TextEquiv>
+        </Word>
+        <Word id="w_209" custom="readingOrder {index:19;}">
+          <Coords points="967,1292 1028,1292 1028,1351 967,1351"/>
+          <TextEquiv>
+            <Unicode>درصد</Unicode>
+          </TextEquiv>
+        </Word>
+        <Word id="w_210" custom="readingOrder {index:20;}">
+          <Coords points="916,1292 945,1292 945,1351 916,1351"/>
+          <TextEquiv>
+            <Unicode>رقم</Unicode>
+          </TextEquiv>
+        </Word>
+        <Word id="w_211" custom="readingOrder {index:21;}">
+          <Coords points="834,1292 895,1292 895,1351 834,1351"/>
+          <TextEquiv>
+            <Unicode>درامد</Unicode>
+          </TextEquiv>
+        </Word>
+        <Word id="w_212" custom="readingOrder {index:22;}">
+          <Coords points="783,1292 812,1292 812,1351 783,1351"/>
+          <TextEquiv>
+            <Unicode>ملی</Unicode>
+          </TextEquiv>
+        </Word>
+        <Word id="w_213" custom="readingOrder {index:23;}">
+          <Coords points="725,1292 751,1292 751,1351 725,1351"/>
+          <TextEquiv>
+            <Unicode>راد</Unicode>
+          </TextEquiv>
+        </Word>
+        <Word id="w_214" custom="readingOrder {index:24;}">
+          <Coords points="614,1292 700,1292 700,1351 614,1351"/>
+          <TextEquiv>
+            <Unicode>رمقایسه</Unicode>
+          </TextEquiv>
+        </Word>
+        <Word id="w_215" custom="readingOrder {index:25;}">
+          <Coords points="581,1292 596,1292 596,1351 581,1351"/>
+          <TextEquiv>
+            <Unicode>با</Unicode>
+          </TextEquiv>
+        </Word>
+        <TextEquiv>
+          <Unicode>درآمد ناشی از نفت بطور متوسط معادل ۸ر۸ درصد ازکل درآمد ملی کشور بوده که این نیز بزرگترین درصد رقم درآمد ملی را در مقایسه با</Unicode>
+        </TextEquiv>
+      </TextLine>
+      <TextLine id="tl_21" custom="readingOrder {index:20;}">
+        <Coords points="1484,1349 1484,1394 2478,1394 2478,1349 "/>
+        <Baseline points=""/>
+        <Word id="w_216" custom="readingOrder {index:0;}">
+          <Coords points="2420,1349 2457,1349 2457,1394 2420,1394"/>
+          <TextEquiv>
+            <Unicode>سبت</Unicode>
+          </TextEquiv>
+        </Word>
+        <Word id="w_217" custom="readingOrder {index:1;}">
+          <Coords points="2260,1349 2389,1349 2389,1394 2260,1394"/>
+          <TextEquiv>
+            <Unicode>سایرمنابعد</Unicode>
+          </TextEquiv>
+        </Word>
+        <Word id="w_218" custom="readingOrder {index:2;}">
+          <Coords points="2199,1349 2236,1349 2236,1394 2199,1394"/>
+          <TextEquiv>
+            <Unicode>رامد</Unicode>
+          </TextEquiv>
+        </Word>
+        <Word id="w_219" custom="readingOrder {index:3;}">
+          <Coords points="2177,1349 2177,1349 2177,1394 2177,1394"/>
+          <TextEquiv>
+            <Unicode>د</Unicode>
+          </TextEquiv>
+        </Word>
+        <Word id="w_220" custom="readingOrder {index:4;}">
+          <Coords points="2119,1349 2150,1349 2150,1394 2119,1394"/>
+          <TextEquiv>
+            <Unicode>ولت</Unicode>
+          </TextEquiv>
+        </Word>
+        <Word id="w_221" custom="readingOrder {index:5;}">
+          <Coords points="2030,1349 2095,1349 2095,1394 2030,1394"/>
+          <TextEquiv>
+            <Unicode>تشکیل</Unicode>
+          </TextEquiv>
+        </Word>
+        <Word id="w_222" custom="readingOrder {index:6;}">
+          <Coords points="1923,1349 1993,1349 1993,1394 1923,1394"/>
+          <TextEquiv>
+            <Unicode>میدهد</Unicode>
+          </TextEquiv>
+        </Word>
+        <Word id="w_223" custom="readingOrder {index:7;}">
+          <Coords points="1791,1349 1895,1349 1895,1394 1791,1394"/>
+          <TextEquiv>
+            <Unicode>(مراجعه</Unicode>
+          </TextEquiv>
+        </Word>
+        <Word id="w_224" custom="readingOrder {index:8;}">
+          <Coords points="1729,1349 1763,1349 1763,1394 1729,1394"/>
+          <TextEquiv>
+            <Unicode>شود</Unicode>
+          </TextEquiv>
+        </Word>
+        <Word id="w_225" custom="readingOrder {index:9;}">
+          <Coords points="1677,1349 1699,1349 1699,1394 1677,1394"/>
+          <TextEquiv>
+            <Unicode>به</Unicode>
+          </TextEquiv>
+        </Word>
+        <Word id="w_226" custom="readingOrder {index:10;}">
+          <Coords points="1594,1349 1650,1349 1650,1394 1594,1394"/>
+          <TextEquiv>
+            <Unicode>جدول</Unicode>
+          </TextEquiv>
+        </Word>
+        <Word id="w_227" custom="readingOrder {index:11;}">
+          <Coords points="1515,1349 1561,1349 1561,1394 1515,1394"/>
+          <TextEquiv>
+            <Unicode>زیر)</Unicode>
+          </TextEquiv>
+        </Word>
+        <TextEquiv>
+          <Unicode>نسبت سایرمنابع درآمد دولت تشکیل میدهد (مراجعه شود به جدول زیر):</Unicode>
+        </TextEquiv>
+      </TextLine>
+      <TextLine id="tl_22" custom="readingOrder {index:21;}">
+        <Coords points="1156,1428 1156,1477 1876,1477 1876,1428 "/>
+        <Baseline points=""/>
+        <Word id="w_228" custom="readingOrder {index:0;}">
+          <Coords points="1866,1428 1866,1428 1866,1477 1866,1477"/>
+          <TextEquiv>
+            <Unicode>د</Unicode>
+          </TextEquiv>
+        </Word>
+        <Word id="w_229" custom="readingOrder {index:1;}">
+          <Coords points="1815,1428 1850,1428 1850,1477 1815,1477"/>
+          <TextEquiv>
+            <Unicode>رصد</Unicode>
+          </TextEquiv>
+        </Word>
+        <Word id="w_230" custom="readingOrder {index:2;}">
+          <Coords points="1735,1428 1790,1428 1790,1477 1735,1477"/>
+          <TextEquiv>
+            <Unicode>منابع</Unicode>
+          </TextEquiv>
+        </Word>
+        <Word id="w_231" custom="readingOrder {index:3;}">
+          <Coords points="1694,1428 1710,1428 1710,1477 1694,1477"/>
+          <TextEquiv>
+            <Unicode>حد</Unicode>
+          </TextEquiv>
+        </Word>
+        <Word id="w_232" custom="readingOrder {index:4;}">
+          <Coords points="1665,1428 1665,1428 1665,1477 1665,1477"/>
+          <TextEquiv>
+            <Unicode>ه</Unicode>
+          </TextEquiv>
+        </Word>
+        <Word id="w_233" custom="readingOrder {index:5;}">
+          <Coords points="1639,1428 1639,1428 1639,1477 1639,1477"/>
+          <TextEquiv>
+            <Unicode>ی</Unicode>
+          </TextEquiv>
+        </Word>
+        <Word id="w_234" custom="readingOrder {index:6;}">
+          <Coords points="1550,1428 1607,1428 1607,1477 1550,1477"/>
+          <TextEquiv>
+            <Unicode>درامد</Unicode>
+          </TextEquiv>
+        </Word>
+        <Word id="w_235" custom="readingOrder {index:7;}">
+          <Coords points="1502,1428 1527,1428 1527,1477 1502,1477"/>
+          <TextEquiv>
+            <Unicode>بود</Unicode>
+          </TextEquiv>
+        </Word>
+        <Word id="w_236" custom="readingOrder {index:8;}">
+          <Coords points="1450,1428 1466,1428 1466,1477 1450,1477"/>
+          <TextEquiv>
+            <Unicode>جه</Unicode>
+          </TextEquiv>
+        </Word>
+        <Word id="w_237" custom="readingOrder {index:9;}">
+          <Coords points="1390,1428 1425,1428 1425,1477 1390,1477"/>
+          <TextEquiv>
+            <Unicode>(به</Unicode>
+          </TextEquiv>
+        </Word>
+        <Word id="w_238" custom="readingOrder {index:10;}">
+          <Coords points="1306,1428 1367,1428 1367,1477 1306,1477"/>
+          <TextEquiv>
+            <Unicode>درامد</Unicode>
+          </TextEquiv>
+        </Word>
+        <Word id="w_239" custom="readingOrder {index:11;}">
+          <Coords points="1162,1428 1281,1428 1281,1477 1162,1477"/>
+          <TextEquiv>
+            <Unicode>ملیدشور)</Unicode>
+          </TextEquiv>
+        </Word>
+        <TextEquiv>
+          <Unicode>درصد منابع عمده ی درآمد بودجه (به درآمد ملی کشور)</Unicode>
+        </TextEquiv>
+      </TextLine>
+      <TextLine id="tl_27" custom="readingOrder {index:22;}">
+        <Coords points="1423,1484 1423,1524 1610,1524 1610,1484 "/>
+        <Baseline points=""/>
+        <Word id="w_245" custom="readingOrder {index:0;}">
+          <Coords points="1537,1484 1588,1484 1588,1524 1537,1524"/>
+          <TextEquiv>
+            <Unicode>رسال</Unicode>
+          </TextEquiv>
+        </Word>
+        <Word id="w_246" custom="readingOrder {index:1;}">
+          <Coords points="1430,1484 1504,1484 1504,1524 1430,1524"/>
+          <TextEquiv>
+            <Unicode>1346</Unicode>
+          </TextEquiv>
+        </Word>
+        <TextEquiv>
+          <Unicode>درسال  ۱۳۴۶</Unicode>
+        </TextEquiv>
+      </TextLine>
+      <TextLine id="tl_28" custom="readingOrder {index:23;}">
+        <Coords points="1812,1582 1812,1636 1896,1636 1896,1582 "/>
+        <Baseline points=""/>
+        <Word id="w_247" custom="readingOrder {index:0;}">
+          <Coords points="1830,1582 1865,1582 1865,1636 1830,1636"/>
+          <TextEquiv>
+            <Unicode>نفت</Unicode>
+          </TextEquiv>
+        </Word>
+        <TextEquiv>
+          <Unicode>نفت</Unicode>
+        </TextEquiv>
+      </TextLine>
+      <TextLine id="tl_23" custom="readingOrder {index:24;}">
+        <Coords points="1144,1580 1144,1626 1350,1626 1350,1580 "/>
+        <Baseline points=""/>
+        <Word id="w_240" custom="readingOrder {index:0;}">
+          <Coords points="1298,1580 1343,1580 1343,1626 1298,1626"/>
+          <TextEquiv>
+            <Unicode>8ر8</Unicode>
+          </TextEquiv>
+        </Word>
+        <Word id="w_241" custom="readingOrder {index:1;}">
+          <Coords points="1196,1580 1259,1580 1259,1626 1196,1626"/>
+          <TextEquiv>
+            <Unicode>درصد</Unicode>
+          </TextEquiv>
+        </Word>
+        <TextEquiv>
+          <Unicode>۸ر۸ درصد</Unicode>
+        </TextEquiv>
+      </TextLine>
+      <TextLine id="tl_29" custom="readingOrder {index:25;}">
+        <Coords points="1640,1636 1640,1688 1895,1688 1895,1636 "/>
+        <Baseline points=""/>
+        <Word id="w_248" custom="readingOrder {index:0;}">
+          <Coords points="1793,1636 1862,1636 1862,1688 1793,1688"/>
+          <TextEquiv>
+            <Unicode>ماليات</Unicode>
+          </TextEquiv>
+        </Word>
+        <Word id="w_249" custom="readingOrder {index:1;}">
+          <Coords points="1647,1636 1764,1636 1764,1688 1647,1688"/>
+          <TextEquiv>
+            <Unicode>غيرمستقیم</Unicode>
+          </TextEquiv>
+        </Word>
+        <TextEquiv>
+          <Unicode>ماليات غيرمستقیم</Unicode>
+        </TextEquiv>
+      </TextLine>
+      <TextLine id="tl_24" custom="readingOrder {index:26;}">
+        <Coords points="1144,1626 1144,1674 1350,1674 1350,1626 "/>
+        <Baseline points=""/>
+        <Word id="w_242" custom="readingOrder {index:0;}">
+          <Coords points="1228,1626 1345,1626 1345,1674 1228,1674"/>
+          <TextEquiv>
+            <Unicode>8ر4.</Unicode>
+          </TextEquiv>
+        </Word>
+        <TextEquiv>
+          <Unicode>۸ر۴ "</Unicode>
+        </TextEquiv>
+      </TextLine>
+      <TextLine id="tl_30" custom="readingOrder {index:27;}">
+        <Coords points="1801,1687 1801,1739 1895,1739 1895,1687 "/>
+        <Baseline points=""/>
+        <Word id="w_250" custom="readingOrder {index:0;}">
+          <Coords points="1816,1687 1865,1687 1865,1739 1816,1739"/>
+          <TextEquiv>
+            <Unicode>گمرك</Unicode>
+          </TextEquiv>
+        </Word>
+        <TextEquiv>
+          <Unicode>گمرک</Unicode>
+        </TextEquiv>
+      </TextLine>
+      <TextLine id="tl_25" custom="readingOrder {index:28;}">
+        <Coords points="1217,1687 1217,1709 1345,1709 1345,1687 "/>
+        <Baseline points=""/>
+        <Word id="w_243" custom="readingOrder {index:0;}">
+          <Coords points=", , , ,"/>
+          <TextEquiv>
+            <Unicode/>
+          </TextEquiv>
+        </Word>
+        <TextEquiv>
+          <Unicode>۰ر۳ "</Unicode>
+        </TextEquiv>
+      </TextLine>
+      <TextLine id="tl_31" custom="readingOrder {index:29;}">
+        <Coords points="1659,1738 1659,1791 1943,1791 1943,1738 "/>
+        <Baseline points=""/>
+        <Word id="w_251" custom="readingOrder {index:0;}">
+          <Coords points="1780,1738 1859,1738 1859,1791 1780,1791"/>
+          <TextEquiv>
+            <Unicode>وامهای</Unicode>
+          </TextEquiv>
+        </Word>
+        <Word id="w_252" custom="readingOrder {index:1;}">
+          <Coords points="1676,1738 1743,1738 1743,1791 1676,1791"/>
+          <TextEquiv>
+            <Unicode>خارجی</Unicode>
+          </TextEquiv>
+        </Word>
+        <TextEquiv>
+          <Unicode>وامهای خارجی</Unicode>
+        </TextEquiv>
+      </TextLine>
+      <TextLine id="tl_26" custom="readingOrder {index:30;}">
+        <Coords points="1191,1731 1191,1771 1347,1771 1347,1731"/>
+        <Baseline points=""/>
+        <Word id="w_244" custom="readingOrder {index:0;}">
+          <Coords points=", , , ,"/>
+          <TextEquiv>
+            <Unicode/>
+          </TextEquiv>
+        </Word>
+        <TextEquiv>
+          <Unicode>۴ر۲ "</Unicode>
+        </TextEquiv>
+      </TextLine>
+      <TextLine id="tl_32" custom="readingOrder {index:31;}">
+        <Coords points="1674,1791 1673,1831 1892,1831 1893,1791"/>
+        <Baseline points=""/>
+        <Word id="w_253" custom="readingOrder {index:0;}">
+          <Coords points="1790,1791 1860,1791 1860,1836 1790,1836"/>
+          <TextEquiv>
+            <Unicode>ماليات</Unicode>
+          </TextEquiv>
+        </Word>
+        <Word id="w_254" custom="readingOrder {index:1;}">
+          <Coords points="1704,1791 1763,1791 1763,1836 1704,1836"/>
+          <TextEquiv>
+            <Unicode>مستقی</Unicode>
+          </TextEquiv>
+        </Word>
+        <TextEquiv>
+          <Unicode>ماليات مستقیم</Unicode>
+        </TextEquiv>
+      </TextLine>
+      <TextLine id="line_1682671484463_519" custom="readingOrder {index:32;}">
+        <Coords points="1352,1784 1207,1784 1207,1826 1352,1826"/>
+        <TextEquiv>
+          <Unicode>۷ر۱ "</Unicode>
+        </TextEquiv>
+      </TextLine>
+      <TextLine id="tl_33" custom="readingOrder {index:33;}">
+        <Coords points="2356,1876 2356,1910 2443,1910 2443,1876 "/>
+        <Baseline points=""/>
+        <Word id="w_255" custom="readingOrder {index:0;}">
+          <Coords points="2364,1876 2442,1876 2442,1910 2364,1910"/>
+          <TextEquiv>
+            <Unicode>(86)</Unicode>
+          </TextEquiv>
+        </Word>
+        <TextEquiv>
+          <Unicode>(۸۶)</Unicode>
+        </TextEquiv>
+      </TextLine>
+      <TextEquiv>
+        <Unicode>از سال ۱۹۰۳ تا۱۹۵۱ ، درد وران سده ی شرکت سابق نفت انگلیس و ایران درآمد نفت درحدود ۱/۶ بخش درآمد بودجه ایران&#13;
+را تشکیل میداد. این وابستگی درحال حاضر بیش از پیش تشدید یافته است. درآمد نفت به سه شکل زیر در بودجه ی کل کشوردرسال ۱۴۳۸&#13;
+درنظر گرفته شده است.&#13;
+۱) درآمد از كنسرسيوم بين المللى نفت،&#13;
+۲) درآمد از دیگر کمپانیهای نفتی و بطور مشخص:&#13;
+شرکت لاوان&#13;
+۴۳۵  ميليون ريال&#13;
+شرکت ایپاک&#13;
+۳۲۵ " "&#13;
+شرکت سیریپ &#13;
+۴۰ " "&#13;
+۳) درآمد شرکت ملی نفت ازطریق فروش مستقیم نفت درخارج بمبلغ ۲۱۰ میلیون ریال.&#13;
+از ۱۲۴میلیارد ریال درآمد بودجه ی عادی کشور درسال ۱۳۴۸ در حدود ۵ر۲۸ میلیارد ریال از محل درآمد نفت تاءمین میشود که&#13;
+۲۰٪ د رآمد کل بودجه ی عادی است.&#13;
+سهم سازمان برنامه از درآمد نفت دربودجه ی سال ۱۳۴۸ به ۵ر۵۱ میلیارد ریال بالغ میشود.&#13;
+در حدود ۳۶٪ازکل درآمد بودجه ی کل ایران که ۲۲۱ میلیارد ریال است از محل درآمد نفت تاءمین میشود. میزان استفاده بودجه&#13;
+های عادی و عمومی ایران از درآمد نفت درسالهای اخیر بشرح زیر بوده است (ارقام به میلیارد ریال):&#13;
+سال ۱۳۴۲ ۱۳۴۳ ۱۳۴۴ ۱۳۴۵ ۱۳۴۶&#13;
+مبلغ ۷ر۲۷ ۴ر۳۴ ۵ر۳۹ ۴۷ ۵۴&#13;
+درآمد ناشی از نفت بطور متوسط معادل ۸ر۸ درصد ازکل درآمد ملی کشور بوده که این نیز بزرگترین درصد رقم درآمد ملی را در مقایسه با&#13;
+نسبت سایرمنابع درآمد دولت تشکیل میدهد (مراجعه شود به جدول زیر):&#13;
+درصد منابع عمده ی درآمد بودجه (به درآمد ملی کشور)&#13;
+درسال  ۱۳۴۶&#13;
+نفت&#13;
+۸ر۸ درصد&#13;
+ماليات غيرمستقیم&#13;
+۸ر۴ "&#13;
+گمرک&#13;
+۰ر۳ "&#13;
+وامهای خارجی&#13;
+۴ر۲ "&#13;
+ماليات مستقیم&#13;
+۷ر۱ "&#13;
+(۸۶)</Unicode>
+      </TextEquiv>
+    </TextRegion>
+    <TextRegion id="region_1682671406008_495" custom="readingOrder {index:1;}">
+      <Coords points="938,712 938,748 1252,748 1252,712"/>
+      <TextEquiv>
+        <Unicode/>
+      </TextEquiv>
+    </TextRegion>
+    <TextRegion id="region_1682671484364_516" custom="readingOrder {index:2;}">
+      <Coords points="1207,1784 1207,1826 1352,1826 1352,1784"/>
+      <TextEquiv>
+        <Unicode/>
+      </TextEquiv>
+    </TextRegion>
+  </Page>
+</PcGts>

@@ -605,6 +605,22 @@ def test_get_box_from_empty_page():
     assert _p2 == (2012, 2506)
 
 
+def test_get_box_when_line_points_messy():
+    """Ensure to get valid geometric data
+    even if Coords@points have trailing
+    whitespaces"""
+
+    # arrange
+    _path_gt = f'{TEST_RES_DIR}/groundtruth/page/rahbar-1771946695-00000040.xml'
+
+    # act
+    _p1, _p2 = get_bbox_data(_path_gt)
+
+    # assert
+    assert _p1 == (368, 619)
+    assert _p2 == (1298, 2314)
+
+
 def test_handle_exception_invalid_alto_xml():
     """Handle invalid XML data
 

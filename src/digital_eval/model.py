@@ -54,6 +54,10 @@ class PieceLevel(IntEnum):
         return self.value == other_lvl.value
 
 
+class PieceException(Exception):
+    """Mark custom Exception"""
+
+
 class PieceContent(Enum):
     # more layout
     UNKNOWN = 0
@@ -588,12 +592,16 @@ class _PiecePageUtil:
             line_piece.parent = parent
             # inspect PAGE on word level, if set
             if len(word_tokens) > 0:
-                word_pieces = [_PiecePageUtil.__from_text_element(el, line_piece, ns) for el in word_tokens]
-                if not word_pieces:
-                    raise RuntimeError(f"No words in line {line_piece.id}!")
-                # remove line content in favour of words content
-                # line_piece.content = None
-                line_piece.pieces = word_pieces
+                try:
+                    word_pieces = [_PiecePageUtil.__from_text_element(el, line_piece, ns)
+                                for el in word_tokens]
+                    if not word_pieces:
+                        raise RuntimeError(f"No words in line {line_piece.id}!")
+                    # remove line content in favour of words content
+                    line_piece.transcription = None
+                    line_piece.pieces = word_pieces
+                except PieceException as _pex:
+                    raise RuntimeError(_pex.args) from _pex
             line_pieces.append(line_piece)
         return line_pieces
 
@@ -631,27 +639,25 @@ class _PiecePageUtil:
         # inspect geometry
         _coords = [n for n in element.childNodes if n.localName == 'Coords']
         if len(_coords) < 1 or 'points' not in _coords[0].attributes:
-            raise RuntimeError(f"{_local}@ID={_id} invalid coordinate data")
+            raise PieceException(f"{_local}@ID={_id} invalid coordinate data")
         _points = _coords[0].getAttribute('points').split()
         # invariant: at least want 3 points, otherwise polygon area == Zero
         if len(_points) < 3:
-            raise RuntimeError(f"{_local}@ID={_id} way too few points {_points}")
-        _piece.dimensions = [[int(_point.split(',')[0]), int(_point.split(',')[1])]
-                             for _point in _points]
+            raise PieceException(f"{_local}@ID={_id} way too few points {_points}")
+        try:
+            _piece.dimensions = [[int(_point.split(',')[0]), int(_point.split(',')[1])]
+                                for _point in _points]
+        except ValueError as _val_err:
+            raise PieceException(f"{_local}@ID={_id} invalid points {_points}") from _val_err
 
-        # pick text if on word level
-        if _type == PieceLevel.WORD:
-            _txt_eqs = [n for n in element.childNodes if n.localName == 'TextEquiv']
-            if len(_txt_eqs) != 1:
-                raise RuntimeError(f"{_local}@ID={_id} invalid txt node {_txt_eqs}")
+        # replace current text with next order children text
+        _txt_eqs = [n for n in element.childNodes if n.localName == 'TextEquiv']
+        if _txt_eqs:
             _first_unicode = _txt_eqs[0].getElementsByTagName(ns + 'Unicode')[0]
-            if not _first_unicode.firstChild:
-                raise RuntimeError(f"{_local}@ID={_id} empty unicode node!")
-            _content = _first_unicode.firstChild.nodeValue
-            if not _content or not _content.strip():
-                raise RuntimeError(f"{_local}@ID={_id} invalid txt content!")
-            _piece.transcription = _content
-
+            if _first_unicode.firstChild:
+                _content = _first_unicode.firstChild.nodeValue
+                if _content:
+                    _piece.transcription = _content
         return _piece
 
     @staticmethod

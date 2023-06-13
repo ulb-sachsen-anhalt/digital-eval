@@ -251,3 +251,39 @@ def test_piece_file_path():
     ocr_path: str = f'{TEST_RES_DIR}/groundtruth/alto/1667522809_J_0073_0001_375x2050_2325x9550.xml'
     page_piece: Piece = to_pieces(ocr_path)
     assert isinstance(page_piece.file_path, PurePath)
+
+
+@pytest.mark.skip("need to clear order")
+def test_pieces_transcription_from_rahbar_1771946695():
+    """Check behavior with problematic punctuation
+    which is considered to be straight left-hand
+
+    But, instead of ending with '.گفت'
+    it actually *starts* from left with 'گفت'
+    """
+
+    # arrange
+    ocr_path = f'{TEST_RES_DIR}/groundtruth/page/rahbar-1771946695-00000040.xml'
+
+    # act
+    _pieces: Piece = to_pieces(ocr_path)
+
+    # assert
+    assert len(_pieces.pieces) == 2
+    _token = 'گفت'
+    _first_row = _pieces.transcription.split('\r')[0]
+    assert _first_row.startswith(_token)
+
+
+def test_pieces_geometry_from_rahbar_1185565752():
+    """Test problematic data"""
+
+    # arrange
+    ocr_path = f'{TEST_RES_DIR}/groundtruth/page/rahbar-1185565752-00000086.xml'
+
+    # act
+    with pytest.raises(RuntimeError) as _err:
+        to_pieces(ocr_path)
+
+    # assert
+    assert 'Word@ID=w_243 invalid points' in str(_err.value.args[0])
