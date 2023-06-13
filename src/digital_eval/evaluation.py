@@ -477,12 +477,12 @@ class EvalEntry:
         _pre_v = None
         for i, m in enumerate(self.metrics):
             _val = m.value
-            _raw = f'{m.label}:{_val:5.2f}({m.n_ref})'
+            _raw = f'{m.label}:{_val:>5.2f}({m.n_ref:>4})'
             if i in _pres:
                 _pre_v = _val
             if i in _accs and _pre_v is not None:
                 diff = round(_val, 3) - round(_pre_v, 3)
-                _raw += f'(+{diff:5.2f})' if diff > 0 else f'(-{diff:5.2f})'
+                _raw += f'(+{diff:>5.2f})' if diff > 0 else f'(-{abs(diff):>5.2f})'
                 _pre_v = None
             _raws.append(_raw)
         return ', '.join(_raws)
