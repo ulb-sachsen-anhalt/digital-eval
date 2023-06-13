@@ -3,7 +3,7 @@
     <Metadata>
         <Creator></Creator>
         <Created>2022-01-25T20:28:22.797+01:00</Created>
-        <LastChange>2022-05-17T10:48:16.581+02:00</LastChange>
+        <LastChange>2023-06-13T16:26:59.025+02:00</LastChange>
         <Comments>
                 Measurement unit: pixel
                 PrimaryLanguage: </Comments>
@@ -14,7 +14,7 @@
             <Coords points="0,0 7836,0 7836,11032 0,11032"/>
         </PrintSpace>
         <ReadingOrder>
-            <OrderedGroup id="ro_1652777296589" caption="Regions reading order">
+            <OrderedGroup id="ro_1686666419045" caption="Regions reading order">
                 <RegionRefIndexed index="0" regionRef="TextRegion_1652776812530_1068"/>
                 <RegionRefIndexed index="1" regionRef="TextRegion_1642338417668_1219"/>
                 <RegionRefIndexed index="2" regionRef="TextRegion_1642338427817_1231"/>
@@ -2161,68 +2161,38 @@ gut gut mit mit uns uns fertig fertig werden können. können.</Unicode>
                         <Unicode>hierher</Unicode>
                     </TextEquiv>
                 </Word>
-                <Word id="word_1652776928753_1105" custom="readingOrder {index:5;}">
-                    <Coords points="4058,5990 4350,5990 4350,5997 4058,5997"/>
-                    <TextEquiv>
-                        <Unicode>berichtet,</Unicode>
-                    </TextEquiv>
-                </Word>
-                <Word id="word_1652776928753_1104" custom="readingOrder {index:6;}">
+                <Word id="word_1652776928753_1104" custom="readingOrder {index:5;}">
                     <Coords points="4058,5997 4350,5997 4350,6085 4058,6085"/>
                     <TextEquiv>
                         <Unicode>berichtet,</Unicode>
                     </TextEquiv>
                 </Word>
-                <Word id="word_1652776928753_1107" custom="readingOrder {index:7;}">
-                    <Coords points="4382,5978 4502,5978 4502,5997 4382,5997"/>
-                    <TextEquiv>
-                        <Unicode>daß</Unicode>
-                    </TextEquiv>
-                </Word>
-                <Word id="word_1652776928753_1106" custom="readingOrder {index:8;}">
+                <Word id="word_1652776928753_1106" custom="readingOrder {index:6;}">
                     <Coords points="4382,5997 4502,5997 4502,6085 4382,6085"/>
                     <TextEquiv>
                         <Unicode>daß</Unicode>
                     </TextEquiv>
                 </Word>
-                <Word id="word_1652776928754_1109" custom="readingOrder {index:9;}">
-                    <Coords points="4535,5991 4643,5991 4643,5997 4535,5997"/>
-                    <TextEquiv>
-                        <Unicode>ſich</Unicode>
-                    </TextEquiv>
-                </Word>
-                <Word id="word_1652776928754_1108" custom="readingOrder {index:10;}">
+                <Word id="word_1652776928754_1108" custom="readingOrder {index:7;}">
                     <Coords points="4535,5997 4643,5997 4643,6085 4535,6085"/>
                     <TextEquiv>
                         <Unicode>ſich</Unicode>
                     </TextEquiv>
                 </Word>
-                <Word id="word_1652776928754_1111" custom="readingOrder {index:11;}">
-                    <Coords points="4650,5935 4752,5935 4752,5997 4650,5997"/>
-                    <TextEquiv>
-                        <Unicode>die</Unicode>
-                    </TextEquiv>
-                </Word>
-                <Word id="word_1652776928754_1110" custom="readingOrder {index:12;}">
+                <Word id="word_1652776928754_1110" custom="readingOrder {index:8;}">
                     <Coords points="4650,5997 4752,5997 4752,6089 4650,6089"/>
                     <TextEquiv>
                         <Unicode>die</Unicode>
                     </TextEquiv>
                 </Word>
-                <Word id="word_1652776928754_1113" custom="readingOrder {index:13;}">
-                    <Coords points="4779,5979 5082,5979 5082,5997 4779,5997"/>
-                    <TextEquiv>
-                        <Unicode>Prin⸗</Unicode>
-                    </TextEquiv>
-                </Word>
-                <Word id="word_1652776928754_1112" custom="readingOrder {index:14;}">
+                <Word id="word_1652776928754_1112" custom="readingOrder {index:9;}">
                     <Coords points="4779,5997 5082,5997 5082,6085 4779,6085"/>
                     <TextEquiv>
                         <Unicode>Prin⸗</Unicode>
                     </TextEquiv>
                 </Word>
                 <TextEquiv>
-                    <Unicode>— Aus Aus Kiel wird hierher berichtet, berichtet, daß daß ſich ſich die die Prin⸗ Prin⸗</Unicode>
+                    <Unicode>— Aus Kiel wird hierher berichtet, daß ſich die Prin⸗</Unicode>
                 </TextEquiv>
             </TextLine>
             <TextLine id="tl_42" custom="readingOrder {index:1;}">
@@ -2283,104 +2253,62 @@ gut gut mit mit uns uns fertig fertig werden können. können.</Unicode>
                         <Unicode>wohl</Unicode>
                     </TextEquiv>
                 </Word>
-                <Word id="word_1652776976394_1128" custom="readingOrder {index:1;}">
-                    <Coords points="2918,6255 3092,6255 3092,6329 2918,6329"/>
-                    <TextEquiv>
-                        <Unicode>wohl</Unicode>
-                    </TextEquiv>
-                </Word>
-                <Word id="word_1652776976395_1131" custom="readingOrder {index:2;}">
+                <Word id="word_1652776976395_1131" custom="readingOrder {index:1;}">
                     <Coords points="3139,6178 3441,6178 3441,6255 3139,6255"/>
                     <TextEquiv>
                         <Unicode>befinden</Unicode>
                     </TextEquiv>
                 </Word>
-                <Word id="word_1652776976395_1130" custom="readingOrder {index:3;}">
-                    <Coords points="3139,6255 3441,6255 3441,6269 3139,6269"/>
-                    <TextEquiv>
-                        <Unicode>befinden</Unicode>
-                    </TextEquiv>
-                </Word>
-                <Word id="word_1652776976395_1133" custom="readingOrder {index:4;}">
+                <Word id="word_1652776976395_1133" custom="readingOrder {index:2;}">
                     <Coords points="3517,6176 3651,6176 3651,6255 3517,6255"/>
                     <TextEquiv>
                         <Unicode>Der</Unicode>
                     </TextEquiv>
                 </Word>
-                <Word id="word_1652776976395_1132" custom="readingOrder {index:5;}">
-                    <Coords points="3517,6255 3651,6255 3651,6278 3517,6278"/>
-                    <TextEquiv>
-                        <Unicode>Der</Unicode>
-                    </TextEquiv>
-                </Word>
-                <Word id="word_1652776976396_1135" custom="readingOrder {index:6;}">
+                <Word id="word_1652776976396_1135" custom="readingOrder {index:3;}">
                     <Coords points="3692,6164 3952,6165 3952,6255 3692,6255"/>
                     <TextEquiv>
                         <Unicode>Letztere</Unicode>
                     </TextEquiv>
                 </Word>
-                <Word id="word_1652776976396_1134" custom="readingOrder {index:7;}">
-                    <Coords points="3692,6255 3952,6255 3953,6258 3693,6257"/>
-                    <TextEquiv>
-                        <Unicode>Letztere</Unicode>
-                    </TextEquiv>
-                </Word>
-                <Word id="word_1652776976396_1137" custom="readingOrder {index:8;}">
+                <Word id="word_1652776976396_1137" custom="readingOrder {index:4;}">
                     <Coords points="3986,6172 4066,6172 4066,6255 3986,6255"/>
                     <TextEquiv>
                         <Unicode>iſt</Unicode>
                     </TextEquiv>
                 </Word>
-                <Word id="word_1652776976396_1136" custom="readingOrder {index:9;}">
-                    <Coords points="3986,6255 4066,6255 4066,6282 3986,6282"/>
-                    <TextEquiv>
-                        <Unicode>iſt</Unicode>
-                    </TextEquiv>
-                </Word>
-                <Word id="w_294" custom="readingOrder {index:10;}">
+                <Word id="w_294" custom="readingOrder {index:5;}">
                     <Coords points="4096,6174 4189,6174 4189,6242 4096,6242"/>
                     <TextEquiv>
                         <Unicode>ein</Unicode>
                     </TextEquiv>
                 </Word>
-                <Word id="word_1652776976397_1139" custom="readingOrder {index:11;}">
+                <Word id="word_1652776976397_1139" custom="readingOrder {index:6;}">
                     <Coords points="4235,6174 4375,6174 4375,6255 4235,6255"/>
                     <TextEquiv>
                         <Unicode>ſehr</Unicode>
                     </TextEquiv>
                 </Word>
-                <Word id="word_1652776976397_1138" custom="readingOrder {index:12;}">
-                    <Coords points="4235,6255 4375,6255 4375,6257 4235,6257"/>
-                    <TextEquiv>
-                        <Unicode>ſehr</Unicode>
-                    </TextEquiv>
-                </Word>
-                <Word id="word_1652776976397_1141" custom="readingOrder {index:13;}">
+                <Word id="word_1652776976397_1141" custom="readingOrder {index:7;}">
                     <Coords points="4397,6174 4702,6174 4702,6255 4397,6255"/>
                     <TextEquiv>
                         <Unicode>kräftiges</Unicode>
                     </TextEquiv>
                 </Word>
-                <Word id="word_1652776976397_1140" custom="readingOrder {index:14;}">
-                    <Coords points="4397,6255 4702,6255 4702,6268 4397,6268"/>
-                    <TextEquiv>
-                        <Unicode>kräftiges</Unicode>
-                    </TextEquiv>
-                </Word>
-                <Word id="w_297" custom="readingOrder {index:15;}">
+                <Word id="w_297" custom="readingOrder {index:8;}">
                     <Coords points="4746,6176 4977,6176 4977,6245 4746,6245"/>
                     <TextEquiv>
                         <Unicode>Kind.</Unicode>
                     </TextEquiv>
                 </Word>
                 <TextEquiv>
-                    <Unicode>wohl wohl befinden befinden Der Der Letztere Letztere iſt iſt ein ſehr ſehr kräftiges kräftiges Kind.</Unicode>
+                    <Unicode>wohl befinden Der Letztere iſt ein ſehr kräftiges Kind.</Unicode>
                 </TextEquiv>
             </TextLine>
             <TextEquiv>
-                <Unicode>— Aus Aus Kiel wird hierher berichtet, berichtet, daß daß ſich ſich die die Prin⸗ Prin⸗
+                <Unicode>— Aus Kiel wird hierher berichtet, daß ſich die Prin⸗
 zeſſin Heinrich und der neugeborene Prinz durchaus
-wohl wohl befinden befinden Der Der Letztere Letztere iſt iſt ein ſehr ſehr kräftiges kräftiges Kind.</Unicode>
+wohl befinden Der Letztere iſt ein ſehr kräftiges Kind.</Unicode>
             </TextEquiv>
         </TextRegion>
         <TextRegion id="TextRegion_1652776976346_1125" custom="readingOrder {index:7;}">

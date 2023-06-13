@@ -655,7 +655,7 @@ class _PiecePageUtil:
         if _txt_eqs:
             _first_unicode = _txt_eqs[0].getElementsByTagName(ns + 'Unicode')[0]
             if _first_unicode.firstChild:
-                _content = _first_unicode.firstChild.nodeValue
+                _content = _first_unicode.firstChild.nodeValue.replace('\n', ' ')
                 if _content:
                     _piece.transcription = _content
         return _piece

@@ -45,7 +45,9 @@ def test_to_pieces_page_odem_transkribus_gt():
     assert len(line1_text) == 39
     # first region textual content ...
     region_text = page_piece.pieces[0].transcription
-    assert len(region_text) == 829
+    # changed from 829 to 851 since child texts
+    # win over parent's existing text
+    assert len(region_text) == 851
     # ... which, in this case (only one single region),
     # is equals the complete top_piece textual content
     assert page_piece.transcription == region_text

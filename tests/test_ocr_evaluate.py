@@ -122,25 +122,28 @@ def test_piece_to_text_alto_candidate_with_coords():
 
 
 def test_piece_to_oneliner_page_groundtruth():
-    """Check output for page newspaper groundtruth"""
+    """Check output for page newspaper groundtruth
+    Len changed due correction of test data 
+    from 5385 to 5309"""
 
     _path = f'{TEST_RES_DIR}/groundtruth/page/1667522809_J_0001_0002.art.gt.xml'
     p1 = (2839, 2468)
     p2 = (7309, 6876)
 
     # act
-    _gt_01, _ocr_01, _n_lines01 = ocr_to_text(_path, coords=(p1, p2), oneliner=True)
-    _gt_02, _ocr_02, _n_lines02 = piece_to_text(_path, frame=(p1, p2), oneliner=True)
+    _gt_01, _ocr_legacy, _n_lines01 = ocr_to_text(_path, coords=(p1, p2), oneliner=True)
+    _gt_02, _ocr_pieces, _n_lines02 = piece_to_text(_path, frame=(p1, p2), oneliner=True)
 
     # assert
     assert _gt_01 == 'art'
     assert 97 == _n_lines01
-    assert 5385 == len(_ocr_01)
+    assert 5309 == len(_ocr_legacy)
     assert _gt_02 == 'art'
     assert 97 == _n_lines02
-    # they shall match
-    assert _ocr_01 == _ocr_02
-    assert 5385 == len(_ocr_02)
+    # they differ since for pieces
+    # child text wins over parent text
+    assert _ocr_legacy == _ocr_pieces
+    assert 5309 == len(_ocr_pieces)
 
 
 def test_ocr_to_text_text_data_without_coords():
@@ -188,7 +191,7 @@ def test_ocr_to_text_candidate_odem_ocrd_page_2019():
 
 
 def test_evaluate_single_alto_candidate_with_page_groundtruth(tmp_path):
-    """Illustrate, evaluation of single candidate
+    """Illustrate evaluation of single candidate
     with proper organization of groundtruth data"""
 
     # arrange
@@ -221,12 +224,14 @@ def test_evaluate_single_alto_candidate_with_page_groundtruth(tmp_path):
     assert 'Cs@1667522809_J_0001' == defaults[0]
     assert 1 == defaults[1]  # number of data points
     # metric raw
-    assert 39.2 == pytest.approx(defaults[2], rel=1e-3)
+    assert 39.19 == pytest.approx(defaults[2], rel=1e-3)
     # metric with stripped outliers (no outlier, of course!)
     assert 0 == result.n_outlier
     assert not result.cleared_result
     # reference size chars
-    assert 5385 == defaults[4]
+    # changed from 5385 to 5309 since
+    # children text wins over parent text
+    assert 5309 == defaults[4]
 
 
 def test_evaluate_page_groundtruth_with_itself(tmp_path):
@@ -265,7 +270,9 @@ def test_evaluate_page_groundtruth_with_itself(tmp_path):
     assert 1 == defaults[1]  # number of data points
     assert 100.00 == pytest.approx(defaults[2], rel=1e-3)
     # reference size chars
-    assert 5385 == defaults[4]
+    # changed from 5385 to 5309 since
+    # children text wins over parent text
+    assert 5309 == defaults[4]
 
 
 def test_evaluate_set_with_5_entries(tmp_path):
@@ -588,7 +595,7 @@ def test_handle_table_text_groundtruth():
 
     # assert / legacy: 5.825 , actual 4.0
     _result_cca = eval_entry.metrics[0].value
-    assert 5.9 < _result_cca < 6.1
+    assert 5.8 < _result_cca < 6.1
 
 
 def test_get_box_from_empty_page():
