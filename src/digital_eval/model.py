@@ -442,8 +442,6 @@ class _PieceAltoV3Util:
                 raise RuntimeError(f"Empty ALTO {doc_root} - no blocks!")
             _block_pieces = _PieceAltoV3Util.__read_blocks(text_blocks, top_piece)
         top_piece.pieces = _block_pieces
-        # _all_points = [point for _block in _block_pieces for point in _block.dimensions]
-        # top_piece.dimensions = _all_points
         return top_piece
 
     @staticmethod
@@ -598,7 +596,7 @@ class _PiecePageUtil:
                     if not word_pieces:
                         raise RuntimeError(f"No words in line {line_piece.id}!")
                     # remove line content in favour of words content
-                    line_piece.transcription = None
+                    line_piece._transcriptions = []
                     line_piece.pieces = word_pieces
                 except PieceException as _pex:
                     raise RuntimeError(_pex.args) from _pex
@@ -655,9 +653,13 @@ class _PiecePageUtil:
         if _txt_eqs:
             _first_unicode = _txt_eqs[0].getElementsByTagName(ns + 'Unicode')[0]
             if _first_unicode.firstChild:
+                # replace linebreak if text only at region level
                 _content = _first_unicode.firstChild.nodeValue.replace('\n', ' ')
                 if _content:
                     _piece.transcription = _content
+                    # overthrow existing parent transcription
+                    if _piece.parent._transcriptions:
+                        _piece.parent._transcriptions = []
         return _piece
 
     @staticmethod

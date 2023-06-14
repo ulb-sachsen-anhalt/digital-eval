@@ -47,7 +47,7 @@ def test_to_pieces_page_odem_transkribus_gt():
     region_text = page_piece.pieces[0].transcription
     # changed from 829 to 851 since child texts
     # win over parent's existing text
-    assert len(region_text) == 851
+    assert len(region_text) == 829
     # ... which, in this case (only one single region),
     # is equals the complete top_piece textual content
     assert page_piece.transcription == region_text
@@ -241,7 +241,7 @@ def test_piece_hierarchy_bottom_up():
 
 
 def test_piece_hierarchy_top_down():
-    """The are all considere equal"""
+    """Fix behaviour of Piece Hierarchy"""
 
     assert PieceLevel.REGION > PieceLevel.LINE
     assert PieceLevel.LINE > PieceLevel.WORD
@@ -250,35 +250,45 @@ def test_piece_hierarchy_top_down():
 
 
 def test_piece_file_path():
+    """Ensure type of piece property"""
+
     ocr_path: str = f'{TEST_RES_DIR}/groundtruth/alto/1667522809_J_0073_0001_375x2050_2325x9550.xml'
     page_piece: Piece = to_pieces(ocr_path)
     assert isinstance(page_piece.file_path, PurePath)
 
 
-@pytest.mark.skip("need to clear order")
 def test_pieces_transcription_from_rahbar_1771946695():
-    """Check behavior with problematic punctuation
-    which is considered to be straight left-hand
+    """Check behavior with persian text punctuation.
+    From line transcription (see below) the point
+    is considered to be straight left-hand as final char.
 
     But, instead of ending with '.گفت'
-    it actually *starts* from left with 'گفت'
+    it *actually* ends just with 'گفت'
+    but *accessing* the splitted tokens
+    we find the point '.' has moved to
+    to the right-most token, resulting
+    into '.آن' and leave 'گفت' for left end!
     """
 
     # arrange
     ocr_path = f'{TEST_RES_DIR}/groundtruth/page/rahbar-1771946695-00000040.xml'
 
     # act
-    _pieces: Piece = to_pieces(ocr_path)
+    page_piece: Piece = to_pieces(ocr_path)
 
     # assert
-    assert len(_pieces.pieces) == 2
-    _token = 'گفت'
-    _first_row = _pieces.transcription.split('\r')[0]
-    assert _first_row.startswith(_token)
+    assert len(page_piece.pieces) == 2
+    expected_first_row_transcription = '.آن نعت بگردان که مرا خواهی گفت'
+    final_token = 'گفت'
+    # get down to first line
+    first_row_transcription = page_piece.pieces[0].pieces[0].transcription
+    assert first_row_transcription == expected_first_row_transcription
+    last_token = first_row_transcription.split()[-1]
+    assert last_token == final_token
 
 
 def test_pieces_geometry_from_rahbar_1185565752():
-    """Test problematic data"""
+    """Test problematic data behavior"""
 
     # arrange
     ocr_path = f'{TEST_RES_DIR}/groundtruth/page/rahbar-1185565752-00000086.xml'
