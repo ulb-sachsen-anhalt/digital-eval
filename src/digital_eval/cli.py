@@ -167,11 +167,11 @@ def start():
         """)
     PARSER.add_argument(
         "candidates",
-        help="Root Directory to inspect"
+        help="Root Directory for evaluation candidates"
     )
     PARSER.add_argument("-ref", "--reference",
                         required=False,
-                        help="Root Reference directory for Groundtruth or alike (optional)"
+                        help="Root directory for Reference/Groundtruth data (optional, but necessary for most metrics)"
                         )
     PARSER.add_argument("-v", "--VERBOSITY",
                         action='count',
