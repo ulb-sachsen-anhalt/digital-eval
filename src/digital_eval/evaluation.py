@@ -5,10 +5,14 @@ import concurrent.futures
 import copy
 import os
 import re
+import sys
 import xml.dom.minidom
 import xml.etree.ElementTree as ET
 from datetime import (
     date
+)
+from math import (
+    floor
 )
 from multiprocessing import (
     cpu_count
@@ -22,7 +26,6 @@ from typing import (
 )
 
 import numpy as np
-import sys
 
 from digital_eval.model import (
     Piece,
@@ -217,7 +220,7 @@ def get_bbox_data(file_path):
         y0 = int(groups[1])
         return ((x0, y0), (x1, y1))
 
-    with open(file_path) as _handle:
+    with open(file_path, encoding='utf-8') as _handle:
         # rather brute force approach
         # to recognize OCR formats inside
         start_token = _handle.read(128)
@@ -477,7 +480,12 @@ class EvalEntry:
         _pre_v = None
         for i, m in enumerate(self.metrics):
             _val = m.value
-            _raw = f'{m.label}:{_val:>5.2f}({m.n_ref:>4})'
+            _ref = m.n_ref
+            if _ref > 10000:
+                _ref_fmt = f'{(floor(float(m.n_ref) / 1000)):>2}K+'
+            else:
+                _ref_fmt = f'{m.n_ref:>4}'
+            _raw = f'{m.label}:{_val:>5.2f}({_ref_fmt})'
             if i in _pres:
                 _pre_v = _val
             if i in _accs and _pre_v is not None:
