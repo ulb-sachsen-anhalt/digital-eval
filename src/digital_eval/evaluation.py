@@ -284,6 +284,17 @@ def _map_page2013(elem: ET.Element) -> Tuple[str, int, int, int, int]:
     return (NOT_SET, min(_xs), min(_ys), max(_xs), max(_ys))
 
 
+def _get_line_pieces_from_piece(piece: Piece, lines: List[Piece] = None) -> List[Piece]:
+    if lines is None:
+        lines = []
+    if piece.level == PieceLevel.LINE and piece.transcription:
+        lines.append(piece)
+        return lines
+    for child in piece.pieces:
+        _get_line_pieces_from_piece(child, lines)
+    return lines
+
+
 def calculate_bounding_box(elements: List[ET.Element], map_func) -> Tuple[int, int, int, int]:
     """Review element's points to get points for
     minimum (top-left) and maximum (bottom-right)"""
@@ -359,10 +370,7 @@ def piece_to_text(file_path, frame=None, oneliner=True) -> Tuple:
         frame_piece = Piece()
         frame_piece.dimensions = frame
         filter_word_pieces(frame_piece, top_piece)
-        the_lines = [l
-                     for r in top_piece.pieces
-                     for l in r.pieces
-                     if l.transcription and l.level == PieceLevel.LINE]
+        the_lines = _get_line_pieces_from_piece(top_piece)
         if oneliner:
             return (_gt_type, top_piece.transcription, len(the_lines))
         else:
