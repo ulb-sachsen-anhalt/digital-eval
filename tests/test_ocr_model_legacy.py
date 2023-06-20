@@ -1,23 +1,17 @@
 # -*- coding: utf-8 -*-
 """OCR Model Test Module"""
 
+import shutil
 from os.path import (
     join,
 )
 
-import shutil
-
 import pytest
-
-from shapely.geometry import (
-    Polygon
-)
 
 from digital_eval.evaluation import (
     OCRData,
     get_bbox_data,
 )
-
 from .conftest import (
     TEST_RES_DIR,
 )

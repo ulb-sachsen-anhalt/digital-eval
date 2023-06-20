@@ -2,11 +2,9 @@
 """OCR QA Evaluation CLI"""
 
 import argparse
+import datetime as dt
 import os
 import sys
-
-import datetime as dt
-
 from typing import (
     List, Type
 )
@@ -16,7 +14,6 @@ from digital_eval import (
     gather_candidates,
     Evaluator,
     report_stdout,
-    ocr_to_text,
     UC_NORMALIZATION_DEFAULT,
     accuracy_for,
     error_for,
@@ -28,7 +25,14 @@ from digital_eval import (
     MetricIRRec,
     MetricIRFM
 )
-from digital_eval.metrics import OCRDifferenceMetric, accuracy_for_bow, error_for_bow
+from digital_eval.dictionary_metrics.common import LANGUAGE_KEY_DEFAULT, LANGUAGE_KEYS
+from digital_eval.dictionary_metrics.language_tool.LanguageTool import LanguageTool
+from digital_eval.metrics import (
+    OCRDifferenceMetric,
+    accuracy_for_bow,
+    error_for_bow,
+    MetricDictionaryLangTool, MetricDictionary, UC_NORMALIZATION_NFKD,
+)
 
 # script constants
 DEFAULT_VERBOSITY = 0
@@ -73,6 +77,8 @@ METRIC_DICT = {
     'Rec': MetricIRRec,
     'IRFMeasure': MetricIRFM,
     'FM': MetricIRFM,
+    'DictLT': MetricDictionaryLangTool,
+    'DictionaryLangTool': MetricDictionaryLangTool,
 }
 
 
@@ -87,7 +93,11 @@ def _get_info():
     return f'v{_v}/{_t}'
 
 
-def _initialize_metrics(the_metrics, norm, calc) -> List[OCRDifferenceMetric]:
+def _initialize_metrics(
+        the_metrics,
+        norm,
+        calc,
+) -> List[OCRDifferenceMetric]:
     _tokens = the_metrics.split(',')
     try:
         metric_objects: List[OCRDifferenceMetric] = []
@@ -96,6 +106,8 @@ def _initialize_metrics(the_metrics, norm, calc) -> List[OCRDifferenceMetric]:
             calc_func = CALC_DICT[calc]
             if m == 'BoWs' or m == 'BagOfWords':
                 calc_func = CALC_DICT_BOW[calc]
+            if 'Dict' in m:
+                norm = UC_NORMALIZATION_NFKD
             metric_inst: OCRDifferenceMetric = clazz(normalization=norm, calc_func=calc_func)
             metric_objects.append(metric_inst)
         return metric_objects
@@ -109,17 +121,28 @@ def _initialize_metrics(the_metrics, norm, calc) -> List[OCRDifferenceMetric]:
 ########
 # MAIN #
 ########
-def _main(path_candidates, path_reference, metrics, utf8norm, calc, xtra, is_legacy=False, is_sequential=False):
-
+def _main(
+        path_candidates,
+        path_reference,
+        metrics,
+        utf8norm,
+        calc,
+        xtra,
+        is_legacy=False,
+        is_sequential=False,
+):
     # create basic evaluator instance
-    evaluator = Evaluator(path_candidates, VERBOSITY, xtra)
+    evaluator = Evaluator(
+        path_candidates,
+        verbosity=VERBOSITY,
+        extras=xtra,
+        is_legacy=is_legacy,
+    )
     evaluator.metrics = _initialize_metrics(metrics, norm=utf8norm, calc=calc)
     evaluator.calc = calc
     if VERBOSITY >= 1:
         print(f"[DEBUG] text normalized using '{utf8norm}' calculate '{calc}' metric values for '{metrics}'")
 
-    if is_legacy:
-        evaluator.to_text_func = ocr_to_text
     evaluator.is_sequential = is_sequential
     evaluator.domain_reference = path_reference
 
@@ -200,7 +223,7 @@ def start():
                         required=False,
                         help=f"UTF-8 Unicode Python Normalization (optional; default: '{DEFAULT_UTF8_NORM}'; available: 'NFC','NFKC','NFD','NFKD')",
                         )
-    PARSER.add_argument("--sequential",
+    PARSER.add_argument("-s", "--sequential",
                         action='store_true',
                         required=False,
                         help="Execute calculations sequentially (optional; default: 'False')",
@@ -208,6 +231,17 @@ def start():
     PARSER.add_argument("-x", "--extra",
                         required=False,
                         help="pass additional information to evaluation, like 'ignore_geometry' (compare only text, ignore coords)"
+                        )
+    PARSER.add_argument('-l', "--language",
+                        default=LANGUAGE_KEY_DEFAULT,
+                        choices=LANGUAGE_KEYS,
+                        required=False,
+                        help=f"Language code for LanguagTool according to ISO 639-2 (optional; default: '{LANGUAGE_KEY_DEFAULT}')",
+                        )
+    PARSER.add_argument('-u', "--lt-api-url",
+                        default=LanguageTool.DEFAULT_URL,
+                        required=False,
+                        help=f"Language Tool Api URL (optional; default: '{LanguageTool.DEFAULT_URL}')",
                         )
     PARSER.set_defaults(legacy=False)
     PARSER.set_defaults(sequential=False)
@@ -220,10 +254,17 @@ def start():
     IS_LEGACY = ARGS["legacy"]
     IS_SEQUENTIAL = ARGS["sequential"]
     xtra = ARGS["extra"]
-    metrics = ARGS["metrics"]
+    metrics: str = ARGS["metrics"]
     calc = ARGS["calc"]
     utf8norm = ARGS["utf8"]
+    MetricDictionary.LANGUAGE = ARGS["language"]
+    lt_api_url = ARGS["lt_api_url"]
 
+    uses_lang_tool: bool = 'DictLT' in metrics or "DictionaryLangTool" in metrics
+
+    if uses_lang_tool:
+        lt_url: str = lt_api_url if LanguageTool.DEFAULT_URL != lt_api_url else LanguageTool.DEFAULT_URL
+        LanguageTool.initialize(lt_url)
     # go on
     # basic validation
     if not os.path.isdir(path_candidates):
@@ -252,6 +293,9 @@ def start():
     # here we go
     _main(path_candidates, path_reference, metrics, utf8norm, calc, xtra, is_legacy=IS_LEGACY,
           is_sequential=IS_SEQUENTIAL)
+
+    if uses_lang_tool:
+        LanguageTool.deinitialize()
 
 
 if __name__ == "__main__":

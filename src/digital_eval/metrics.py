@@ -3,19 +3,20 @@
 
 from __future__ import annotations
 
+import multiprocessing
+import string
+import unicodedata
 from collections import (
     Counter
 )
 from functools import partial
-
-import string
-
 from typing import (
     List,
-    Set, Callable,
+    Set,
+    Callable,
+    Optional,
+    Dict,
 )
-
-import unicodedata
 
 from nltk import (
     download,
@@ -23,6 +24,7 @@ from nltk import (
 from nltk.corpus import (
     stopwords
 )
+from nltk.metrics import precision as nltk_precision
 from nltk.metrics import (
     recall,
     f_measure
@@ -32,6 +34,10 @@ from nltk.metrics import precision as nltk_precision
 from rapidfuzz.distance import (
     Levenshtein
 )
+
+from digital_eval.dictionary_metrics.common import LANGUAGE_KEY_DEFAULT
+from digital_eval.dictionary_metrics.language_tool.LanguageTool import LanguageTool
+from digital_eval.evaluation import piece_to_text, piece_to_dict_text
 
 # Python3 standard Unicode Normalization
 #
@@ -282,8 +288,10 @@ class OCRDifferenceMetric:
             normalization=UC_NORMALIZATION_DEFAULT,
             calc_func=accuracy_for,
             preprocessings=None,
-            postprocessings=None
+            postprocessings=None,
+            to_text_func=piece_to_text,
     ) -> None:
+        self.to_text_func: Optional[Callable] = to_text_func
         self.precision = precision
         self._value = None
         self.diff = None
@@ -310,8 +318,7 @@ class OCRDifferenceMetric:
     @reference.setter
     def reference(self, value):
         self.input_reference = value
-        self._data_reference = normalize_unicode(
-            value, self.unicode_normalization)
+        self._data_reference = normalize_unicode(value, self.unicode_normalization)
         self._value = None
 
     @property
@@ -322,7 +329,7 @@ class OCRDifferenceMetric:
     @candidate.setter
     def candidate(self, value):
         self.input_candidate = value
-        self._data_candidate = normalize_unicode(value)
+        self._data_candidate = normalize_unicode(value, self.unicode_normalization)
         self._value = None
 
     @property
@@ -348,7 +355,6 @@ class OCRDifferenceMetric:
     def value(self):
         """Evaluate each time and round
         with desired precision afterwards"""
-
         if self._value is None:
             if self.preprocessings:
                 for _pre in self.preprocessings:
@@ -368,6 +374,50 @@ class OCRDifferenceMetric:
         """Calculate metric's value
         remember this needs further refinement"""
         raise NotImplementedError
+
+
+class MetricDictionary(OCRDifferenceMetric):
+    """Calculate metric for a multiset of word tokens"""
+
+    LANGUAGE: str = LANGUAGE_KEY_DEFAULT
+
+    def __init__(self, precision=2, normalization=UC_NORMALIZATION_DEFAULT, calc_func=accuracy_for,
+                 preprocessings=None, postprocessings=None, to_text_func=piece_to_dict_text):
+        super().__init__(
+            precision=precision,
+            normalization=normalization,
+            calc_func=calc_func,
+            preprocessings=preprocessings,
+            postprocessings=postprocessings,
+            to_text_func=to_text_func,
+        )
+
+
+class MetricDictionaryLangTool(MetricDictionary):
+    """Calculate metric for a multiset of word tokens"""
+
+    def __init__(self, precision=2, normalization=UC_NORMALIZATION_NFKD, calc_func=accuracy_for,
+                 preprocessings=None, postprocessings=None):
+        if not isinstance(preprocessings, list):
+            preprocessings = [normalize_vocal_ligatures]
+        super().__init__(
+            precision=precision,
+            normalization=normalization,
+            calc_func=calc_func,
+            preprocessings=preprocessings,
+            postprocessings=postprocessings,
+        )
+        self._label = 'DictLT'
+
+    def _forward(self):
+        text: str = self._data_candidate
+        text_list: List[str] = self._data_candidate.split()
+        self._data_reference = text_list
+        num_words: int = len(text_list)
+        lt_response_data: Dict = LanguageTool.check(text, MetricDictionary.LANGUAGE)
+        total_matches = lt_response_data['matches'] if 'matches' in lt_response_data else 0
+        typo_errors = len(total_matches)
+        self.diff = typo_errors if typo_errors <= num_words else num_words
 
 
 class MetricChars(OCRDifferenceMetric):
@@ -550,6 +600,40 @@ def bag_of_tokens(reference_tokens: List[str],
     false_negatives: List[str] = _diff(reference_tokens, candidate_tokens)
     false_positives: List[str] = _diff(candidate_tokens, reference_tokens)
     return len(false_negatives) + len(false_positives)
+
+
+# diacritica to take care of
+_COMBINING_SMALL_E = u'\u0364'
+
+
+def normalize_vocal_ligatures(a_string) -> str:
+    """Replace vocal ligatures, which otherwise
+    may confuse the index component workflow,
+    especially COMBINING SMALL LETTER E : \u0364
+
+    a^e, o^e, u^e => (u0364) => ä, ö, ü
+    """
+
+    _out = []
+    for i, _c in enumerate(a_string):
+        if _c == _COMBINING_SMALL_E:
+            _preceeding_vocal = _out[i - 1]
+            _vocal_name = unicodedata.name(_preceeding_vocal)
+            _replacement = ''
+            if 'LETTER A' in _vocal_name:
+                _replacement = 'ä'
+            elif 'LETTER O' in _vocal_name:
+                _replacement = 'ö'
+            elif 'LETTER U' in _vocal_name:
+                _replacement = 'ü'
+            else:
+                _msg = f"No conversion for {_preceeding_vocal} ('{a_string}')!"
+                raise DigitalEvalMetricException(f"normalize vocal ligatures: {_msg}")
+            _out[i - 1] = _replacement
+        _out.append(_c)
+
+    # strip all combining e's anyway
+    return ''.join(_out).replace(_COMBINING_SMALL_E, '')
 
 
 def _diff(gt_tokens, cd_tokens) -> List[str]:

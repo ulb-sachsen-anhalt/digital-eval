@@ -23,12 +23,12 @@ from digital_eval.evaluation import (
     Evaluator,
     OCRData,
     match_candidates,
-    ocr_to_text,
+    ocr_to_text_legacy,
     piece_to_text,
-    filter_word_pieces,
     get_bbox_data,
+    _get_groundtruth_from_filename,
 )
-from digital_eval.metrics import MetricIRFM, MetricIRPre, MetricIRRec, MetricChars
+from digital_eval.metrics import MetricIRFM, MetricIRPre, MetricIRRec, MetricChars, OCRDifferenceMetric
 
 from digital_eval.model import (
     PieceLevel,
@@ -93,15 +93,14 @@ def test_ocr_to_text_alto_candidate_with_coords():
     p2 = (6200, 3425)
 
     # act
-    result = ocr_to_text(alto_path, coords=(p1, p2))
+    result = ocr_to_text_legacy(alto_path, coords=(p1, p2))
+    gt_type = _get_groundtruth_from_filename(alto_path)
 
     # assert
     assert result is not None
-    assert 'n.a.' == result[0]
-    lines = result[1]
-    # subject to switch dependend on
-    # handling of rather empty lines
-    assert 166 == len(lines) or 169 == len(lines)
+    assert 'n.a.' == gt_type
+    lines = result[0]
+    assert 169 == len(lines)
 
 
 def test_piece_to_text_alto_candidate_with_coords():
@@ -112,13 +111,12 @@ def test_piece_to_text_alto_candidate_with_coords():
     p2 = (6200, 3425)
 
     # act
-    _gt_type, _as_lines, _ = piece_to_text(alto_path, frame=(p1, p2), oneliner=False)
+    _as_lines, _ = piece_to_text(alto_path, frame=(p1, p2), oneliner=False)
+    _gt_type = _get_groundtruth_from_filename(alto_path)
 
     # assert
     assert _gt_type == 'n.a.'
-    # subject to switch dependend on
-    # handling of rather empty lines
-    assert 166 == len(_as_lines) or 169 == len(_as_lines)
+    assert 166 == len(_as_lines)
 
 
 def test_piece_to_oneliner_page_groundtruth():
@@ -131,19 +129,22 @@ def test_piece_to_oneliner_page_groundtruth():
     p2 = (7309, 6876)
 
     # act
-    _gt_01, _ocr_legacy, _n_lines01 = ocr_to_text(_path, coords=(p1, p2), oneliner=True)
-    _gt_02, _ocr_pieces, _n_lines02 = piece_to_text(_path, frame=(p1, p2), oneliner=True)
+    _ocr_01, _n_lines01 = ocr_to_text_legacy(_path, coords=(p1, p2), oneliner=True)
+    _gt_01 = _get_groundtruth_from_filename(_path)
+
+    _ocr_02, _n_lines02 = piece_to_text(_path, frame=(p1, p2), oneliner=True)
+    _gt_02 = _get_groundtruth_from_filename(_path)
 
     # assert
     assert _gt_01 == 'art'
     assert 97 == _n_lines01
-    assert 5309 == len(_ocr_legacy)
+    assert 5309 == len(_ocr_01)
     assert _gt_02 == 'art'
     assert 97 == _n_lines02
     # they differ since for pieces
     # child text wins over parent text
-    assert _ocr_legacy == _ocr_pieces
-    assert 5309 == len(_ocr_pieces)
+    assert _ocr_01 == _ocr_02
+    assert 5309 == len(_ocr_02)
 
 
 def test_ocr_to_text_text_data_without_coords():
@@ -153,12 +154,13 @@ def test_ocr_to_text_text_data_without_coords():
     text_path = f'{TEST_RES_DIR}/groundtruth/txt/1246734.gt.txt'
 
     # act
-    result = ocr_to_text(text_path, coords=None, oneliner=True)
+    result = ocr_to_text_legacy(text_path, coords=None, oneliner=True)
+    gt_type = _get_groundtruth_from_filename(text_path)
 
     # assert
     assert result is not None
-    assert 'n.a.' == result[0]
-    one_liner = result[1]
+    assert 'n.a.' == gt_type
+    one_liner = result[0]
     assert 650 == len(one_liner)
 
 
@@ -166,12 +168,13 @@ def test_ocr_to_text_groundtruth_odem_ocrd_page_2019():
     text_path = f'{TEST_RES_DIR}/groundtruth/page/urn+nbn+de+gbv+3+1-115907-p0042-0_ger.gt.xml'
 
     # act
-    result = ocr_to_text(text_path, oneliner=True)
+    result = ocr_to_text_legacy(text_path, oneliner=True)
+    gt_type = _get_groundtruth_from_filename(text_path)
 
     # assert
     assert result is not None
-    assert 'n.a.' == result[0]
-    text_as_one_liner = result[1]
+    assert 'n.a.' == gt_type
+    text_as_one_liner = result[0]
     # we have a groundtruth text spanning 458 chars in the rectangular area
     assert 829 == len(text_as_one_liner)
 
@@ -180,12 +183,13 @@ def test_ocr_to_text_candidate_odem_ocrd_page_2019():
     text_path = f'{TEST_RES_DIR}/candidate/frk_page/urn+nbn+de+gbv+3+1-115907-p0042-0_ger.xml'
 
     # act
-    result = ocr_to_text(text_path, coords=((216, 240), (1050, 1640)), oneliner=True)
+    result = ocr_to_text_legacy(text_path, coords=((216, 240), (1050, 1640)), oneliner=True)
+    gt_type = _get_groundtruth_from_filename(text_path)
 
     # assert
     assert result is not None
-    assert 'n.a.' == result[0]
-    text_as_one_liner = result[1]
+    assert 'n.a.' == gt_type
+    text_as_one_liner = result[0]
     # we have a candidate text spanning 824 chars in the rectangular area
     assert 824 == len(text_as_one_liner)
 
@@ -539,6 +543,7 @@ def test_handle_exception_invalid_literal_for_int():
 
     # act
     evaluator = Evaluator('dummy_path')
+    evaluator.metrics = [OCRDifferenceMetric()]
     with pytest.raises(RuntimeError) as err:
         evaluator.eval_entry(eval_entry)
 
@@ -642,6 +647,7 @@ def test_handle_exception_invalid_alto_xml():
 
     # act
     evaluator = Evaluator('dummy_path')
+    evaluator.metrics = [OCRDifferenceMetric()]
     with pytest.raises(ParseError) as err:
         evaluator.eval_entry(eval_entry)
 

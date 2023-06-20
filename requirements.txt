@@ -3,3 +3,5 @@ numpy
 nltk
 shapely
 lxml
+requests
+docker

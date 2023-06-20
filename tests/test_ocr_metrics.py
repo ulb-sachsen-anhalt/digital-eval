@@ -633,3 +633,73 @@ def test_metrics_token_based_no_test_candidate():
 
     # assert
     assert diff == len(gt1.split())
+
+########################################################### OCR-Pipeline-Tests
+
+# def test_step_estimateocr_textline_conversions():
+#     """Test functional behavior for valid ALTO-output"""
+#
+#     test_data = os.path.join('tests', 'resources', '500_gray00003.xml')
+#
+#     # act
+#     # pylint: disable=protected-access
+#     xml_data = ET.parse(test_data)
+#     lines = get_lines(xml_data)
+#     (_, n_lines, _, _, n_lines_out) = textlines2data(lines)
+#
+#     assert n_lines == 360
+#     assert n_lines_out == 346
+#
+# @mock.patch("requests.post")
+# def test_step_estimateocr_lines_and_tokens_err_ratio(mock_requests):
+#     """Test behavior of for valid ALTO-output"""
+#
+#     # arrange
+#     test_data = os.path.join(PROJECT_ROOT_DIR,
+#                              'tests', 'resources', '500_gray00003.xml')
+#     mock_requests.side_effect = _fixture_languagetool
+#     params = {'service_url': 'http://localhost:8010/v2/check',
+#               'language': 'de-DE',
+#               'enabled_rules': 'GERMAN_SPELLER_RULE'
+#               }
+#     step = StepEstimateOCR(params)
+#     step.path_in = test_data
+#
+#     # act
+#     step.execute()
+#
+#     assert step.statistics
+#     assert mock_requests.called == 1
+#     assert step.n_errs == 548
+#     assert step.n_words == 2636
+#     assert step.statistics[0] == pytest.approx(79.211, rel=1e-3)
+#
+# @mock.patch("requests.post")
+# def test_step_estimateocr_lines_and_tokens_hit_ratio(mock_requests):
+#     """Test behavior of for valid ALTO-output"""
+#
+#     # arrange
+#     test_data = os.path.join(PROJECT_ROOT_DIR,
+#                              'tests', 'resources', '500_gray00003.xml')
+#     mock_requests.side_effect = _fixture_languagetool
+#     params = {'service_url': 'http://localhost:8010/v2/check',
+#               'language': 'de-DE',
+#               'enabled_rules': 'GERMAN_SPELLER_RULE'
+#               }
+#     step = StepEstimateOCR(params)
+#     step.path_in = test_data
+#
+#     # act
+#     step.execute()
+#
+#     assert mock_requests.called == 1
+#     err_ratio = (step.n_errs / step.n_words) * 100
+#     assert err_ratio == pytest.approx(20.789, rel=1e-3)
+#
+#     # revert metric to represent hits
+#     # to hit into positive compliance
+#     hits = (step.n_words - step.n_errs) / step.n_words * 100
+#     assert hits == pytest.approx(79.21, rel=1e-3)
+#
+#     # holds this condition?
+#     assert hits == pytest.approx(100 - err_ratio, rel=1e-9)

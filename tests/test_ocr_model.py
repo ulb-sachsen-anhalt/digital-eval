@@ -15,7 +15,6 @@ from digital_eval.model import (
     PieceLevel,
     Piece, to_pieces,
 )
-
 from .conftest import (
     TEST_RES_DIR,
 )

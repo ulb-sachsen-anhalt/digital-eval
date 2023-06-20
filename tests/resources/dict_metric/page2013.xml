@@ -1,0 +1,91 @@
+﻿<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<PcGts xmlns="http://schema.primaresearch.org/PAGE/gts/pagecontent/2013-07-15"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://schema.primaresearch.org/PAGE/gts/pagecontent/2013-07-15 http://schema.primaresearch.org/PAGE/gts/pagecontent/2013-07-15/pagecontent.xsd">
+    <Page imageFilename="1667522809_J_0001_0768.tif" imageWidth="7395" imageHeight="10552">
+        <PrintSpace>
+            <Coords points="0,0 7395,0 7395,10552 0,10552"/>
+        </PrintSpace>
+        <TextRegion id="block_26" custom="readingOrder {index:0;}">
+            <Coords points="0,725 7396,725 7396,10306 0,10306"/>
+            <TextLine id="tl_1" custom="readingOrder {index:0;}">
+                <Coords points="1260,739 2045,744 2044,893 1259,888"/>
+                <TextEquiv>
+                    <Unicode>Dieſe uͤberfruͤhte An⸗</Unicode>
+                </TextEquiv>
+                <Word id="w_1" custom="readingOrder {index:0;}">
+                    <Coords points="1265,750 2028,750 2030,869 1265,874"/>
+                    <TextEquiv>
+                        <Unicode>Dieſe</Unicode>
+                    </TextEquiv>
+                </Word>
+                <Word id="w_1" custom="readingOrder {index:0;}">
+                    <Coords points="1265,750 2028,750 2030,869 1265,874"/>
+                    <TextEquiv>
+                        <Unicode>uͤberfruͤhte</Unicode>
+                    </TextEquiv>
+                </Word>
+                <Word id="w_1" custom="readingOrder {index:0;}">
+                    <Coords points="1265,750 2028,750 2030,869 1265,874"/>
+                    <TextEquiv>
+                        <Unicode>An⸗</Unicode>
+                    </TextEquiv>
+                </Word>
+            </TextLine>
+            <TextLine id="tl_1" custom="readingOrder {index:0;}">
+                <Coords points="1260,739 2045,744 2044,893 1259,888"/>
+                <TextEquiv>
+                    <Unicode>kunft des hailigen Raimarſ. ſachſen-</Unicode>
+                </TextEquiv>
+                <Word id="w_1" custom="readingOrder {index:0;}">
+                    <Coords points="1265,750 2028,750 2030,869 1265,874"/>
+                    <TextEquiv>
+                        <Unicode>kunft</Unicode>
+                    </TextEquiv>
+                </Word>
+                <Word id="w_1" custom="readingOrder {index:0;}">
+                    <Coords points="1265,750 2028,750 2030,869 1265,874"/>
+                    <TextEquiv>
+                        <Unicode>des</Unicode>
+                    </TextEquiv>
+                </Word>
+                <Word id="w_1" custom="readingOrder {index:0;}">
+                    <Coords points="1265,750 2028,750 2030,869 1265,874"/>
+                    <TextEquiv>
+                        <Unicode>hailigen</Unicode>
+                    </TextEquiv>
+                </Word>
+                <Word id="w_1" custom="readingOrder {index:0;}">
+                    <Coords points="1265,750 2028,750 2030,869 1265,874"/>
+                    <TextEquiv>
+                        <Unicode>Raimarſ.</Unicode>
+                    </TextEquiv>
+                </Word>
+                <Word id="w_1" custom="readingOrder {index:0;}">
+                    <Coords points="1265,750 2028,750 2030,869 1265,874"/>
+                    <TextEquiv>
+                        <Unicode>ſachſen-</Unicode>
+                    </TextEquiv>
+                </Word>
+            </TextLine>
+            <TextLine id="tl_1" custom="readingOrder {index:0;}">
+                <Coords points="1260,739 2045,744 2044,893 1259,888"/>
+                <TextEquiv>
+                    <Unicode>ſtolz, aͤhnlich</Unicode>
+                </TextEquiv>
+                <Word id="w_1" custom="readingOrder {index:0;}">
+                    <Coords points="1265,750 2028,750 2030,869 1265,874"/>
+                    <TextEquiv>
+                        <Unicode>ſtolz,</Unicode>
+                    </TextEquiv>
+                </Word>
+                <Word id="w_1" custom="readingOrder {index:0;}">
+                    <Coords points="1265,750 2028,750 2030,869 1265,874"/>
+                    <TextEquiv>
+                        <Unicode>aͤhnlich</Unicode>
+                    </TextEquiv>
+                </Word>
+            </TextLine>
+        </TextRegion>
+    </Page>
+</PcGts>

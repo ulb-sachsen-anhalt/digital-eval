@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<alto xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://www.loc.gov/standards/alto/ns-v4#"
+      xsi:schemaLocation="http://www.loc.gov/standards/alto/ns-v4# http://www.loc.gov/standards/alto/v4/alto-4-2.xsd"
+      SCHEMAVERSION="4.2">
+    <Description>
+        <MeasurementUnit>pixel</MeasurementUnit>
+        <sourceImageInformation>
+            <fileName>00000001.jpg</fileName>
+        </sourceImageInformation>
+    </Description>
+    <Styles/>
+    <Tags>
+        <LayoutTag ID="layouttag-caption" LABEL="caption"/>
+    </Tags>
+    <Layout>
+        <Page ID="p00000001" PHYSICAL_IMG_NR="0" PAGECLASS="content" WIDTH="2664" HEIGHT="4328">
+            <PrintSpace HEIGHT="4092" WIDTH="2460" HPOS="101" VPOS="93">
+                <TextBlock ID="region0000" HEIGHT="113" WIDTH="1297" HPOS="143" VPOS="590">
+                    <TextLine ID="region0000_line0001" HEIGHT="113" WIDTH="733" HPOS="707" VPOS="590">
+                        <SP/>
+                        <String ID="region0000_line0001_word0001" HEIGHT="69" WIDTH="224" HPOS="1213" VPOS="634"
+                                CONTENT="Dieſe"/>
+                        <String ID="region0000_line0001_word0001" HEIGHT="69" WIDTH="224" HPOS="1213" VPOS="634"
+                                CONTENT="uͤberfruͤhte"/>
+                        <String ID="region0000_line0001_word0001" HEIGHT="69" WIDTH="224" HPOS="1213" VPOS="634"
+                                CONTENT="An⸗"/>
+                    </TextLine>
+                    <TextLine ID="region0000_line0001" HEIGHT="113" WIDTH="733" HPOS="707" VPOS="590">
+                        <SP/>
+                        <String ID="region0000_line0001_word0001" HEIGHT="69" WIDTH="224" HPOS="1213" VPOS="634"
+                                CONTENT="kunft"/>
+                        <String ID="region0000_line0001_word0001" HEIGHT="69" WIDTH="224" HPOS="1213" VPOS="634"
+                                CONTENT="des"/>
+                        <String ID="region0000_line0001_word0001" HEIGHT="69" WIDTH="224" HPOS="1213" VPOS="634"
+                                CONTENT="hailigen"/>
+                        <String ID="region0000_line0001_word0001" HEIGHT="69" WIDTH="224" HPOS="1213" VPOS="634"
+                                CONTENT="Raimarſ."/>
+                        <String ID="region0000_line0001_word0001" HEIGHT="69" WIDTH="224" HPOS="1213" VPOS="634"
+                                CONTENT="ſachſen-"/>
+                    </TextLine>
+                    <TextLine ID="region0000_line0001" HEIGHT="113" WIDTH="733" HPOS="707" VPOS="590">
+                        <SP/>
+                        <String ID="region0000_line0001_word0001" HEIGHT="69" WIDTH="224" HPOS="1213" VPOS="634"
+                                CONTENT="ſtolz,"/>
+                        <String ID="region0000_line0001_word0001" HEIGHT="69" WIDTH="224" HPOS="1213" VPOS="634"
+                                CONTENT="aͤhnlich"/>
+                    </TextLine>
+                </TextBlock>
+            </PrintSpace>
+        </Page>
+    </Layout>
+</alto>

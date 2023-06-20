@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 """OCR Evaluation Module"""
+from __future__ import annotations
 
 import concurrent.futures
 import copy
@@ -307,7 +308,7 @@ def calculate_bounding_box(elements: List[ET.Element], map_func) -> Tuple[int, i
     return ((min(all_x1), min(all_y1)), (max(all_x2), max(all_y2)))
 
 
-def ocr_to_text(file_path, coords=None, oneliner=False) -> Tuple:
+def ocr_to_text_legacy(file_path, coords=None, oneliner=False) -> Tuple[str | List[str], int]:
     """Create representation which contains
     * groundtruth type (if annotated)
     * groundtruth text (as string or list of lines)
@@ -317,15 +318,8 @@ def ocr_to_text(file_path, coords=None, oneliner=False) -> Tuple:
 
     """
 
-    gt_type = NOT_SET
     try:
         ocr_data = OCRData(file_path)
-
-        # optional groundtruth type
-        _type = ocr_data.get_type_groundtruth()
-        if _type:
-            gt_type = _type
-
         # optional filter frame
         if coords:
             (coords_start, coords_end) = coords
@@ -334,31 +328,24 @@ def ocr_to_text(file_path, coords=None, oneliner=False) -> Tuple:
             lines = ocr_data.get_lines()
 
         if oneliner:
-            return (gt_type, ' '.join([c.get_text() for c in lines]), len(lines))
+            return (' '.join([c.get_text() for c in lines])), len(lines)
         else:
-            return (gt_type, lines, len(lines))
+            return lines, len(lines)
     except xml.parsers.expat.ExpatError as _:
         with open(file_path, mode='r', encoding='utf-8') as fhandle:
             text_lines = fhandle.readlines()
             if oneliner:
                 text_lines = ' '.join([l.strip() for l in text_lines])
-            return (gt_type, text_lines, len(text_lines))
+            return text_lines, len(text_lines)
     except RuntimeError as exc:
         raise RuntimeError(f"{file_path}: {exc}") from exc
 
 
-def piece_to_text(file_path, frame=None, oneliner=True) -> Tuple:
-    '''Wrap OCR-Data Comparison'''
+def piece_to_text(file_path, frame=None, oneliner=True) -> Tuple[str | List[str], int]:
+    """Wrap OCR-Data Comparison"""
 
-    _gt_type = NOT_SET
     try:
-        top_piece = to_pieces(file_path)
-        # optional groundtruth type
-        _gt_type = _get_groundtruth_from_filename(file_path)
-        if not _gt_type:
-            _level = top_piece.subject
-            if _level:
-                _gt_type = _level
+        top_piece: Piece = to_pieces(file_path)
         # explicit filter frame?
         if not frame:
             frame = top_piece.dimensions
@@ -372,20 +359,82 @@ def piece_to_text(file_path, frame=None, oneliner=True) -> Tuple:
         filter_word_pieces(frame_piece, top_piece)
         the_lines = _get_line_pieces_from_piece(top_piece)
         if oneliner:
-            return (_gt_type, top_piece.transcription, len(the_lines))
+            return top_piece.transcription, len(the_lines)
         else:
-            return (_gt_type, [l.transcription for l in the_lines], len(the_lines))
+            return [line.transcription for line in the_lines], len(the_lines)
     except xml.parsers.expat.ExpatError as _:
         with open(file_path, mode='r', encoding='utf-8') as fhandle:
             text_lines = fhandle.readlines()
             if oneliner:
                 text_lines = ' '.join([l.strip() for l in text_lines])
-            return (_gt_type, text_lines, len(text_lines))
+            return text_lines, len(text_lines)
     except RuntimeError as exc:
         raise RuntimeError(f"{file_path}: {exc}") from exc
 
 
-def _get_groundtruth_from_filename(file_path):
+def piece_to_dict_text(file_path: str, frame=None, oneliner=False) -> Tuple[str | List[str], int]:
+    line_texts: List[str]
+    len_lines: int
+    line_texts, len_lines = piece_to_text(file_path=file_path, frame=frame, oneliner=False)
+    non_empty_lines: List[str] = [line_text for line_text in line_texts if len(line_text) > 0]
+    lines_sanitized_wraps: List[str] = _sanitize_wraps(non_empty_lines)
+    lines_sanitized_chars: List[str] = _sanitize_chars(lines_sanitized_wraps)
+    text = ' '.join(lines_sanitized_chars) if oneliner else lines_sanitized_chars
+    return text, len_lines
+
+
+_HYPHENS: List[str] = [
+    "⸗",
+    "-",
+    "—",
+]
+
+
+def _sanitize_wraps(lines: List[str]) -> List[str]:
+    """Sanitize word wraps if
+    * last word token ends with '-', "⸗" or "—"
+    * another line following
+    * following line not empty
+    """
+
+    normalized_lines: List[str] = []
+    for i, line in enumerate(lines):
+        if i < len(lines) - 1:
+            for hyphen in _HYPHENS:
+                if line.endswith(hyphen):
+                    next_line = lines[i + 1]
+                    if len(next_line.strip()) == 0:
+                        # encountered empty next line, no merge possible
+                        continue
+                    next_line_tokens = next_line.split()
+                    nextline_first_token = next_line_tokens.pop(0)
+                    # join the rest of valid next line
+                    lines[i + 1] = ' '.join(next_line_tokens)
+                    line = line[:-1] + nextline_first_token
+                    break
+        normalized_lines.append(line)
+    return normalized_lines
+
+
+def _sanitize_chars(lines: List[str]) -> List[str]:
+    """Replace or remove nonrelevant chars for current german word error rate"""
+
+    sanitized: List[str] = []
+    for line in lines:
+        text = line.strip()
+        bad_chars = '0123456789“„"\'?!*.;:-=[]()|'
+        text = ''.join([c for c in text if c not in bad_chars])
+        if '..' in text:
+            text = text.replace('..', '')
+        if '  ' in text:
+            text = text.replace('  ', ' ')
+        text = ' '.join([t for t in text.split() if len(t) > 1])
+        sanitized.append(text)
+
+    return sanitized
+
+
+def _get_groundtruth_from_filename(file_path) -> str:
     _file_name = os.path.basename(file_path)
     result = re.match(r'.*gt.(\w{3,}).xml$', _file_name)
     if result:
@@ -394,6 +443,8 @@ def _get_groundtruth_from_filename(file_path):
         alternative = re.match(r'.*\.(\w{3,})\.gt\.xml$', _file_name)
         if alternative:
             return alternative[1]
+        else:
+            return NOT_SET
 
 
 def filter_word_pieces(frame, current) -> int:
@@ -419,9 +470,9 @@ def filter_word_pieces(frame, current) -> int:
     return _filtered
 
 
-def _uplete(curr):
-    if len(curr.pieces) == 0:
-        _pa = curr.parent
+def _uplete(curr: Piece):
+    if len(curr.pieces) == 0 and curr.level < PieceLevel.PAGE:
+        _pa: Piece = curr.parent
         _pa.remove_pieces(curr)
         _uplete(_pa)
 
@@ -514,7 +565,14 @@ class Evaluator:
         RuntimeError: if candidates or reference data missing
     """
 
-    def __init__(self, root_candidates, verbosity=0, extras=None, to_text_func=piece_to_text):
+    def __init__(
+            self,
+            root_candidates,
+            verbosity=0,
+            extras=None,
+            is_legacy: bool = False,
+
+    ):
         """initiate new Evaluator
 
         Args:
@@ -523,6 +581,7 @@ class Evaluator:
             extras (_type_, optional): Implementation dependend. Defaults to None.
         """
         self.domain_candidate = root_candidates
+        self.__is_legacy = is_legacy
         self.domain_reference = None
         self.evaluation_entries = []
         self.verbosity = verbosity
@@ -530,9 +589,8 @@ class Evaluator:
         self.evaluation_results = []
         self.evaluation_map = {}
         self.text_mode = extras == EVAL_EXTRA_IGNORE_GEOMETRY
-        self.to_text_func = to_text_func
         self.is_sequential = False
-        self.metrics = []
+        self.metrics: List = []
         self.evaluation_report = {}
 
     def eval_all(self, entries: List[EvalEntry], sequential=False) -> None:
@@ -546,10 +604,10 @@ class Evaluator:
             n_executors = cpus - 1 if cpus > 3 else 1
             if self.verbosity == 1:
                 print(f"[DEBUG] use {n_executors} executors ({cpus}) to create evaluation data")
-
             with concurrent.futures.ProcessPoolExecutor(max_workers=n_executors) as executor:
                 try:
-                    _entries = list(executor.map(self._wrap_eval_entry, entries, timeout=EVAL_TIMEOUT))
+                    _entries = list(
+                        executor.map(self._wrap_eval_entry, entries, timeout=EVAL_TIMEOUT))
                 except concurrent.futures.TimeoutError:
                     print(f"[ERROR] takes longer than {EVAL_TIMEOUT}s to evaluate {len(entries)} entries!")
                     sys.exit(1)
@@ -583,39 +641,48 @@ class Evaluator:
         """Create evaluation entry for matching pair of 
         groundtruth and candidate data"""
 
-        path_g = entry.path_g
-        path_c = entry.path_c
-
-        # read coordinate information (if any provided)
-        # to create frame for candidate data
-        coords = get_bbox_data(path_g)
-        if coords is not None and self.verbosity >= 2:
-            print(f"[TRACE] token coordinates {coords[0]}, {coords[1]}")
-
-        # load ground-thruth text
-        (gt_type, txt_gt, _) = self.to_text_func(path_g, oneliner=True)
-        if not txt_gt:
-            print(f"[WARN ] {path_g} contains no text")
-
-        # if text mode is enforced
-        # forget groundtruth coordinates
-        coords = None if self.text_mode else coords
-
-        # read candidate data as text
-        (_, txt_c, _) = self.to_text_func(path_c, coords, oneliner=True)
-        if self.verbosity >= 2:
-            _label_ref = os.path.basename(path_g)
-            _label_can = os.path.basename(path_c)
-            print(f'[TRACE][{_label_ref}] RAW GROUNDTRUTH :: "{txt_gt}"')
-            print(f'[TRACE][{_label_can}] RAW CANDIDATE   :: "{txt_c}"')
-
         # evaluate metric copies
         _current_metrics = []
+
         for _m in self.metrics:
+
+            path_g = entry.path_g
+            path_c = entry.path_c
+
+            # read coordinate information (if any provided)
+            # to create frame for candidate data
+            coords = get_bbox_data(path_g)
+            if coords is not None and self.verbosity >= 2:
+                print(f"[TRACE] token coordinates {coords[0]}, {coords[1]}")
+
+            to_text_func = _m.to_text_func if not self.__is_legacy else ocr_to_text_legacy
+
+            # load ground-thruth text
+            (txt_gt, _) = to_text_func(path_g, oneliner=True)
+
+            if not txt_gt:
+                print(f"[WARN ] groundtrooth '{path_g}' contains no text")
+
+            # if text mode is enforced
+            # forget groundtruth coordinates
+            coords = None if self.text_mode else coords
+
+            # read candidate data as text
+            (txt_c, _) = to_text_func(path_c, coords, oneliner=True)
+
+            if not txt_c:
+                print(f"[WARN ] candidate '{path_c}' contains no text")
+
+            if self.verbosity >= 2:
+                _label_ref = os.path.basename(path_g)
+                _label_can = os.path.basename(path_c)
+                print(f'[TRACE][{_label_ref}] RAW GROUNDTRUTH :: "{txt_gt}"')
+                print(f'[TRACE][{_label_can}] RAW CANDIDATE   :: "{txt_c}"')
+
             _curr = copy.copy(_m)
             _curr.reference = txt_gt
             _curr.candidate = txt_c
-            # ATTENZIONE! inital access to this attribute 
+            # ATTENZIONE! inital access to this attribute
             # triggers preprocessing and calculation!
             _curr.value
             _current_metrics.append(_curr)
@@ -627,7 +694,7 @@ class Evaluator:
 
         # enrich entry with metrics and
         # normalize data type (i.e., art or ann or ...)
-        _normed_gt_type = _normalize_gt_type(str(gt_type))
+        _normed_gt_type = _normalize_gt_type(_get_groundtruth_from_filename(entry.path_g))
         entry.gt_type = _normed_gt_type
         entry.metrics = _current_metrics
         return entry
@@ -662,7 +729,7 @@ class Evaluator:
 
             # if more than one single evaluation item
             # calculate additional statistics to reflect
-            # impact of outlying data sets 
+            # impact of outlying data sets
             # take CA and number of GT into account
             # also calculate statistics (mean, std)
             if len(data_points) > 1:
@@ -695,13 +762,13 @@ class Evaluator:
         # aggregate on each directory
         for _metrics_index in by_metrics:
             for ee in self.evaluation_entries:
-                # if we do not have all these different metrics set, 
+                # if we do not have all these different metrics set,
                 # do of course not aggregate by non-existing index!
                 if _metrics_index >= len(self.evaluation_entries[0].metrics):
                     continue
                 path_key = f"{ee.metrics[_metrics_index].label}@{root_base}"
                 # ATTENZIONE! works only when forehand
-                # the *real* attribute has been accessed 
+                # the *real* attribute has been accessed
                 # *at least one time*
                 # kept this way for testing reasons
                 metric_value = ee.metrics[_metrics_index].value
