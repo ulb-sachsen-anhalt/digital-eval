@@ -28,7 +28,6 @@ from typing import (
 
 import numpy as np
 from digital_object import DigitalObject, DigitalObjectLevel, to_digital_objects
-from digital_object.legacy import OCRData
 
 PAGE_2013 = 'http://schema.primaresearch.org/PAGE/gts/pagecontent/2013-07-15'
 XML_NS = {'alto': 'http://www.loc.gov/standards/alto/ns-v3#',
@@ -301,39 +300,6 @@ def calculate_bounding_box(elements: List[ET.Element], map_func) -> Tuple[int, i
     return ((min(all_x1), min(all_y1)), (max(all_x2), max(all_y2)))
 
 
-def ocr_to_text_legacy(file_path, coords=None, oneliner=False) -> Tuple[str | List[str], int]:
-    """Create representation which contains
-    * groundtruth type (if annotated)
-    * groundtruth text (as string or list of lines)
-    * number of text lines
-
-    DEPRECATED
-
-    """
-
-    try:
-        ocr_data = OCRData(file_path)
-        # optional filter frame
-        if coords:
-            (coords_start, coords_end) = coords
-            lines = ocr_data.filter_all(coords_start, coords_end)
-        else:
-            lines = ocr_data.get_lines()
-
-        if oneliner:
-            return (' '.join([c.get_text() for c in lines])), len(lines)
-        else:
-            return lines, len(lines)
-    except xml.parsers.expat.ExpatError as _:
-        with open(file_path, mode='r', encoding='utf-8') as fhandle:
-            text_lines = fhandle.readlines()
-            if oneliner:
-                text_lines = ' '.join([l.strip() for l in text_lines])
-            return text_lines, len(text_lines)
-    except RuntimeError as exc:
-        raise RuntimeError(f"{file_path}: {exc}") from exc
-
-
 def digital_object_to_text(file_path, frame=None, oneliner=True) -> Tuple[str | List[str], int]:
     """Wrap OCR-Data Comparison"""
 
@@ -448,7 +414,7 @@ def filter_word_pieces(frame, current) -> int:
     _total_stack.append(current)
     _tmp_stack.append(current)
     while _tmp_stack:
-        _current:DigitalObject = _tmp_stack.pop()
+        _current: DigitalObject = _tmp_stack.pop()
         if _current.children:
             _tmp_stack += _current.children
             _total_stack += _current.children
@@ -563,7 +529,6 @@ class Evaluator:
             root_candidates,
             verbosity=0,
             extras=None,
-            is_legacy: bool = False,
 
     ):
         """initiate new Evaluator
@@ -574,7 +539,6 @@ class Evaluator:
             extras (_type_, optional): Implementation dependend. Defaults to None.
         """
         self.domain_candidate = root_candidates
-        self.__is_legacy = is_legacy
         self.domain_reference = None
         self.evaluation_entries = []
         self.verbosity = verbosity
@@ -648,7 +612,7 @@ class Evaluator:
             if coords is not None and self.verbosity >= 2:
                 print(f"[TRACE] token coordinates {coords[0]}, {coords[1]}")
 
-            to_text_func = _m.to_text_func if not self.__is_legacy else ocr_to_text_legacy
+            to_text_func = _m.to_text_func
 
             # load ground-thruth text
             (txt_gt, _) = to_text_func(path_g, oneliner=True)

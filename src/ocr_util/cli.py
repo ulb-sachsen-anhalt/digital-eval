@@ -6,7 +6,8 @@ import re
 from pathlib import PurePath
 from typing import Final
 
-from digital_object import DigitalObject, from_digital_objects, PolygonFrameFilterUtil, PolygonFrameFilter
+from digital_object import DigitalObject, from_digital_objects
+from digital_object.filter import PolygonFrameFilterUtil, PolygonFrameFilter
 
 # script constants
 

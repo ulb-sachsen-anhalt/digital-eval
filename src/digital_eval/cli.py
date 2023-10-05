@@ -128,7 +128,6 @@ def _main(
         utf8norm,
         calc,
         xtra,
-        is_legacy=False,
         is_sequential=False,
 ):
     # create basic evaluator instance
@@ -136,7 +135,6 @@ def _main(
         path_candidates,
         verbosity=VERBOSITY,
         extras=xtra,
-        is_legacy=is_legacy,
     )
     evaluator.metrics = _initialize_metrics(metrics, norm=utf8norm, calc=calc)
     evaluator.calc = calc
@@ -213,11 +211,6 @@ def start():
                         required=False,
                         help=f"List of metrics to use (optional, default: '{DEFAULT_OCR_METRICS}'; available: '{','.join(METRIC_DICT.keys())}')"
                         )
-    PARSER.add_argument("--legacy",
-                        action='store_true',
-                        required=False,
-                        help="legacy evaluation with naive rectangular geometry (optional; default: 'False')",
-                        )
     PARSER.add_argument("--utf8",
                         default=DEFAULT_UTF8_NORM,
                         required=False,
@@ -243,7 +236,6 @@ def start():
                         required=False,
                         help=f"Language Tool Api URL (optional; default: '{LanguageTool.DEFAULT_URL}')",
                         )
-    PARSER.set_defaults(legacy=False)
     PARSER.set_defaults(sequential=False)
 
     ARGS = vars(PARSER.parse_args())
@@ -251,7 +243,6 @@ def start():
     path_reference = ARGS["reference"]
     global VERBOSITY
     VERBOSITY = ARGS["VERBOSITY"]
-    IS_LEGACY = ARGS["legacy"]
     IS_SEQUENTIAL = ARGS["sequential"]
     xtra = ARGS["extra"]
     metrics: str = ARGS["metrics"]
@@ -291,8 +282,7 @@ def start():
         print(f'[DEBUG] called with {args}')
 
     # here we go
-    _main(path_candidates, path_reference, metrics, utf8norm, calc, xtra, is_legacy=IS_LEGACY,
-          is_sequential=IS_SEQUENTIAL)
+    _main(path_candidates, path_reference, metrics, utf8norm, calc, xtra, is_sequential=IS_SEQUENTIAL)
 
     if uses_lang_tool:
         LanguageTool.deinitialize()
