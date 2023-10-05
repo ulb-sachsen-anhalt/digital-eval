@@ -1,7 +1,6 @@
 rapidfuzz
 numpy
 nltk
-shapely
-lxml
 requests
 docker
+digital-object
