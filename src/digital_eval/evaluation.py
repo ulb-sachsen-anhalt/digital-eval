@@ -27,15 +27,8 @@ from typing import (
 )
 
 import numpy as np
-
-from digital_eval.model import (
-    Piece,
-    PieceLevel,
-    to_pieces,
-)
-from digital_eval.model_legacy import (
-    OCRData,
-)
+from digital_object import DigitalObject, DigitalObjectLevel, to_digital_objects
+from digital_object.legacy import OCRData
 
 PAGE_2013 = 'http://schema.primaresearch.org/PAGE/gts/pagecontent/2013-07-15'
 XML_NS = {'alto': 'http://www.loc.gov/standards/alto/ns-v3#',
@@ -285,14 +278,14 @@ def _map_page2013(elem: ET.Element) -> Tuple[str, int, int, int, int]:
     return (NOT_SET, min(_xs), min(_ys), max(_xs), max(_ys))
 
 
-def _get_line_pieces_from_piece(piece: Piece, lines: List[Piece] = None) -> List[Piece]:
+def _get_line_digos_from_digo(digo: DigitalObject, lines: List[DigitalObject] = None) -> List[DigitalObject]:
     if lines is None:
         lines = []
-    if piece.level == PieceLevel.LINE and piece.transcription:
-        lines.append(piece)
+    if digo.level == DigitalObjectLevel.LINE and digo.transcription:
+        lines.append(digo)
         return lines
-    for child in piece.pieces:
-        _get_line_pieces_from_piece(child, lines)
+    for child in digo.children:
+        _get_line_digos_from_digo(child, lines)
     return lines
 
 
@@ -341,25 +334,25 @@ def ocr_to_text_legacy(file_path, coords=None, oneliner=False) -> Tuple[str | Li
         raise RuntimeError(f"{file_path}: {exc}") from exc
 
 
-def piece_to_text(file_path, frame=None, oneliner=True) -> Tuple[str | List[str], int]:
+def digital_object_to_text(file_path, frame=None, oneliner=True) -> Tuple[str | List[str], int]:
     """Wrap OCR-Data Comparison"""
 
     try:
-        top_piece: Piece = to_pieces(file_path)
+        top_digo: DigitalObject = to_digital_objects(file_path)
         # explicit filter frame?
         if not frame:
-            frame = top_piece.dimensions
+            frame = top_digo.dimensions
         elif len(frame) == 2:
             frame = [[frame[0][0], frame[0][1]],
                      [frame[1][0], frame[0][1]],
                      [frame[1][0], frame[1][1]],
                      [frame[0][0], frame[1][1]]]
-        frame_piece = Piece()
-        frame_piece.dimensions = frame
-        filter_word_pieces(frame_piece, top_piece)
-        the_lines = _get_line_pieces_from_piece(top_piece)
+        frame_digo = DigitalObject()
+        frame_digo.dimensions = frame
+        filter_word_pieces(frame_digo, top_digo)
+        the_lines = _get_line_digos_from_digo(top_digo)
         if oneliner:
-            return top_piece.transcription, len(the_lines)
+            return top_digo.transcription, len(the_lines)
         else:
             return [line.transcription for line in the_lines], len(the_lines)
     except xml.parsers.expat.ExpatError as _:
@@ -372,10 +365,10 @@ def piece_to_text(file_path, frame=None, oneliner=True) -> Tuple[str | List[str]
         raise RuntimeError(f"{file_path}: {exc}") from exc
 
 
-def piece_to_dict_text(file_path: str, frame=None, oneliner=False) -> Tuple[str | List[str], int]:
+def digital_object_to_dict_text(file_path: str, frame=None, oneliner=False) -> Tuple[str | List[str], int]:
     line_texts: List[str]
     len_lines: int
-    line_texts, len_lines = piece_to_text(file_path=file_path, frame=frame, oneliner=False)
+    line_texts, len_lines = digital_object_to_text(file_path=file_path, frame=frame, oneliner=False)
     non_empty_lines: List[str] = [line_text for line_text in line_texts if len(line_text) > 0]
     lines_sanitized_wraps: List[str] = _sanitize_wraps(non_empty_lines)
     lines_sanitized_chars: List[str] = _sanitize_chars(lines_sanitized_wraps)
@@ -455,12 +448,12 @@ def filter_word_pieces(frame, current) -> int:
     _total_stack.append(current)
     _tmp_stack.append(current)
     while _tmp_stack:
-        _current = _tmp_stack.pop()
-        if _current.pieces:
-            _tmp_stack += _current.pieces
-            _total_stack += _current.pieces
+        _current:DigitalObject = _tmp_stack.pop()
+        if _current.children:
+            _tmp_stack += _current.children
+            _total_stack += _current.children
     # now pick words
-    _words = [_p for _p in _total_stack if _p.level == PieceLevel.WORD]
+    _words = [_p for _p in _total_stack if _p.level == DigitalObjectLevel.WORD]
 
     # check for each word piece
     for _word in _words:
@@ -470,10 +463,10 @@ def filter_word_pieces(frame, current) -> int:
     return _filtered
 
 
-def _uplete(curr: Piece):
-    if len(curr.pieces) == 0 and curr.level < PieceLevel.PAGE:
-        _pa: Piece = curr.parent
-        _pa.remove_pieces(curr)
+def _uplete(curr: DigitalObject):
+    if len(curr.children) == 0 and curr.level < DigitalObjectLevel.PAGE:
+        _pa: DigitalObject = curr.parent
+        _pa.remove_children(curr)
         _uplete(_pa)
 
 

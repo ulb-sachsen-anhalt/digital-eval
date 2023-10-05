@@ -3,7 +3,6 @@
 
 from __future__ import annotations
 
-import multiprocessing
 import string
 import unicodedata
 from collections import (
@@ -29,15 +28,13 @@ from nltk.metrics import (
     recall,
     f_measure
 )
-from nltk.metrics import precision as nltk_precision
-
 from rapidfuzz.distance import (
     Levenshtein
 )
 
 from digital_eval.dictionary_metrics.common import LANGUAGE_KEY_DEFAULT
 from digital_eval.dictionary_metrics.language_tool.LanguageTool import LanguageTool
-from digital_eval.evaluation import piece_to_text, piece_to_dict_text
+from digital_eval.evaluation import digital_object_to_text, digital_object_to_dict_text
 
 # Python3 standard Unicode Normalization
 #
@@ -289,7 +286,7 @@ class OCRDifferenceMetric:
             calc_func=accuracy_for,
             preprocessings=None,
             postprocessings=None,
-            to_text_func=piece_to_text,
+            to_text_func=digital_object_to_text,
     ) -> None:
         self.to_text_func: Optional[Callable] = to_text_func
         self.precision = precision
@@ -382,7 +379,7 @@ class MetricDictionary(OCRDifferenceMetric):
     LANGUAGE: str = LANGUAGE_KEY_DEFAULT
 
     def __init__(self, precision=2, normalization=UC_NORMALIZATION_DEFAULT, calc_func=accuracy_for,
-                 preprocessings=None, postprocessings=None, to_text_func=piece_to_dict_text):
+                 preprocessings=None, postprocessings=None, to_text_func=digital_object_to_dict_text):
         super().__init__(
             precision=precision,
             normalization=normalization,

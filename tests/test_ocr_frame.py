@@ -6,11 +6,9 @@ from pathlib import Path, PurePath
 from typing import Dict, List
 
 import pytest
+from digital_object import DigitalObject, DigitalObjectUtil, from_digital_objects, PolygonFrameFilter, \
+    PolygonFrameFilterUtil
 from shapely import Polygon
-
-from digital_eval import Piece
-from digital_eval.model import from_pieces, PieceUtil
-from ocr_util import PolygonFrameFilterUtil, PolygonFrameFilter
 
 RES_ROOT = os.path.join('tests', 'resources', 'frames')
 RES_ALTO = os.path.join(RES_ROOT, 'alto')
@@ -45,17 +43,17 @@ def test_poly(xml_fixture):
     filter_ocr = PolygonFrameFilter(alto_in_path, points, 0)
 
     # act
-    piece_result: Piece = filter_ocr.process()
+    piece_result: DigitalObject = filter_ocr.process()
 
     # assert
     assert piece_result
-    assert isinstance(piece_result, Piece)
+    assert isinstance(piece_result, DigitalObject)
     assert isinstance(filter_ocr.polygon, Polygon)
     assert isinstance(filter_ocr.ocr_file_path, Path)
 
     # assert
     poly: Polygon = PolygonFrameFilterUtil.str_to_polygon(points)
-    pieces: List[Piece] = PieceUtil.flatten(piece_result)
+    pieces: List[DigitalObject] = DigitalObjectUtil.flatten(piece_result)
     pieces.remove(piece_result)
     for piece in pieces:
         assert piece.is_in_polygon(poly)
@@ -68,20 +66,21 @@ def test_poly_legacy(xml_fixture):
     filter_ocr = PolygonFrameFilter(alto_in_path, points, 0)
 
     # act
-    piece_result: Piece = filter_ocr.process()
+    piece_result: DigitalObject = filter_ocr.process()
 
     # assert
     assert piece_result
-    assert isinstance(piece_result, Piece)
+    assert isinstance(piece_result, DigitalObject)
     assert isinstance(filter_ocr.polygon, Polygon)
     assert isinstance(filter_ocr.ocr_file_path, Path)
 
     # assert
     poly: Polygon = PolygonFrameFilterUtil.str_to_polygon(points)
-    pieces: List[Piece] = PieceUtil.flatten(piece_result)
+    pieces: List[DigitalObject] = DigitalObjectUtil.flatten(piece_result)
     pieces.remove(piece_result)
     for piece in pieces:
         assert piece.is_in_polygon(poly)
+
 
 def test_filter_0001_0768_2020(xml_fixture):
     """Check result file exists and contains CONTENT"""
@@ -92,8 +91,8 @@ def test_filter_0001_0768_2020(xml_fixture):
     filter_ocr = PolygonFrameFilter(alto_in_path, points, 0)
 
     # act
-    piece_result: Piece = filter_ocr.process()
-    file_out_path: PurePath = from_pieces(piece_result)
+    piece_result: DigitalObject = filter_ocr.process()
+    file_out_path: PurePath = from_digital_objects(piece_result)
 
     # assert
     assert os.path.exists(file_out_path)
@@ -120,8 +119,8 @@ def test_filter_0001_0768_2022(xml_fixture):
     filter_ocr = PolygonFrameFilter(alto_in_path, points, 0)
 
     # act
-    piece_result: Piece = filter_ocr.process()
-    file_out_path: PurePath = from_pieces(piece_result)
+    piece_result: DigitalObject = filter_ocr.process()
+    file_out_path: PurePath = from_digital_objects(piece_result)
 
     # assert
     assert os.path.exists(file_out_path)
@@ -149,8 +148,8 @@ def test_filter_0001_0260(xml_fixture):
     filter_ocr = PolygonFrameFilter(alto_in_path, points, 0)
 
     # act
-    piece_result: Piece = filter_ocr.process()
-    file_out_path: PurePath = from_pieces(piece_result)
+    piece_result: DigitalObject = filter_ocr.process()
+    file_out_path: PurePath = from_digital_objects(piece_result)
 
     # assert
     assert os.path.exists(file_out_path)

@@ -6,9 +6,7 @@ import re
 from pathlib import PurePath
 from typing import Final
 
-from digital_eval import Piece
-from digital_eval.model import from_pieces
-from ocr_util import PolygonFrameFilterUtil, PolygonFrameFilter
+from digital_object import DigitalObject, from_digital_objects, PolygonFrameFilterUtil, PolygonFrameFilter
 
 # script constants
 
@@ -78,8 +76,8 @@ def start() -> None:
             points,
             verbosity
         )
-        piece_result: Piece = polygon_frame_filter.process()
-        file_result: PurePath = from_pieces(piece_result, output_ocr_file)
+        piece_result: DigitalObject = polygon_frame_filter.process()
+        file_result: PurePath = from_digital_objects(piece_result, output_ocr_file)
         if verbosity > 0:
             print('[INFO ] file_result', file_result)
 

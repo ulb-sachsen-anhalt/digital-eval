@@ -23,20 +23,3 @@ from .metrics import (
     MetricIRFM,
 )
 
-from .model import (
-    Piece,
-    PieceLevel,
-    PieceContent,
-    PieceUtil,
-    PieceDimensions,
-    to_pieces,
-    from_pieces,
-)
-
-from .model_legacy import (
-    OCRToken,
-    OCRWord,
-    OCRWordLine,
-    OCRRegion,
-    BoundingBox,
-)

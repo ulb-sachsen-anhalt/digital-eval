@@ -13,6 +13,7 @@ from xml.etree.ElementTree import (
 )
 
 import pytest
+from digital_object.legacy import BoundingBox, OCRWord, OCRWordLine
 
 from pytest import (
     approx
@@ -24,21 +25,12 @@ from digital_eval.evaluation import (
     OCRData,
     match_candidates,
     ocr_to_text_legacy,
-    piece_to_text,
+    digital_object_to_text,
     get_bbox_data,
     _get_groundtruth_from_filename,
 )
 from digital_eval.metrics import MetricIRFM, MetricIRPre, MetricIRRec, MetricChars, OCRDifferenceMetric
 
-from digital_eval.model import (
-    PieceLevel,
-)
-
-from digital_eval.model_legacy import (
-    BoundingBox,
-    OCRWord,
-    OCRWordLine,
-)
 
 from .conftest import (
     TEST_RES_DIR
@@ -111,7 +103,7 @@ def test_piece_to_text_alto_candidate_with_coords():
     p2 = (6200, 3425)
 
     # act
-    _as_lines, _ = piece_to_text(alto_path, frame=(p1, p2), oneliner=False)
+    _as_lines, _ = digital_object_to_text(alto_path, frame=(p1, p2), oneliner=False)
     _gt_type = _get_groundtruth_from_filename(alto_path)
 
     # assert
@@ -132,7 +124,7 @@ def test_piece_to_oneliner_page_groundtruth():
     _ocr_01, _n_lines01 = ocr_to_text_legacy(_path, coords=(p1, p2), oneliner=True)
     _gt_01 = _get_groundtruth_from_filename(_path)
 
-    _ocr_02, _n_lines02 = piece_to_text(_path, frame=(p1, p2), oneliner=True)
+    _ocr_02, _n_lines02 = digital_object_to_text(_path, frame=(p1, p2), oneliner=True)
     _gt_02 = _get_groundtruth_from_filename(_path)
 
     # assert
