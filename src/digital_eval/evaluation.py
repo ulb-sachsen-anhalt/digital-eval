@@ -27,7 +27,12 @@ from typing import (
 )
 
 import numpy as np
-from digital_object import DigitalObject, DigitalObjectLevel, to_digital_objects
+
+from digital_object import ( 
+	DigitalObjectTree, 
+	DigitalObjectLevel, 
+	to_digital_object,
+)
 
 PAGE_2013 = 'http://schema.primaresearch.org/PAGE/gts/pagecontent/2013-07-15'
 XML_NS = {'alto': 'http://www.loc.gov/standards/alto/ns-v3#',
@@ -277,7 +282,7 @@ def _map_page2013(elem: ET.Element) -> Tuple[str, int, int, int, int]:
     return (NOT_SET, min(_xs), min(_ys), max(_xs), max(_ys))
 
 
-def _get_line_digos_from_digo(digo: DigitalObject, lines: List[DigitalObject] = None) -> List[DigitalObject]:
+def _get_line_digos_from_digo(digo: DigitalObjectTree, lines: List[DigitalObjectTree] = None) -> List[DigitalObjectTree]:
     if lines is None:
         lines = []
     if digo.level == DigitalObjectLevel.LINE and digo.transcription:
@@ -304,7 +309,7 @@ def digital_object_to_text(file_path, frame=None, oneliner=True) -> Tuple[str | 
     """Wrap OCR-Data Comparison"""
 
     try:
-        top_digo: DigitalObject = to_digital_objects(file_path)
+        top_digo: DigitalObjectTree = to_digital_object(file_path)
         # explicit filter frame?
         if not frame:
             frame = top_digo.dimensions
@@ -313,7 +318,7 @@ def digital_object_to_text(file_path, frame=None, oneliner=True) -> Tuple[str | 
                      [frame[1][0], frame[0][1]],
                      [frame[1][0], frame[1][1]],
                      [frame[0][0], frame[1][1]]]
-        frame_digo = DigitalObject()
+        frame_digo = DigitalObjectTree()
         frame_digo.dimensions = frame
         filter_word_pieces(frame_digo, top_digo)
         the_lines = _get_line_digos_from_digo(top_digo)
@@ -414,7 +419,7 @@ def filter_word_pieces(frame, current) -> int:
     _total_stack.append(current)
     _tmp_stack.append(current)
     while _tmp_stack:
-        _current: DigitalObject = _tmp_stack.pop()
+        _current: DigitalObjectTree = _tmp_stack.pop()
         if _current.children:
             _tmp_stack += _current.children
             _total_stack += _current.children
@@ -429,9 +434,9 @@ def filter_word_pieces(frame, current) -> int:
     return _filtered
 
 
-def _uplete(curr: DigitalObject):
+def _uplete(curr: DigitalObjectTree):
     if len(curr.children) == 0 and curr.level < DigitalObjectLevel.PAGE:
-        _pa: DigitalObject = curr.parent
+        _pa: DigitalObjectTree = curr.parent
         _pa.remove_children(curr)
         _uplete(_pa)
 
