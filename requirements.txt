@@ -3,4 +3,4 @@ numpy
 nltk
 requests
 docker
-digital-object
+digital-object==0.2.0
