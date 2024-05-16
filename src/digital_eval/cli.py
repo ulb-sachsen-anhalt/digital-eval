@@ -174,12 +174,12 @@ def _main(
     # evaluator.evaluate()
     evaluator.eval_map()
 
-    # get results
-    # results = evaluator.get_results()
-
     # serialize stdout report
     if VERBOSITY >= 0:
         report_stdout(evaluator, VERBOSITY)
+    
+    # for testing purposes
+    return evaluator.get_results()
 
 
 def start():

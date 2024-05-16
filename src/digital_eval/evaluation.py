@@ -77,7 +77,7 @@ def get_statistics(data_points):
     return (the_mean, the_deviation, the_median)
 
 
-def gather_candidates(start_path) -> List:
+def gather_candidates(start_path) -> List[EvalEntry]:
     candidates = []
     if os.path.isdir(start_path):
         for curr_dir, _, files in os.walk(start_path):
@@ -95,16 +95,16 @@ def gather_candidates(start_path) -> List:
 
 
 def find_groundtruth(path_candidate, root_candidates, root_groundtruth):
-    file_name = os.path.basename(path_candidate)
-    file_dir = os.path.dirname(path_candidate)
-    path_segmts = file_dir.split(os.sep)
+    candidate_name = os.path.basename(path_candidate)
+    candidate_dir = os.path.dirname(path_candidate)
+    cand_path_segmts = candidate_dir.split(os.sep)
     candidate_root_dir = os.path.basename(root_candidates) if os.path.isdir(
         root_candidates) else os.path.dirname(root_candidates)
-    _segm_cand = path_segmts.pop()
-    _segm_gt = [os.path.splitext(file_name)[0]]
+    _segm_cand = cand_path_segmts.pop()
+    _segm_gt = [os.path.splitext(candidate_name)[0]]
     while candidate_root_dir != _segm_cand:
         _segm_gt.append(_segm_cand)
-        _segm_cand = path_segmts.pop()
+        _segm_cand = cand_path_segmts.pop()
     _segm_gt.reverse()
     _gt_path = str(os.sep).join(_segm_gt)
     groundtruth_filepath = os.path.join(root_groundtruth, _gt_path)
@@ -563,7 +563,7 @@ class Evaluator:
             _entries = [self._wrap_eval_entry(e) for e in entries]
         else:
             cpus = cpu_count()
-            n_executors = cpus - 1 if cpus > 3 else 1
+            n_executors = cpus // 2 if cpus > 3 else 1
             if self.verbosity == 1:
                 print(f"[DEBUG] use {n_executors} executors ({cpus}) to create evaluation data")
             with concurrent.futures.ProcessPoolExecutor(max_workers=n_executors) as executor:
