@@ -3,34 +3,20 @@
 
 from __future__ import annotations
 
+import collections
+import functools
 import string
+import typing
 import unicodedata
-from collections import (
-    Counter
-)
-from functools import partial
-from typing import (
-    List,
-    Set,
-    Callable,
-    Optional,
-    Dict,
-)
 
-from nltk import (
-    download,
-)
-from nltk.corpus import (
-    stopwords
-)
+import nltk
+import nltk.corpus as nltk_corp
 from nltk.metrics import precision as nltk_precision
 from nltk.metrics import (
-    recall,
-    f_measure
-)
-from rapidfuzz.distance import (
-    Levenshtein
-)
+     recall,
+     f_measure
+ )
+import rapidfuzz.distance.Levenshtein as rfls
 
 from digital_eval.dictionary_metrics.common import LANGUAGE_KEY_DEFAULT
 from digital_eval.dictionary_metrics.language_tool.LanguageTool import LanguageTool
@@ -100,11 +86,11 @@ def _filter_digits(a_str) -> str:
     return a_str.translate(DIGIT_TRANSLATOR)
 
 
-def _tokenize(a_str) -> List[str]:
+def _tokenize(a_str) -> typing.List[str]:
     return a_str.split() if isinstance(a_str, str) else a_str
 
 
-def _tokenize_to_sorted_set(a_str) -> Set[str]:
+def _tokenize_to_sorted_set(a_str) -> typing.Set[str]:
     return set(sorted(_tokenize(a_str)))
 
 
@@ -123,21 +109,21 @@ NLTK_STOPWORDS = [
 STOPWORDS_DEFAULT = ['german', 'english', 'arabic', 'russian']
 
 
-def get_stopwords(nltk_mappings=NLTK_STOPWORDS, languages=None) -> Set[str]:
+def get_stopwords(nltk_mappings=NLTK_STOPWORDS, languages=None) -> typing.Set[str]:
     """Helper Function to gather NLTK stopword data
     * ensure stopwords files are locally available
     * extract them as set
     """
     try:
         for mapping in nltk_mappings:
-            stopwords.words(mapping)
+            nltk_corp.stopwords.words(mapping)
     except LookupError:
-        download('stopwords')
+        nltk.download('stopwords')
     if languages is None:
         languages = STOPWORDS_DEFAULT
     _stopwords = {_all_words
                   for _lang in languages
-                  for _all_words in stopwords.words(_lang)
+                  for _all_words in nltk_corp.stopwords.words(_lang)
                   }
     return _stopwords
 
@@ -147,7 +133,7 @@ def _strip_languages_stopwords(tokens, languages):
 
 
 def _strip_stopwords_for(languages):
-    return partial(_strip_languages_stopwords, languages=languages)
+    return functools.partial(_strip_languages_stopwords, languages=languages)
 
 
 def normalize_unicode(input_str: str, uc_norm_by=UC_NORMALIZATION_DEFAULT) -> str:
@@ -176,136 +162,32 @@ class DigitalEvalMetricException(Exception):
         super().__init__(*args)
 
 
-def _inspect_calculation_object(an_object):
-    if not isinstance(an_object, OCRDifferenceMetric):
-        _msg = f"{an_object} is no instance of {OCRDifferenceMetric}!"
-        raise DigitalEvalMetricException(_msg)
-    try:
-        _diff = an_object.diff
-        _ref = an_object.n_ref
-        if _diff is None or _diff < 0:
-            raise DigitalEvalMetricException(f"invalid diff: {_diff}!")
-        if _ref is None or _ref < 0:
-            raise DigitalEvalMetricException(f"invalid ref: {_ref}!")
-    except AttributeError as _ae:
-        raise DigitalEvalMetricException(_ae.args[0]) from _ae
-
-
-def accuracy_for(metric_obj: OCRDifferenceMetric) -> float:
-    """Calculate accuracy as ratio of
-    correct items, with correct items
-    being expected items minus
-    number of differences.
-
-    Respect following corner cases:
-    * if less correct items than differences => 0
-    * if both correct items and differences eq zero => 1
-      means: nothing to find and it did detect nothing
-      (i.e. no false-positives)
-
-    Args:
-        metric_obj (OCRDifferenceMetric): object containing information
-        about reference data and difference
-
-    Returns:
-        float: accuracy in range 0.0 - 1.0
-    """
-
-    _inspect_calculation_object(metric_obj)
-    diffs = metric_obj.diff
-    n_refs = len(metric_obj._data_reference)
-    return _calculate(lambda d, n: (n - d) / n, diffs, n_refs)
-
-
-def error_for_bow(metric_obj: OCRDifferenceMetric) -> float:
-    _inspect_calculation_object(metric_obj)
-    diffs = metric_obj.diff
-    n_refs = len(metric_obj._data_reference) + len(metric_obj._data_candidate)
-    return _calculate(lambda d, n: d / n, diffs, n_refs)
-
-
-def accuracy_for_bow(metric_obj: OCRDifferenceMetric) -> float:
-    _inspect_calculation_object(metric_obj)
-    diffs = metric_obj.diff
-    n_refs = len(metric_obj._data_reference) + len(metric_obj._data_candidate)
-    return _calculate(lambda d, n: 1 - (d / n), diffs, n_refs)
-
-
-def error_for(metric_obj: OCRDifferenceMetric) -> float:
-    """Calculate error as ratio of
-    difference and number of
-    expected items.
-
-    Respect following corner cases:
-    * if less expected items than differences => 0
-    * if both expected items and differences eq zero => 1
-      means: nothing to find and detected nothing
-      (i.e. no false-positives)
-
-    Args:
-        metric_obj (OCRDifferenceMetric): object containing information
-        about reference data and difference
-
-    Returns:
-        float: error in range 0.0 - 1.0
-    """
-    _inspect_calculation_object(metric_obj)
-    diffs = metric_obj.diff
-    n_refs = len(metric_obj._data_reference)
-    return _calculate(lambda d, n: d / n, diffs, n_refs)
-
-
-def _calculate(calculate: Callable[[int, int], float], diffs: int, n_refs: int) -> float:
-    if (n_refs - diffs) < 0:
-        return 0.0
-    if n_refs == 0 and diffs == 0:
-        return 1.0
-    elif n_refs > 0:
-        return calculate(diffs, n_refs)
-    else:
-        return 0.0
-
-
-def norm_to_scale(value, scale_by) -> float:
-    """Normalize outcome in range 0 - scale_by"""
-    return value * scale_by
-
-
-def norm_percentual(value):
-    """Normalize value in between 0 - 100"""
-    return partial(norm_to_scale, scale_by=100)(value)
-
-
-class OCRDifferenceMetric:
+class SimilarityMetric:
     """Basic definition of a OCRDifferenceMetric"""
 
     def __init__(
             self,
             precision=2,
             normalization=UC_NORMALIZATION_DEFAULT,
-            calc_func=accuracy_for,
             preprocessings=None,
-            postprocessings=None,
             to_text_func=digital_object_to_text,
     ) -> None:
-        self.to_text_func: Optional[Callable] = to_text_func
+        self.to_text_func: typing.Optional[typing.Callable] = to_text_func
         self.precision = precision
         self._value = None
-        self.diff = None
         self._label = None
         self.unicode_normalization = normalization
         self.preprocessings = []
         if isinstance(preprocessings, list):
             self.preprocessings = preprocessings
-        self.calc_func = calc_func
-        self.postprocessings = [norm_percentual]
-        if isinstance(postprocessings, list):
-            self.postprocessings = postprocessings
         self.input_reference = None
         self.input_candidate = None
         self._data_reference = None
         self._data_candidate = None
         self.languages = None
+
+    def norm_percentual(self):
+        self._value = self._value * 100
 
     @property
     def reference(self):
@@ -358,34 +240,68 @@ class OCRDifferenceMetric:
                     self._data_reference = _pre(self._data_reference)
                     self._data_candidate = _pre(self._data_candidate)
             self._forward()
-            if self.calc_func:
-                self._value = self.calc_func(self)
-            else:
-                self._value = self.diff
-            if self.postprocessings:
-                for _post in self.postprocessings:
-                    self._value = _post(self._value)
+            self._value *= 100
         return round(self._value, self.precision)
 
     def _forward(self):
-        """Calculate metric's value
-        remember this needs further refinement"""
-        raise NotImplementedError
+        self._value = levenshtein_norm(self._data_reference, self._data_candidate)
 
 
-class MetricDictionary(OCRDifferenceMetric):
+class MetricChars(SimilarityMetric):
+    """Calculate plain sequent character based metric"""
+
+    def __init__(self, precision=2, normalization=UC_NORMALIZATION_DEFAULT,
+                 preprocessings=None):
+        super().__init__(
+            precision,
+            normalization,
+            preprocessings)
+        self._label = 'Cs'
+        self.name = 'Characters'
+        self.preprocessings = [_filter_whitespaces_excluding_blank_chars]
+
+
+class MetricLetters(SimilarityMetric):
+    """Calculate metric for only a certain sub-set of
+    character sequence"""
+
+    def __init__(self, precision=2, normalization=UC_NORMALIZATION_DEFAULT,
+                 preprocessings=None):
+        super().__init__(
+            precision,
+            normalization,
+            preprocessings)
+        self._label = 'Ls'
+        self.preprocessings = [
+            _filter_whitespaces,
+            _filter_puncts,
+            _filter_digits]
+
+
+class MetricWords(SimilarityMetric):
+    """Calculate metric for a sequence of word tokens"""
+
+    def __init__(self, precision=2, normalization=UC_NORMALIZATION_DEFAULT,
+                 preprocessings=None):
+        super().__init__(
+            precision,
+            normalization,
+            preprocessings)
+        self._label = 'Ws'
+        self.preprocessings = [_tokenize]
+
+
+class MetricDictionary(SimilarityMetric):
     """Calculate metric for a multiset of word tokens"""
 
     LANGUAGE: str = LANGUAGE_KEY_DEFAULT
 
-    def __init__(self, precision=2, normalization=UC_NORMALIZATION_DEFAULT, calc_func=accuracy_for,
-                 preprocessings=None, postprocessings=None, to_text_func=digital_object_to_dict_text):
+    def __init__(self, precision=2, normalization=UC_NORMALIZATION_DEFAULT,
+                 preprocessings=None, to_text_func=digital_object_to_dict_text):
         super().__init__(
             precision=precision,
             normalization=normalization,
-            calc_func=calc_func,
             preprocessings=preprocessings,
-            postprocessings=postprocessings,
             to_text_func=to_text_func,
         )
 
@@ -393,127 +309,59 @@ class MetricDictionary(OCRDifferenceMetric):
 class MetricDictionaryLangTool(MetricDictionary):
     """Calculate metric for a multiset of word tokens"""
 
-    def __init__(self, precision=2, normalization=UC_NORMALIZATION_NFKD, calc_func=accuracy_for,
-                 preprocessings=None, postprocessings=None):
+    def __init__(self, precision=2, normalization=UC_NORMALIZATION_NFKD,
+                 preprocessings=None):
         if not isinstance(preprocessings, list):
-            preprocessings = [normalize_vocal_ligatures]
+            preprocessings = [_normalize_vocal_ligatures]
         super().__init__(
             precision=precision,
             normalization=normalization,
-            calc_func=calc_func,
             preprocessings=preprocessings,
-            postprocessings=postprocessings,
         )
         self._label = 'DictLT'
 
     def _forward(self):
         text: str = self._data_candidate
-        text_list: List[str] = self._data_candidate.split()
+        text_list: typing.List[str] = self._data_candidate.split()
         self._data_reference = text_list
         num_words: int = len(text_list)
-        lt_response_data: Dict = LanguageTool.check(text, MetricDictionary.LANGUAGE)
+        lt_response_data: typing.Dict = LanguageTool.check(text, MetricDictionary.LANGUAGE)
         total_matches = lt_response_data['matches'] if 'matches' in lt_response_data else 0
         typo_errors = len(total_matches)
         self.diff = typo_errors if typo_errors <= num_words else num_words
 
 
-class MetricChars(OCRDifferenceMetric):
-    """Calculate plain sequent character based metric"""
-
-    def __init__(self, precision=2, normalization=UC_NORMALIZATION_DEFAULT, calc_func=accuracy_for,
-                 preprocessings=None, postprocessings=None):
-        super().__init__(
-            precision,
-            normalization,
-            calc_func,
-            preprocessings,
-            postprocessings)
-        self._label = 'Cs'
-        self.name = 'Characters'
-        self.preprocessings = [_filter_whitespaces_excluding_blank_chars]
-        self.postprocessings = [norm_percentual]
-
-    def _forward(self):
-        self.diff = edit_distance(self._data_reference, self._data_candidate)
-
-
-class MetricLetters(OCRDifferenceMetric):
-    """Calculate metric for only a certain sub-set of
-    character sequence"""
-
-    def __init__(self, precision=2, normalization=UC_NORMALIZATION_DEFAULT, calc_func=accuracy_for,
-                 preprocessings=None, postprocessings=None):
-        super().__init__(
-            precision,
-            normalization,
-            calc_func,
-            preprocessings,
-            postprocessings)
-        self._label = 'Ls'
-        self.preprocessings = [
-            _filter_whitespaces,
-            _filter_puncts,
-            _filter_digits]
-
-    def _forward(self):
-        self.diff = edit_distance(self._data_reference, self._data_candidate)
-
-
-class MetricWords(OCRDifferenceMetric):
-    """Calculate metric for a sequence of word tokens"""
-
-    def __init__(self, precision=2, normalization=UC_NORMALIZATION_DEFAULT, calc_func=accuracy_for,
-                 preprocessings=None, postprocessings=None):
-        super().__init__(
-            precision,
-            normalization,
-            calc_func,
-            preprocessings,
-            postprocessings)
-        self._label = 'Ws'
-        self.preprocessings = [_tokenize]
-
-    def _forward(self):
-        self.diff = edit_distance(self._data_reference, self._data_candidate)
-
-
-class MetricBoW(OCRDifferenceMetric):
+class MetricBoW(SimilarityMetric):
     """Calculate metric for a multiset of word tokens"""
 
-    def __init__(self, precision=2, normalization=UC_NORMALIZATION_DEFAULT, calc_func=accuracy_for,
-                 preprocessings=None, postprocessings=None):
+    def __init__(self, precision=2, normalization=UC_NORMALIZATION_DEFAULT,
+                 preprocessings=None):
         super().__init__(
             precision,
             normalization,
-            calc_func,
-            preprocessings,
-            postprocessings)
+            preprocessings)
         self._label = 'BoWs'
         self.preprocessings = [_tokenize]
 
     def _forward(self):
-        self.diff = bag_of_tokens(self._data_reference, self._data_candidate)
+        self._value = bag_of_tokens(self._data_reference, self._data_candidate)
 
 
-class MetricIR(OCRDifferenceMetric):
+class MetricIR(SimilarityMetric):
     """Calculate information retrival metrics"""
 
-    def __init__(self, precision=2, normalization=UC_NORMALIZATION_DEFAULT, calc_func=accuracy_for,
-                 preprocessings=None, postprocessings=None, languages=None):
+    def __init__(self, precision=2, normalization=UC_NORMALIZATION_DEFAULT,
+                 preprocessings=None, languages=None):
         super().__init__(
             precision,
             normalization,
-            calc_func,
-            preprocessings,
-            postprocessings)
+            preprocessings)
         self.languages = languages
         self.preprocessings = [_tokenize_to_sorted_set,
                                _strip_stopwords_for(self.languages)
                                ]
         # no aligning required, we rely on nltk
         self.calc_func = None
-        # no percentual value
-        self.postprocessings = []
 
     def _forward(self):
         """to remind that this class needs further refinement"""
@@ -523,61 +371,54 @@ class MetricIR(OCRDifferenceMetric):
 class MetricIRPre(MetricIR):
     """Calculate precision"""
 
-    def __init__(self, precision=2, normalization=UC_NORMALIZATION_DEFAULT, calc_func=accuracy_for,
-                 preprocessings=None, postprocessings=None, languages=None):
+    def __init__(self, precision=2, normalization=UC_NORMALIZATION_DEFAULT,
+                 preprocessings=None, languages=None):
         super().__init__(
             precision,
             normalization,
-            calc_func,
             preprocessings,
-            postprocessings,
             languages)
         self._label = 'Pre'
 
     def _forward(self):
-        self.diff = ir_precision(self._data_reference, self._data_candidate)
+        self._value = ir_precision(self._data_reference, self._data_candidate)
 
 
 class MetricIRRec(MetricIR):
     "Calculate recall"
 
-    def __init__(self, precision=2, normalization=UC_NORMALIZATION_DEFAULT, calc_func=accuracy_for,
-                 preprocessings=None, postprocessings=None, languages=None):
+    def __init__(self, precision=2, normalization=UC_NORMALIZATION_DEFAULT,
+                 preprocessings=None, languages=None):
         super().__init__(
             precision,
             normalization,
-            calc_func,
             preprocessings,
-            postprocessings,
             languages)
         self._label = 'Rec'
 
     def _forward(self):
-        self.diff = ir_recall(self._data_reference, self._data_candidate)
+        self._value = ir_recall(self._data_reference, self._data_candidate)
 
 
 class MetricIRFM(MetricIR):
     """Calculate harmonic mean for precision/recall"""
 
-    def __init__(self, precision=2, normalization=UC_NORMALIZATION_DEFAULT, calc_func=accuracy_for,
-                 preprocessings=None, postprocessings=None, languages=None):
+    def __init__(self, precision=2, normalization=UC_NORMALIZATION_DEFAULT,
+                 preprocessings=None, languages=None):
         super().__init__(
             precision,
             normalization,
-            calc_func,
             preprocessings,
-            postprocessings,
             languages)
         self._label = 'FM'
 
     def _forward(self):
-        self.diff = ir_fmeasure(self._data_reference, self._data_candidate)
+        self._value = ir_fmeasure(self._data_reference, self._data_candidate)
 
 
-def edit_distance(reference_data, candidate_data) -> int:
-    """Calculate edit distance with levenshtein-distance.
-    as sum of edit operations required to get from
-    candidate to reference string / token_list
+def levenshtein_norm(reference_data, candidate_data, inverse=False) -> int:
+    """Calculate levenshtein metric as ration of sum of edit operations 
+    normalized to sum of edit and equal operations.
 
     Works with characters and word-like tokens, where
     tokens correspond also to:
@@ -585,56 +426,26 @@ def edit_distance(reference_data, candidate_data) -> int:
     * numbers/years  (like "1899")
     * split-up words (line endings/beginnings)
     """
+    if inverse:
+        return rfls.normalized_distance(reference_data, candidate_data)
+    return rfls.normalized_similarity(reference_data, candidate_data)
 
-    return Levenshtein.distance(reference_data, candidate_data)
 
-
-def bag_of_tokens(reference_tokens: List[str],
-                  candidate_tokens: List[str]) -> int:
-    """Calculate intersection/difference
-    between reference and candidate token list
+def bag_of_tokens(reference_tokens: typing.List[str],
+                  candidate_tokens: typing.List[str]) -> int:
+    """Calculate difference between reference and candidate token list
     """
-    false_negatives: List[str] = _diff(reference_tokens, candidate_tokens)
-    false_positives: List[str] = _diff(candidate_tokens, reference_tokens)
-    return len(false_negatives) + len(false_positives)
+    false_negatives: typing.List[str] = _diff(reference_tokens, candidate_tokens)
+    false_positives: typing.List[str] = _diff(candidate_tokens, reference_tokens)
+    delta = len(false_negatives) + len(false_positives)
+    total = len(reference_tokens) + len(candidate_tokens)
+    subtrahend = (delta / total) if total > 0 else 0
+    ratio = 1 - subtrahend
+    return ratio
 
 
-# diacritica to take care of
-_COMBINING_SMALL_E = u'\u0364'
-
-
-def normalize_vocal_ligatures(a_string) -> str:
-    """Replace vocal ligatures, which otherwise
-    may confuse the index component workflow,
-    especially COMBINING SMALL LETTER E : \u0364
-
-    a^e, o^e, u^e => (u0364) => ä, ö, ü
-    """
-
-    _out = []
-    for i, _c in enumerate(a_string):
-        if _c == _COMBINING_SMALL_E:
-            _preceeding_vocal = _out[i - 1]
-            _vocal_name = unicodedata.name(_preceeding_vocal)
-            _replacement = ''
-            if 'LETTER A' in _vocal_name:
-                _replacement = 'ä'
-            elif 'LETTER O' in _vocal_name:
-                _replacement = 'ö'
-            elif 'LETTER U' in _vocal_name:
-                _replacement = 'ü'
-            else:
-                _msg = f"No conversion for {_preceeding_vocal} ('{a_string}')!"
-                raise DigitalEvalMetricException(f"normalize vocal ligatures: {_msg}")
-            _out[i - 1] = _replacement
-        _out.append(_c)
-
-    # strip all combining e's anyway
-    return ''.join(_out).replace(_COMBINING_SMALL_E, '')
-
-
-def _diff(gt_tokens, cd_tokens) -> List[str]:
-    return list((Counter(gt_tokens) - Counter(cd_tokens)).elements())
+def _diff(gt_tokens, cd_tokens) -> typing.List[str]:
+    return list((collections.Counter(gt_tokens) - collections.Counter(cd_tokens)).elements())
 
 
 def ir_precision(reference_data, candidate_data) -> float:
@@ -662,3 +473,36 @@ def ir_fmeasure(reference_data, candidate_data) -> float:
     if _fm is None:
         _fm = 0.0
     return _fm
+
+
+# diacritica to take care of
+_COMBINING_SMALL_E = u'\u0364'
+
+def _normalize_vocal_ligatures(a_string) -> str:
+    """Replace vocal ligatures, which otherwise
+    may confuse the index component workflow,
+    especially COMBINING SMALL LETTER E : \u0364
+
+    a^e, o^e, u^e => (u0364) => ä, ö, ü
+    """
+
+    _out = []
+    for i, _c in enumerate(a_string):
+        if _c == _COMBINING_SMALL_E:
+            _preceeding_vocal = _out[i - 1]
+            _vocal_name = unicodedata.name(_preceeding_vocal)
+            _replacement = ''
+            if 'LETTER A' in _vocal_name:
+                _replacement = 'ä'
+            elif 'LETTER O' in _vocal_name:
+                _replacement = 'ö'
+            elif 'LETTER U' in _vocal_name:
+                _replacement = 'ü'
+            else:
+                _msg = f"No conversion for {_preceeding_vocal} ('{a_string}')!"
+                raise DigitalEvalMetricException(f"normalize vocal ligatures: {_msg}")
+            _out[i - 1] = _replacement
+        _out.append(_c)
+
+    # strip all combining e's anyway
+    return ''.join(_out).replace(_COMBINING_SMALL_E, '')

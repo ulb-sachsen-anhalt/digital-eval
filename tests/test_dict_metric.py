@@ -2,7 +2,7 @@ from digital_eval.evaluation import (
     digital_object_to_dict_text,
     digital_object_to_text
 )
-from digital_eval.metrics import normalize_unicode, UC_NORMALIZATION_NFKD, normalize_vocal_ligatures
+from digital_eval.metrics import normalize_unicode, UC_NORMALIZATION_NFKD, _normalize_vocal_ligatures
 from .conftest import TEST_RES_DIR
 
 
@@ -14,7 +14,7 @@ def test_piece_to_dict_text_alto():
     alto_words_no_sanit = alto_text_no_sanit.split()
     alto_text, _ = digital_object_to_dict_text(alto_path, oneliner=True)
     alto_lines, alto_num_lines = digital_object_to_dict_text(alto_path, oneliner=False)
-    alto_lines_norm_vocal_ligatures = [normalize_vocal_ligatures(line) for line in alto_lines]
+    alto_lines_norm_vocal_ligatures = [_normalize_vocal_ligatures(line) for line in alto_lines]
     alto_lines_norm = [normalize_unicode(line, UC_NORMALIZATION_NFKD) for line in alto_lines_norm_vocal_ligatures]
     alto_text_norm = " ".join(alto_lines_norm)
     alto_words = alto_text_norm.split()
@@ -35,7 +35,7 @@ def test_piece_to_dict_text_page2019():
     page_words_no_sanit = page_text_no_sanit.split()
     page_text, _ = digital_object_to_dict_text(page_path, oneliner=True)
     page_lines, alto_num_lines = digital_object_to_dict_text(page_path, oneliner=False)
-    page_lines_norm_vocal_ligatures = [normalize_vocal_ligatures(line) for line in page_lines]
+    page_lines_norm_vocal_ligatures = [_normalize_vocal_ligatures(line) for line in page_lines]
     page_lines_norm = [normalize_unicode(line, UC_NORMALIZATION_NFKD) for line in page_lines_norm_vocal_ligatures]
     page_text_norm = " ".join(page_lines_norm)
     page_words = page_text_norm.split()
@@ -56,7 +56,7 @@ def test_piece_to_dict_text_page2013():
     page_words_no_sanit = page_text_no_sanit.split()
     page_text, _ = digital_object_to_dict_text(page_path, oneliner=True)
     page_lines, alto_num_lines = digital_object_to_dict_text(page_path, oneliner=False)
-    page_lines_norm_vocal_ligatures = [normalize_vocal_ligatures(line) for line in page_lines]
+    page_lines_norm_vocal_ligatures = [_normalize_vocal_ligatures(line) for line in page_lines]
     page_lines_norm = [normalize_unicode(line, UC_NORMALIZATION_NFKD) for line in page_lines_norm_vocal_ligatures]
     page_text_norm = " ".join(page_lines_norm)
     page_words = page_text_norm.split()

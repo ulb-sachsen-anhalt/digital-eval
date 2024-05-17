@@ -3,6 +3,8 @@
 
 import shutil
 
+from pathlib import Path
+
 import digital_eval.cli as dival
 
 from .conftest import TEST_RES_DIR
@@ -28,8 +30,8 @@ def test_mwe_cli(tmp_path, capsys):
     src_reference = TEST_RES_DIR / 'groundtruth' / 'page'
     dst_candidates = tmp_path / 'candidate' / _DOMAIN_LABEL
     dst_reference = tmp_path / 'reference' / _DOMAIN_LABEL
-    tmp_candidate = shutil.copytree(src_candidates, dst_candidates)
-    tmp_reference = shutil.copytree(src_reference, dst_reference)
+    tmp_candidate: Path = shutil.copytree(src_candidates, dst_candidates)
+    tmp_reference: Path = shutil.copytree(src_reference, dst_reference)
 
     # assert final path segments do match by name frk_alto == frk_alto
     assert _DOMAIN_LABEL == tmp_candidate.name
@@ -37,13 +39,12 @@ def test_mwe_cli(tmp_path, capsys):
 
     # act
     _results = dival._main(dst_candidates, dst_reference,
-                           dival.DEFAULT_OCR_METRICS, dival.DEFAULT_UTF8_NORM,
-                           dival.DEFAULT_CALCULCATION, None)
+                           dival.DEFAULT_OCR_METRICS, dival.DEFAULT_UTF8_NORM, None)
 
     # assert
     captured = capsys.readouterr().out
     assert captured.startswith("[DEBUG] text normalized using 'NFC'")
-    assert len(captured) == 1045
+    assert len(captured) == 1027
     std_lines = captured.split('\n')
     assert len(std_lines) == 11
     assert std_lines[1].startswith('[DEBUG] from "5" filtered "3" candidates')

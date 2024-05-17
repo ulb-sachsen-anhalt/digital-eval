@@ -9,76 +9,40 @@ from typing import (
     List, Type
 )
 
-from digital_eval import (
-    find_groundtruth,
-    gather_candidates,
-    Evaluator,
-    report_stdout,
-    UC_NORMALIZATION_DEFAULT,
-    accuracy_for,
-    error_for,
-    MetricChars,
-    MetricLetters,
-    MetricWords,
-    MetricBoW,
-    MetricIRPre,
-    MetricIRRec,
-    MetricIRFM
-)
-from digital_eval.dictionary_metrics.common import LANGUAGE_KEY_DEFAULT, LANGUAGE_KEYS
+import digital_eval as digev
+import digital_eval.dictionary_metrics.common as digev_cm
+import digital_eval.metrics as digem
 from digital_eval.dictionary_metrics.language_tool.LanguageTool import LanguageTool
-from digital_eval.metrics import (
-    OCRDifferenceMetric,
-    accuracy_for_bow,
-    error_for_bow,
-    MetricDictionaryLangTool, MetricDictionary, UC_NORMALIZATION_NFKD,
-)
+
 
 # script constants
 DEFAULT_VERBOSITY = 0
 VERBOSITY = DEFAULT_VERBOSITY
 EVAL_VERBOSITY = DEFAULT_VERBOSITY
-
-# calculations
-DEFAULT_CALCULCATION = 'acc'
-CALC_DICT = {
-    'acc': accuracy_for,
-    'accuracy': accuracy_for,
-    'err': error_for,
-    'error': error_for,
-}
-
-CALC_DICT_BOW = {
-    'acc': accuracy_for_bow,
-    'accuracy': accuracy_for_bow,
-    'err': error_for_bow,
-    'error': error_for_bow,
-}
-
-DEFAULT_UTF8_NORM = UC_NORMALIZATION_DEFAULT
+DEFAULT_UTF8_NORM = digev.UC_NORMALIZATION_DEFAULT
 
 # metrics
 DEFAULT_OCR_METRICS = 'Cs,Ls'
 DEFAULT_OCR_METRIC_PREPROCESSINGS = ''
 DEFAULT_OCR_METRIC_POSTPROCESSINGS = ''
 METRIC_DICT = {
-    'Cs': MetricChars,
-    'Characters': MetricChars,
-    'Ls': MetricLetters,
-    'Letters': MetricLetters,
-    'Ws': MetricWords,
-    'Words': MetricWords,
-    'BoWs': MetricBoW,
-    'BagOfWords': MetricBoW,
-    'IRPre': MetricIRPre,
-    'Pre': MetricIRPre,
-    'Precision': MetricIRPre,
-    'IRRec': MetricIRRec,
-    'Rec': MetricIRRec,
-    'IRFMeasure': MetricIRFM,
-    'FM': MetricIRFM,
-    'DictLT': MetricDictionaryLangTool,
-    'DictionaryLangTool': MetricDictionaryLangTool,
+    'Cs': digev.MetricChars,
+    'Characters': digev.MetricChars,
+    'Ls': digev.MetricLetters,
+    'Letters': digev.MetricLetters,
+    'Ws': digev.MetricWords,
+    'Words': digev.MetricWords,
+    'BoWs': digev.MetricBoW,
+    'BagOfWords': digev.MetricBoW,
+    'IRPre': digev.MetricIRPre,
+    'Pre': digev.MetricIRPre,
+    'Precision': digev.MetricIRPre,
+    'IRRec': digev.MetricIRRec,
+    'Rec': digev.MetricIRRec,
+    'IRFMeasure': digev.MetricIRFM,
+    'FM': digev.MetricIRFM,
+    'DictLT': digem.MetricDictionaryLangTool,
+    'DictionaryLangTool': digem.MetricDictionaryLangTool,
 }
 
 
@@ -96,23 +60,19 @@ def _get_info():
 def _initialize_metrics(
         the_metrics,
         norm,
-        calc,
-) -> List[OCRDifferenceMetric]:
+) -> List[digem.SimilarityMetric]:
     _tokens = the_metrics.split(',')
     try:
-        metric_objects: List[OCRDifferenceMetric] = []
+        metric_objects: List[digem.SimilarityMetric] = []
         for m in _tokens:
-            clazz: Type[OCRDifferenceMetric] = METRIC_DICT[m]
-            calc_func = CALC_DICT[calc]
-            if m == 'BoWs' or m == 'BagOfWords':
-                calc_func = CALC_DICT_BOW[calc]
+            clazz: Type[digem.SimilarityMetric] = METRIC_DICT[m]
             if 'Dict' in m:
-                norm = UC_NORMALIZATION_NFKD
-            metric_inst: OCRDifferenceMetric = clazz(normalization=norm, calc_func=calc_func)
+                norm = digem.UC_NORMALIZATION_NFKD
+            metric_inst: digem.SimilarityMetric = clazz(normalization=norm) 
             metric_objects.append(metric_inst)
         return metric_objects
     except KeyError as _err:
-        _keys = ','.join(METRIC_DICT.keys()) + ','.join(CALC_DICT.keys())
+        _keys = ','.join(METRIC_DICT.keys())
         _msg = f"Unknown: '{_err.args[0]}'.\nPlease use one of the following keys: '{_keys}'."
         print(_msg)
         sys.exit(1)
@@ -126,33 +86,33 @@ def _main(
         path_reference,
         metrics,
         utf8norm,
-        calc,
+        # calc,
         xtra,
         is_sequential=False,
 ):
     # create basic evaluator instance
-    evaluator = Evaluator(
+    evaluator = digev.Evaluator(
         path_candidates,
         verbosity=VERBOSITY,
         extras=xtra,
     )
-    evaluator.metrics = _initialize_metrics(metrics, norm=utf8norm, calc=calc)
-    evaluator.calc = calc
+    evaluator.metrics = _initialize_metrics(metrics, norm=utf8norm)#, calc=calc)
+    # evaluator.calc = calc
     if VERBOSITY >= 1:
-        print(f"[DEBUG] text normalized using '{utf8norm}' calculate '{calc}' metric values for '{metrics}'")
+        print(f"[DEBUG] text normalized using '{utf8norm}' values for '{metrics}'")
 
     evaluator.is_sequential = is_sequential
     evaluator.domain_reference = path_reference
 
     # gather structure information
-    candidates = gather_candidates(path_candidates)
+    candidates = digev.gather_candidates(path_candidates)
     if not candidates:
         print(f"[WARN ] no ocr data (.*xml) in any dir starting from '{path_candidates}'! exit.")
         sys.exit(0)
 
     # match groundtruth
     for entry in candidates:
-        gt = find_groundtruth(entry.path_c, path_candidates, path_reference)
+        gt = digev.find_groundtruth(entry.path_c, path_candidates, path_reference)
         if gt:
             entry.path_g = gt
 
@@ -176,7 +136,7 @@ def _main(
 
     # serialize stdout report
     if VERBOSITY >= 0:
-        report_stdout(evaluator, VERBOSITY)
+        digev.report_stdout(evaluator, VERBOSITY)
     
     # for testing purposes
     return evaluator.get_results()
@@ -200,12 +160,6 @@ def start():
                         required=False,
                         help=f"Verbosity flag. To increase, append multiple 'v's (optional; default: '{DEFAULT_VERBOSITY}')"
                         )
-    PARSER.add_argument("--calc",
-                        default=DEFAULT_CALCULCATION,
-                        required=False,
-                        help=f"Calculation to perform (optional; default: '{DEFAULT_CALCULCATION}'; available: '{','.join(CALC_DICT.keys())}')"
-                        )
-    # metrics
     PARSER.add_argument("--metrics",
                         default=DEFAULT_OCR_METRICS,
                         required=False,
@@ -226,10 +180,10 @@ def start():
                         help="pass additional information to evaluation, like 'ignore_geometry' (compare only text, ignore coords)"
                         )
     PARSER.add_argument('-l', "--language",
-                        default=LANGUAGE_KEY_DEFAULT,
-                        choices=LANGUAGE_KEYS,
+                        default=digev_cm.LANGUAGE_KEY_DEFAULT,
+                        choices=digev_cm.LANGUAGE_KEYS,
                         required=False,
-                        help=f"Language code for LanguagTool according to ISO 639-2 (optional; default: '{LANGUAGE_KEY_DEFAULT}')",
+                        help=f"Language code for LanguagTool according to ISO 639-2 (optional; default: '{digev_cm.LANGUAGE_KEY_DEFAULT}')",
                         )
     PARSER.add_argument('-u', "--lt-api-url",
                         default=LanguageTool.DEFAULT_URL,
@@ -246,9 +200,8 @@ def start():
     IS_SEQUENTIAL = ARGS["sequential"]
     xtra = ARGS["extra"]
     metrics: str = ARGS["metrics"]
-    calc = ARGS["calc"]
     utf8norm = ARGS["utf8"]
-    MetricDictionary.LANGUAGE = ARGS["language"]
+    digem.MetricDictionary.LANGUAGE = ARGS["language"]
     lt_api_url = ARGS["lt_api_url"]
 
     uses_lang_tool: bool = 'DictLT' in metrics or "DictionaryLangTool" in metrics
@@ -282,7 +235,7 @@ def start():
         print(f'[DEBUG] called with {args}')
 
     # here we go
-    _main(path_candidates, path_reference, metrics, utf8norm, calc, xtra, is_sequential=IS_SEQUENTIAL)
+    _main(path_candidates, path_reference, metrics, utf8norm, xtra, is_sequential=IS_SEQUENTIAL)
 
     if uses_lang_tool:
         LanguageTool.deinitialize()

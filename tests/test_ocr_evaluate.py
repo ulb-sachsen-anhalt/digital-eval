@@ -20,7 +20,7 @@ from digital_eval.evaluation import (
     get_bbox_data,
     _get_groundtruth_from_filename,
 )
-from digital_eval.metrics import MetricIRFM, MetricIRPre, MetricIRRec, MetricChars, OCRDifferenceMetric
+from digital_eval.metrics import MetricIRFM, MetricIRPre, MetricIRRec, MetricChars, SimilarityMetric
 from .conftest import (
     TEST_RES_DIR
 )
@@ -276,7 +276,7 @@ def test_handle_exception_invalid_literal_for_int():
 
     # act
     evaluator = Evaluator('dummy_path')
-    evaluator.metrics = [OCRDifferenceMetric()]
+    evaluator.metrics = [SimilarityMetric()]
     with pytest.raises(RuntimeError) as err:
         evaluator.eval_entry(eval_entry)
 
@@ -380,7 +380,7 @@ def test_handle_exception_invalid_alto_xml():
 
     # act
     evaluator = Evaluator('dummy_path')
-    evaluator.metrics = [OCRDifferenceMetric()]
+    evaluator.metrics = [SimilarityMetric()]
     with pytest.raises(ParseError) as err:
         evaluator.eval_entry(eval_entry)
 
