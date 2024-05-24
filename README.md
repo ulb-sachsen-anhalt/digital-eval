@@ -7,12 +7,13 @@ Python3 Tool to report evaluation outcomes from mass digitalization workflows.
 
 ## Features
 
+* [OCR-D compliant](https://ocr-d.de/en/spec/ocrd_eval#character-error-rate-cer) normalized similarity for edit-distance based metrics based on characters, letters and words
+* choose from textual metrics based on characters or words plus common Information Retrieval
+* choose from different UTF-8 Python norms
 * match groundtruth (i.e. reference data) and candidates by filename start
 * use geometric information to evaluate only specific frame (i.e. specific column or region from large page) of
   candidates (requires ALTO or PAGE format)
 * aggregate evaluation outcomes on domain range (with multiple subdomains) according to folder layout
-* choose from textual metrics based on characters or words plus common Information Retrieval
-* choose from different UTF-8 Python norms
 * formats: ALTO, PAGE or plain text for both groundtruth and candidates
 * speedup with parallel execution
 * additional OCR util:
@@ -117,23 +118,20 @@ Plattform: Intel(R) Core(TM) i5-6500 CPU@3.20GHz, 16GB RAM, Ubuntu 20.04 LTS, Py
 git clone <repository-url> <local-dir>
 cd <local-dir>
 
-# enable virtual python environment (linux)
-# and install libraries
+# enable virtual python 3 environment (linux)
+# and update pip itself
 python3 -m venv venv
 . venv/bin/activate
 python -m pip install -U pip
-python -m pip install -r requirements.txt
 
 # install
-pip install .
+python -m pip install -e .
 
-# optional:
 # install additional development dependencies
-pip install -r tests/test_requirements.txt
-pytest -v
+python -m pip install -r tests/test_requirements.txt
 
-# run
-digital-eval --help
+# run tests
+python -m pytest -v
 ```
 
 ## Contribute
@@ -144,4 +142,4 @@ Contributions, suggestions and proposals welcome!
 
 Under terms of the [MIT license](https://opensource.org/licenses/MIT).
 
-**NOTE**: This software depends on packages that _may_ be licensed under different terms.
+**NOTE**: This software depends on packages that _might_ be licensed under different terms.
