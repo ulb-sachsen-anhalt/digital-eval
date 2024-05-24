@@ -29,12 +29,12 @@ pip install digital-eval
 
 ### Metrics
 
-#### Edit-Distance based Strin Similarity
+#### Edit-Distance similarity
 
-Calculate similarity for each single reference/groundtruth and test/candidate item.
+Calculate string similarity for each single reference/groundtruth and test/candidate item.
 Complete haracter-based text string (`Cs`, `Characters`) or Letter-based (`Ls`, `Letters`) minus whitespaces,
 punctuation and common digits (arabic, persian). 
-Word/Token-based edit-distance of single tokens identified by Word or String elements or whitespaces, depending on data.
+Word/Token-based edit-distance of single tokens identified by markup elements or whitespaces, depending on data.
 
 #### Set based
 
@@ -46,20 +46,18 @@ Operate on sets of tokens/words with respect to language specific stopwords usin
 * Recall (`IRRec`, `Rec`, `Recall`): How many tokens from groundtruth reference should candidate include?
 * F-Measure (`IRFMeasure`, `FM`): weighted ratio Precision / Recall
 
-### UTF-8 Normalisations
+### UTF-8 Normalization
 
-Use standard Python Implementation of UTF-8 normalizations; default: `NFKD`.
+Use standard Python Implementation of UTF-8 normalizations; default: `NFC` (cf.:[OCR-D spec](https://ocr-d.de/en/spec/ocrd_eval#unicode-normalization)).
 
 ### Statistics
 
-Statistics calculated via [numpy](https://numpy.org/) include arithmetic mean, median and outlier detection with
-interquartile range and are based on the specific groundtruth/reference (ref) for each metric, i.e. char, letters or
-tokens.
+Statistics calculated by [numpy](https://numpy.org/) include arithmetic mean, median. Additionally includes an outlier detection with
+interquartile range and are shown in relation to the total amount of specific groundtruth/reference (ref) for each metric, i.e. char, letters or tokens/words.
 
 ### Evaluate treelike structures
 
-To evaluate OCR-candidate-data batch-like versus existing Groundtruth, please make sure that your structures fit this
-way:
+To evaluate OCR-candidate-data batch-like versus existing groundtruth, please make sure that your structures fit this layout:
 
 ```bash
 groundtruth root/
@@ -72,29 +70,28 @@ candidate root/
 │         └── <page-01>.xml
 ```
 
-Now call via:
+Now call:
 
 ```bash
 digital-eval <path-candidate-root>/domain/ -ref <path-groundtruth>/domain/
 ```
 
-for an aggregated overview on stdout. Feel free to increase verbosity via `-v` (or even `-vv`) to get detailed
-information about each single data set which was evaluated.
+for an aggregated overview on stdout. Increase verbosity with `-v` (or even `-vv`) to get detailed
+information about each single data item evaluated.
 
-Structured OCR is considered to contain valid geometrical and textual data on word level, even though for recent PAGE
-also line level is possible.
+Structured OCR is considered to contain valid geometrical and textual data on word level, even though for recent PAGE also line level is possible.
 
 ### Data problems
 
-Inconsistent OCR Groundtruth with empty texts (ALTO String elements missing CONTENT or PAGE without TextEquiv) or
-invalid geometrical coordinates (less than 3 points or even empty) will lead to evaluation errors if geometry must be
-respected.
+Inconsistent OCR Groundtruth with empty texts (ALTO String elements missing CONTENT or PAGE without TextEquiv) or invalid geometrical coordinates (less than 3 points or even empty) will lead to evaluation errors if geometry must be respected.
+
+Erroneous data files will be reported and excluded from evaluation.
 
 ## Additional OCR Utils
 
-### Filter Area
+### Filter Area (ALTO)
 
-You can filter a custom area of a page of an OCR file by providing the points of an arbitrary shape.
+You can filter a custom area of a page of an ALTO file by providing the points of an arbitrary shape.
 The format of the `-p, --points` argument is `<pt_1_x>,<pt_1_y> <pt_2_x>,<pt_2_y> <pt_3_x>,<pt_3_y> ... <pt_n_x>,<pt_n_y>` . For simple rectangular areas this can be expressed also with two points, with first point as top left and second point as bottom right: `<pt_top_left_x>,<pt_top_left_y> <pt_bottom_right_x>,<pt_bottom_right_y>`.
 
 The following example filters a rectangular area of 600x400 pixels of a page, which is described by an input ALTO file and saves the result to an output ALTO file
@@ -103,7 +100,7 @@ The following example filters a rectangular area of 600x400 pixels of a page, wh
 ocr-util frame -i page_1.alto.xml -p "0,0 600,0 600,400 0,400" -o page_1_area.alto.xml
 ```
 
-Short version with top left and bottom right:
+For plain rectangles exists a short form with only two points, top left and bottom right:
 
 ```bash
 ocr-util frame -i page_1.alto.xml -p "0,0 600,400" -o page_1_area.alto.xml
@@ -111,7 +108,7 @@ ocr-util frame -i page_1.alto.xml -p "0,0 600,400" -o page_1_area.alto.xml
 
 ## Development
 
-Plattform: Intel(R) Core(TM) i5-6500 CPU@3.20GHz, 16GB RAM, Ubuntu 20.04 LTS, Python 3.8.
+Plattform: Intel(R) Core(TM) i5-6500 CPU@3.20GHz, 16GB RAM, Ubuntu 22.04 LTS, Python 3.8+
 
 ```bash
 # clone local
