@@ -8,6 +8,7 @@ import functools
 import string
 import typing
 import unicodedata
+import xml.dom.minidom
 
 import nltk
 import nltk.corpus as nltk_corp
@@ -18,9 +19,10 @@ from nltk.metrics import (
  )
 import rapidfuzz.distance.Levenshtein as rfls
 
+import digital_object as do
+
 from digital_eval.dictionary_metrics.common import LANGUAGE_KEY_DEFAULT
 from digital_eval.dictionary_metrics.language_tool.LanguageTool import LanguageTool
-from digital_eval.evaluation import digital_object_to_text, digital_object_to_dict_text
 
 # Python3 standard Unicode Normalization
 #
@@ -32,7 +34,7 @@ UC_NORMALIZATION_NFKD = 'NFKD'
 # usual spatium and special control sequences
 WHITESPACES = string.whitespace
 
-WHITESPACES_EXCLUDING_BLANK_CHARS = WHITESPACES[1:]
+WHITESPACES_EXCL_BLANK_CHARS = WHITESPACES[1:]
 
 # punctuations
 #
@@ -64,26 +66,26 @@ DIGITS = DIGITS + '\u06f0' + '\u06f1' + '\u06f2' + '\u06f3' + \
 # filter mechanics
 #
 # via Python3 string translation maps
-WHITESPACE_TRANSLATOR = str.maketrans('', '', WHITESPACES)
-WHITESPACE_EXCLUDING_BLANK_CHARS_TRANSLATOR = str.maketrans('', '', WHITESPACES_EXCLUDING_BLANK_CHARS)
-PUNCT_TRANLATOR = str.maketrans('', '', PUNCTUATIONS)
-DIGIT_TRANSLATOR = str.maketrans('', '', DIGITS)
+WHITESPACE_TRNSL = str.maketrans('', '', WHITESPACES)
+WHITESPACE_EXCL_BLANK_CHARS_TRNSL = str.maketrans('', '', WHITESPACES_EXCL_BLANK_CHARS)
+PUNCT_TRNSL = str.maketrans('', '', PUNCTUATIONS)
+DIGIT_TRNSL = str.maketrans('', '', DIGITS)
 
 
 def _filter_whitespaces(a_str) -> str:
-    return a_str.translate(WHITESPACE_TRANSLATOR)
+    return a_str.translate(WHITESPACE_TRNSL)
 
 
 def _filter_whitespaces_excluding_blank_chars(a_str) -> str:
-    return a_str.translate(WHITESPACE_EXCLUDING_BLANK_CHARS_TRANSLATOR)
+    return a_str.translate(WHITESPACE_EXCL_BLANK_CHARS_TRNSL)
 
 
 def _filter_puncts(a_str) -> str:
-    return a_str.translate(PUNCT_TRANLATOR)
+    return a_str.translate(PUNCT_TRNSL)
 
 
 def _filter_digits(a_str) -> str:
-    return a_str.translate(DIGIT_TRANSLATOR)
+    return a_str.translate(DIGIT_TRNSL)
 
 
 def _tokenize(a_str) -> typing.List[str]:
@@ -109,11 +111,13 @@ NLTK_STOPWORDS = [
 STOPWORDS_DEFAULT = ['german', 'english', 'arabic', 'russian']
 
 
-def get_stopwords(nltk_mappings=NLTK_STOPWORDS, languages=None) -> typing.Set[str]:
+def get_stopwords(nltk_mappings=None, languages=None) -> typing.Set[str]:
     """Helper Function to gather NLTK stopword data
     * ensure stopwords files are locally available
     * extract them as set
     """
+    if nltk_mappings is None:
+        nltk_mappings = NLTK_STOPWORDS
     try:
         for mapping in nltk_mappings:
             nltk_corp.stopwords.words(mapping)
@@ -155,6 +159,140 @@ def transform_string(the_content):
     return the_content
 
 
+def digital_object_to_dict_text(file_path: str, frame=None, oneliner=False) -> typing.Tuple:
+    line_texts: typing.List[str]
+    len_lines: int
+    line_texts, len_lines = digital_object_to_text(file_path=file_path, frame=frame, oneliner=False)
+    non_empty_lines: typing.List[str] = [line_text for line_text in line_texts if len(line_text) > 0]
+    lines_sanitized_wraps: typing.List[str] = _sanitize_wraps(non_empty_lines)
+    lines_sanitized_chars: typing.List[str] = _sanitize_chars(lines_sanitized_wraps)
+    text = ' '.join(lines_sanitized_chars) if oneliner else lines_sanitized_chars
+    return text, len_lines
+
+
+def digital_object_to_text(file_path, frame=None, oneliner=True) -> typing.Tuple:
+    """Wrap OCR-Data Comparison"""
+
+    try:
+        top_digo: do.DigitalObjectTree = do.to_digital_object(file_path)
+        # explicit filter frame?
+        if not frame:
+            frame = top_digo.dimensions
+        elif len(frame) == 2:
+            frame = [[frame[0][0], frame[0][1]],
+                     [frame[1][0], frame[0][1]],
+                     [frame[1][0], frame[1][1]],
+                     [frame[0][0], frame[1][1]]]
+        frame_digo = do.DigitalObjectTree()
+        frame_digo.dimensions = frame
+        filter_word_pieces(frame_digo, top_digo)
+        the_lines = _get_line_digos_from_digo(top_digo)
+        if oneliner:
+            return top_digo.transcription, len(the_lines)
+        else:
+            return [line.transcription for line in the_lines], len(the_lines)
+    except xml.parsers.expat.ExpatError as _:
+        with open(file_path, mode='r', encoding='utf-8') as fhandle:
+            text_lines = fhandle.readlines()
+            if oneliner:
+                text_lines = ' '.join([l.strip() for l in text_lines])
+            return text_lines, len(text_lines)
+    except RuntimeError as exc:
+        raise RuntimeError(f"{file_path}: {exc}") from exc
+
+
+def filter_word_pieces(frame, current) -> int:
+    _filtered = 0
+    _tmp_stack = []
+    _total_stack = []
+    # stack all items
+    _total_stack.append(current)
+    _tmp_stack.append(current)
+    while _tmp_stack:
+        _current: do.DigitalObjectTree = _tmp_stack.pop()
+        if _current.children:
+            _tmp_stack += _current.children
+            _total_stack += _current.children
+    # now pick words
+    _words = [_p for _p in _total_stack if _p.level == do.DigitalObjectLevel.WORD]
+
+    # check for each word piece
+    for _word in _words:
+        if _word not in frame:
+            _filtered += 1
+            _uplete(_word)
+    return _filtered
+
+
+def _uplete(curr: do.DigitalObjectTree):
+    if len(curr.children) == 0 and curr.level < do.DigitalObjectLevel.PAGE:
+        _pa: do.DigitalObjectTree = curr.parent
+        _pa.remove_children(curr)
+        _uplete(_pa)
+
+
+def _get_line_digos_from_digo(digo: do.DigitalObjectTree, lines: typing.List = None) -> typing.List[do.DigitalObjectTree]:
+    if lines is None:
+        lines = []
+    if digo.level == do.DigitalObjectLevel.LINE and digo.transcription:
+        lines.append(digo)
+        return lines
+    for child in digo.children:
+        _get_line_digos_from_digo(child, lines)
+    return lines
+
+
+_HYPHENS: typing.List[str] = [
+    "⸗",
+    "-",
+    "—",
+]
+
+
+def _sanitize_wraps(lines: typing.List[str]) -> typing.List[str]:
+    """Sanitize word wraps if
+    * last word token ends with '-', "⸗" or "—"
+    * another line following
+    * following line not empty
+    """
+
+    normalized_lines: typing.List[str] = []
+    for i, line in enumerate(lines):
+        if i < len(lines) - 1:
+            for hyphen in _HYPHENS:
+                if line.endswith(hyphen):
+                    next_line = lines[i + 1]
+                    if len(next_line.strip()) == 0:
+                        # encountered empty next line, no merge possible
+                        continue
+                    next_line_tokens = next_line.split()
+                    nextline_first_token = next_line_tokens.pop(0)
+                    # join the rest of valid next line
+                    lines[i + 1] = ' '.join(next_line_tokens)
+                    line = line[:-1] + nextline_first_token
+                    break
+        normalized_lines.append(line)
+    return normalized_lines
+
+
+def _sanitize_chars(lines: typing.List[str]) -> typing.List[str]:
+    """Replace or remove nonrelevant chars for current german word error rate"""
+
+    sanitized: typing.List[str] = []
+    for line in lines:
+        text = line.strip()
+        bad_chars = '0123456789“„"\'?!*.;:-=[]()|'
+        text = ''.join([c for c in text if c not in bad_chars])
+        if '..' in text:
+            text = text.replace('..', '')
+        if '  ' in text:
+            text = text.replace('  ', ' ')
+        text = ' '.join([t for t in text.split() if len(t) > 1])
+        sanitized.append(text)
+
+    return sanitized
+
+
 class DigitalEvalMetricException(Exception):
     """Mark Exception during validation/calculating metrics"""
 
@@ -163,7 +301,9 @@ class DigitalEvalMetricException(Exception):
 
 
 class SimilarityMetric:
-    """Basic definition of a OCRDifferenceMetric"""
+    """Basic definition of OCR Similarity Metric,
+    expressed in percent (0 - 100)
+    """
 
     def __init__(
             self,
@@ -185,9 +325,6 @@ class SimilarityMetric:
         self._data_reference = None
         self._data_candidate = None
         self.languages = None
-
-    def norm_percentual(self):
-        self._value = self._value * 100
 
     @property
     def reference(self):
@@ -319,6 +456,7 @@ class MetricDictionaryLangTool(MetricDictionary):
             preprocessings=preprocessings,
         )
         self._label = 'DictLT'
+        self.diff = 0
 
     def _forward(self):
         text: str = self._data_candidate
@@ -476,7 +614,7 @@ def ir_fmeasure(reference_data, candidate_data) -> float:
 
 
 # diacritica to take care of
-_COMBINING_SMALL_E = u'\u0364'
+_COMBINING_SMALL_E = '\u0364'
 
 def _normalize_vocal_ligatures(a_string) -> str:
     """Replace vocal ligatures, which otherwise

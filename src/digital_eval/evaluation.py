@@ -4,35 +4,23 @@ from __future__ import annotations
 
 import concurrent.futures
 import copy
+import datetime
+import math
+import multiprocessing
 import os
 import re
 import sys
+import typing
 import xml.dom.minidom
 import xml.etree.ElementTree as ET
-from datetime import (
-    date
-)
-from math import (
-    floor
-)
-from multiprocessing import (
-    cpu_count
-)
+
 from pathlib import (
     Path
-)
-from typing import (
-    List,
-    Tuple,
 )
 
 import numpy as np
 
-from digital_object import ( 
-	DigitalObjectTree, 
-	DigitalObjectLevel, 
-	to_digital_object,
-)
+import digital_eval.metrics as digem
 
 PAGE_2013 = 'http://schema.primaresearch.org/PAGE/gts/pagecontent/2013-07-15'
 XML_NS = {'alto': 'http://www.loc.gov/standards/alto/ns-v3#',
@@ -77,7 +65,7 @@ def get_statistics(data_points):
     return (the_mean, the_deviation, the_median)
 
 
-def gather_candidates(start_path) -> List[EvalEntry]:
+def gather_candidates(start_path) -> typing.List[EvalEntry]:
     candidates = []
     if os.path.isdir(start_path):
         for curr_dir, _, files in os.walk(start_path):
@@ -118,10 +106,9 @@ def match_candidates(path_candidates, path_gt_file):
     '''Find candidates that match groundtruth'''
 
     if not os.path.isdir(path_candidates):
-        raise IOError('invalid ocr result path "{}"'.format(path_candidates))
+        raise IOError(f'invalid ocr result path "{path_candidates}"')
     if not os.path.exists(path_gt_file):
-        raise IOError(
-            'invalid groundtruth data path "{}"'.format(path_gt_file))
+        raise IOError(f'invalid groundtruth data path "{path_gt_file}"')
 
     gt_filename = os.path.basename(path_gt_file)
 
@@ -205,7 +192,7 @@ def get_bbox_data(file_path):
     '''Get Bounding Box Data from given resource, if any exists'''
 
     if not os.path.exists(file_path):
-        raise IOError('{} not existing!'.format(file_path))
+        raise IOError(f'{file_path} not existing!')
 
     # 1: inspect filename
     file_name = os.path.basename(file_path)
@@ -266,7 +253,7 @@ def get_bbox_data(file_path):
     return None
 
 
-def _map_alto(e: ET.Element) -> Tuple[str, int, int, int, int]:
+def _map_alto(e: ET.Element) -> typing.Tuple[str, int, int, int, int]:
     i = e.attrib['ID']
     x0 = int(e.attrib['HPOS'])
     y0 = int(e.attrib['VPOS'])
@@ -275,25 +262,14 @@ def _map_alto(e: ET.Element) -> Tuple[str, int, int, int, int]:
     return (i, x0, y0, x1, y1)
 
 
-def _map_page2013(elem: ET.Element) -> Tuple[str, int, int, int, int]:
+def _map_page2013(elem: ET.Element) -> typing.Tuple[str, int, int, int, int]:
     points = elem.attrib['points'].strip().split(' ')
     _xs = [int(p.split(',')[0]) for p in points]
     _ys = [int(p.split(',')[1]) for p in points]
     return (NOT_SET, min(_xs), min(_ys), max(_xs), max(_ys))
 
 
-def _get_line_digos_from_digo(digo: DigitalObjectTree, lines: List[DigitalObjectTree] = None) -> List[DigitalObjectTree]:
-    if lines is None:
-        lines = []
-    if digo.level == DigitalObjectLevel.LINE and digo.transcription:
-        lines.append(digo)
-        return lines
-    for child in digo.children:
-        _get_line_digos_from_digo(child, lines)
-    return lines
-
-
-def calculate_bounding_box(elements: List[ET.Element], map_func) -> Tuple[int, int, int, int]:
+def calculate_bounding_box(elements: typing.List[ET.Element], map_func) -> typing.Tuple[int, int, int, int]:
     """Review element's points to get points for
     minimum (top-left) and maximum (bottom-right)"""
 
@@ -303,99 +279,6 @@ def calculate_bounding_box(elements: List[ET.Element], map_func) -> Tuple[int, i
     all_x2 = [p[3] for p in all_points]
     all_y2 = [p[4] for p in all_points]
     return ((min(all_x1), min(all_y1)), (max(all_x2), max(all_y2)))
-
-
-def digital_object_to_text(file_path, frame=None, oneliner=True) -> Tuple[str | List[str], int]:
-    """Wrap OCR-Data Comparison"""
-
-    try:
-        top_digo: DigitalObjectTree = to_digital_object(file_path)
-        # explicit filter frame?
-        if not frame:
-            frame = top_digo.dimensions
-        elif len(frame) == 2:
-            frame = [[frame[0][0], frame[0][1]],
-                     [frame[1][0], frame[0][1]],
-                     [frame[1][0], frame[1][1]],
-                     [frame[0][0], frame[1][1]]]
-        frame_digo = DigitalObjectTree()
-        frame_digo.dimensions = frame
-        filter_word_pieces(frame_digo, top_digo)
-        the_lines = _get_line_digos_from_digo(top_digo)
-        if oneliner:
-            return top_digo.transcription, len(the_lines)
-        else:
-            return [line.transcription for line in the_lines], len(the_lines)
-    except xml.parsers.expat.ExpatError as _:
-        with open(file_path, mode='r', encoding='utf-8') as fhandle:
-            text_lines = fhandle.readlines()
-            if oneliner:
-                text_lines = ' '.join([l.strip() for l in text_lines])
-            return text_lines, len(text_lines)
-    except RuntimeError as exc:
-        raise RuntimeError(f"{file_path}: {exc}") from exc
-
-
-def digital_object_to_dict_text(file_path: str, frame=None, oneliner=False) -> Tuple[str | List[str], int]:
-    line_texts: List[str]
-    len_lines: int
-    line_texts, len_lines = digital_object_to_text(file_path=file_path, frame=frame, oneliner=False)
-    non_empty_lines: List[str] = [line_text for line_text in line_texts if len(line_text) > 0]
-    lines_sanitized_wraps: List[str] = _sanitize_wraps(non_empty_lines)
-    lines_sanitized_chars: List[str] = _sanitize_chars(lines_sanitized_wraps)
-    text = ' '.join(lines_sanitized_chars) if oneliner else lines_sanitized_chars
-    return text, len_lines
-
-
-_HYPHENS: List[str] = [
-    "⸗",
-    "-",
-    "—",
-]
-
-
-def _sanitize_wraps(lines: List[str]) -> List[str]:
-    """Sanitize word wraps if
-    * last word token ends with '-', "⸗" or "—"
-    * another line following
-    * following line not empty
-    """
-
-    normalized_lines: List[str] = []
-    for i, line in enumerate(lines):
-        if i < len(lines) - 1:
-            for hyphen in _HYPHENS:
-                if line.endswith(hyphen):
-                    next_line = lines[i + 1]
-                    if len(next_line.strip()) == 0:
-                        # encountered empty next line, no merge possible
-                        continue
-                    next_line_tokens = next_line.split()
-                    nextline_first_token = next_line_tokens.pop(0)
-                    # join the rest of valid next line
-                    lines[i + 1] = ' '.join(next_line_tokens)
-                    line = line[:-1] + nextline_first_token
-                    break
-        normalized_lines.append(line)
-    return normalized_lines
-
-
-def _sanitize_chars(lines: List[str]) -> List[str]:
-    """Replace or remove nonrelevant chars for current german word error rate"""
-
-    sanitized: List[str] = []
-    for line in lines:
-        text = line.strip()
-        bad_chars = '0123456789“„"\'?!*.;:-=[]()|'
-        text = ''.join([c for c in text if c not in bad_chars])
-        if '..' in text:
-            text = text.replace('..', '')
-        if '  ' in text:
-            text = text.replace('  ', ' ')
-        text = ' '.join([t for t in text.split() if len(t) > 1])
-        sanitized.append(text)
-
-    return sanitized
 
 
 def _get_groundtruth_from_filename(file_path) -> str:
@@ -409,36 +292,6 @@ def _get_groundtruth_from_filename(file_path) -> str:
             return alternative[1]
         else:
             return NOT_SET
-
-
-def filter_word_pieces(frame, current) -> int:
-    _filtered = 0
-    _tmp_stack = []
-    _total_stack = []
-    # stack all items
-    _total_stack.append(current)
-    _tmp_stack.append(current)
-    while _tmp_stack:
-        _current: DigitalObjectTree = _tmp_stack.pop()
-        if _current.children:
-            _tmp_stack += _current.children
-            _total_stack += _current.children
-    # now pick words
-    _words = [_p for _p in _total_stack if _p.level == DigitalObjectLevel.WORD]
-
-    # check for each word piece
-    for _word in _words:
-        if _word not in frame:
-            _filtered += 1
-            _uplete(_word)
-    return _filtered
-
-
-def _uplete(curr: DigitalObjectTree):
-    if len(curr.children) == 0 and curr.level < DigitalObjectLevel.PAGE:
-        _pa: DigitalObjectTree = curr.parent
-        _pa.remove_children(curr)
-        _uplete(_pa)
 
 
 def _normalize_gt_type(label) -> str:
@@ -505,7 +358,7 @@ class EvalEntry:
             _val = m.value
             _ref = m.n_ref
             if _ref > 10000:
-                _ref_fmt = f'{(floor(float(m.n_ref) / 1000)):>2}K+'
+                _ref_fmt = f'{(math.floor(float(m.n_ref) / 1000)):>2}K+'
             else:
                 _ref_fmt = f'{m.n_ref:>4}'
             _raw = f'{m.label}:{_val:>5.2f}({_ref_fmt})'
@@ -519,7 +372,7 @@ class EvalEntry:
         return ', '.join(_raws)
 
     def __repr__(self) -> str:
-        return '{} {}'.format(self.gt_type, self.path_c)
+        return f'{self.gt_type} {self.path_c}'
 
 
 class Evaluator:
@@ -552,17 +405,17 @@ class Evaluator:
         self.evaluation_map = {}
         self.text_mode = extras == EVAL_EXTRA_IGNORE_GEOMETRY
         self.is_sequential = False
-        self.metrics: List = []
+        self.metrics: typing.List[digem.SimilarityMetric] = []
         self.evaluation_report = {}
 
-    def eval_all(self, entries: List[EvalEntry], sequential=False) -> None:
+    def eval_all(self, entries: typing.List[EvalEntry], sequential=False) -> None:
         """evaluate all pairs groundtruth-candidate"""
 
         _entries = []
         if sequential or self.is_sequential:
             _entries = [self._wrap_eval_entry(e) for e in entries]
         else:
-            cpus = cpu_count()
+            cpus = multiprocessing.cpu_count()
             n_executors = cpus // 2 if cpus > 3 else 1
             if self.verbosity == 1:
                 print(f"[DEBUG] use {n_executors} executors ({cpus}) to create evaluation data")
@@ -714,10 +567,14 @@ class Evaluator:
             # re-order
             self.evaluation_results = sorted(self.evaluation_results, key=lambda e: e.eval_key)
 
-    def aggregate(self, by_type=False, by_metrics=[0, 1, 2, 3]):
+    def aggregate(self, by_type=False, by_metrics=None):
+        """Aggregate item's metrics for domain/directory
+        and/or annotated type (if present)"""
 
         # precheck - having root dir
         self._check_aggregate_preconditions()
+        if by_metrics is None:
+            by_metrics = [0, 1, 2, 3]
 
         root_base = Path(self.domain_reference).parts[-1]
 
@@ -780,16 +637,16 @@ def report_stdout(evaluator: Evaluator, verbosity):
     results = evaluator.get_results()
     _path_can = evaluator.domain_candidate
     _path_ref = evaluator.domain_reference
-    evaluation_date = date.today().isoformat()
+    evaluation_date = datetime.date.today().isoformat()
     print(f'[INFO ] Evaluation Summary (candidates: "{_path_can}" vs. reference: "{_path_ref}" ({evaluation_date})')
     for result in results:
         (gt_type, n_total, mean_total, med, _n_refs) = result.get_defaults()
-        add_stats = f', std: {result.std:.2f}, median: {med:.2f}' if n_total > 1 else ''
-        print(f'[INFO ] "{gt_type}"\t∅: {mean_total:.2f}\t{n_total} items, {_n_refs} refs{add_stats}')
+        add_stats = f', std: {result.std:5.2f}, median: {med:5.2f}' if n_total > 1 else ''
+        print(f'[INFO ] "{gt_type}"\t∅: {mean_total:5.2f}\t{n_total: 3d} items, {_n_refs:_} refs{add_stats}')
         if result.cleared_result:
             (_, n_t2, mean2, med2, n_c2) = result.cleared_result.get_defaults()
             ccr_std = result.cleared_result.std
             drops = n_total - n_t2
             if drops > 0:
                 print(
-                    f'[INFO ] "{gt_type}"\t∅: {mean2:.2f}\t{n_t2} items (-{drops}), {n_c2} refs, std: {ccr_std:.2f}, median: {med2:.2f}')
+                    f'[INFO ] "{gt_type}(-{drops})"\t∅: {mean2:5.2f}\t{n_t2: 3d} items, {n_c2:_} refs, std: {ccr_std:5.2f}, median: {med2:5.2f}')

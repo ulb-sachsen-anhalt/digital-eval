@@ -1,6 +1,0 @@
-rapidfuzz
-numpy
-nltk
-requests
-docker
-digital-object==0.2.0

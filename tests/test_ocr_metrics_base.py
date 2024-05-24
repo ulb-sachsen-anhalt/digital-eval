@@ -5,7 +5,7 @@ import random
 
 import pytest
 
-import digital_eval.metrics as deme
+import digital_eval.metrics as digem
 
 # default reference
 THE_COMBINED_A_FOX = 'the á lazy brown fox jumps over the hump'
@@ -23,11 +23,11 @@ def test_metric_unicode_normalization_happens():
     # arrange
     raw1 = 'the á lazy brown fox jumps over the hump'
     raw2 = THE_COMBINED_A_FOX
-    norm1 = deme.normalize_unicode(raw1, uc_norm_by=deme.UC_NORMALIZATION_NFKD)
-    norm2 = deme.normalize_unicode(raw2, uc_norm_by=deme.UC_NORMALIZATION_NFKD)
+    norm1 = digem.normalize_unicode(raw1, uc_norm_by=digem.UC_NORMALIZATION_NFKD)
+    norm2 = digem.normalize_unicode(raw2, uc_norm_by=digem.UC_NORMALIZATION_NFKD)
 
     # act
-    similarity = deme.levenshtein_norm(norm1, norm2)
+    similarity = digem.levenshtein_norm(norm1, norm2)
     assert 1.0 == pytest.approx(similarity, abs=1e-6)
 
     # assert
@@ -54,14 +54,14 @@ def test_metric_unicode_normalization_not_happens():
     # arrange
     raw1 = THE_LAZY_FOX
     raw2 = THE_COMBINED_A_FOX
-    norm1_nfc = deme.normalize_unicode(raw1, uc_norm_by=deme.UC_NORMALIZATION_DEFAULT)
-    norm1_nfkd = deme.normalize_unicode(raw1, uc_norm_by=deme.UC_NORMALIZATION_NFKD)
-    norm2_nfc = deme.normalize_unicode(raw2, uc_norm_by=deme.UC_NORMALIZATION_DEFAULT)
-    norm2_nfkd = deme.normalize_unicode(raw2, uc_norm_by=deme.UC_NORMALIZATION_NFKD)
+    norm1_nfc = digem.normalize_unicode(raw1, uc_norm_by=digem.UC_NORMALIZATION_DEFAULT)
+    norm1_nfkd = digem.normalize_unicode(raw1, uc_norm_by=digem.UC_NORMALIZATION_NFKD)
+    norm2_nfc = digem.normalize_unicode(raw2, uc_norm_by=digem.UC_NORMALIZATION_DEFAULT)
+    norm2_nfkd = digem.normalize_unicode(raw2, uc_norm_by=digem.UC_NORMALIZATION_NFKD)
 
     # act
-    sim_nfc = deme.levenshtein_norm(norm1_nfc, norm2_nfc)
-    sim_nfkd = deme.levenshtein_norm(norm1_nfkd, norm2_nfkd)
+    sim_nfc = digem.levenshtein_norm(norm1_nfc, norm2_nfc)
+    sim_nfkd = digem.levenshtein_norm(norm1_nfkd, norm2_nfkd)
 
     # assert
     assert 0.95 == sim_nfc
@@ -72,7 +72,7 @@ def test_metric_calculate_character_edit_distance():
     """explore edit-distance"""
     str1 = 'sthe lazy brown fox jumps overthe hump'
     str2 = 'fthe lazy brown fox jumps ouer the hump'
-    distance = deme.levenshtein_norm(str1, str2)
+    distance = digem.levenshtein_norm(str1, str2)
     assert 0.923 == pytest.approx(distance, 1e-4)
 
 
@@ -84,7 +84,7 @@ def test_metric_bot_ident():
     random.shuffle(list2)
     str2 = ' '.join(list2)
 
-    similarity = deme.bag_of_tokens(gt1.split(), str2.split())
+    similarity = digem.bag_of_tokens(gt1.split(), str2.split())
     assert similarity == 1.0
     assert len(gt1.split()) == len(str2.split())
 
@@ -98,7 +98,7 @@ def test_metric_bot_candidate_with_only_repetitions():
     str2 = "the dizzy brown fox fox fox jumps"
 
     # actsert
-    assert 0.833 == pytest.approx(deme.bag_of_tokens(gt1.split(), str2.split()), 1e-3)
+    assert 0.833 == pytest.approx(digem.bag_of_tokens(gt1.split(), str2.split()), 1e-3)
 
 
 def test_metric_bot_miss_tokens():
@@ -108,7 +108,7 @@ def test_metric_bot_miss_tokens():
     str2 = "the brown fux jumps"
 
     # acsert
-    assert 0.66 == pytest.approx(deme.bag_of_tokens(gt1.split(), str2.split()), abs=1e-2)
+    assert 0.66 == pytest.approx(digem.bag_of_tokens(gt1.split(), str2.split()), abs=1e-2)
 
 
 def test_metrics_token_based_more_gt_than_tc():
@@ -129,7 +129,7 @@ def test_metrics_token_based_more_gt_than_tc():
     cand = "faule springt Fuchs Hecke".split()
 
     # act
-    result = deme.levenshtein_norm(gt1, cand)
+    result = digem.levenshtein_norm(gt1, cand)
 
     # assert
     assert 0.2857 == pytest.approx(result, rel=1e-4)
@@ -144,7 +144,7 @@ def test_metrics_token_based_equal():
     cand = "der fahle Fuchs springt über die Hecke"
 
     # act
-    sim = deme.levenshtein_norm(gt1.split(), cand.split())
+    sim = digem.levenshtein_norm(gt1.split(), cand.split())
 
     # assert
     assert 1.0 == sim
@@ -159,7 +159,7 @@ def test_metrics_token_based_no_test_candidate():
     gt1 = "ein Dachs springt die Hecke"
 
     # act
-    diff = deme.levenshtein_norm(gt1.split(), [], inverse=True)
+    diff = digem.levenshtein_norm(gt1.split(), [], inverse=True)
 
     # assert
     assert diff == 1.0

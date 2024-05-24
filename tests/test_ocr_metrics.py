@@ -5,7 +5,7 @@ import random
 
 import pytest
 
-import digital_eval.metrics as deme
+import digital_eval.metrics as digem
 
 # default reference
 THE_COMBINED_A_FOX = 'the á lazy brown fox jumps over the hump'
@@ -20,7 +20,7 @@ def test_metric_unicode_normalization_textual_metric():
     """
 
     # arrange
-    char_metric = deme.MetricChars()
+    char_metric = digem.MetricChars()
     char_metric.reference = THE_LAZY_FOX
     char_metric.candidate = THE_COMBINED_A_FOX
 
@@ -32,7 +32,7 @@ def test_metric_characters_from_empty_gt():
     """Total un-similarity"""
 
     # arrange
-    _metric = deme.MetricChars()
+    _metric = digem.MetricChars()
     # _metric.preprocessings = [_filter_whitespaces]
     _metric.reference = ''
     _metric.candidate = THE_LAZY_FOX
@@ -45,7 +45,7 @@ def test_metric_letter_from_empty_gt_and_empty_candidate():
     """Behavor: Similarity of empty strings"""
 
     # arrange
-    _metric = deme.MetricLetters()
+    _metric = digem.MetricLetters()
     _metric.reference = ''
     _metric.candidate = ''
 
@@ -57,7 +57,7 @@ def test_metric_words_with_only_slight_difference():
     """simple word accurracy test"""
 
     # arrange
-    _metric = deme.MetricWords()
+    _metric = digem.MetricWords()
     _metric.reference = THE_LAZY_FOX
     _metric.candidate = THE_FOX_LAZY
 
@@ -75,7 +75,7 @@ def test_metric_wa_with_identical_data():
     """simple word similarity for similar inputs"""
 
     # arrange
-    _metric = deme.MetricWords()
+    _metric = digem.MetricWords()
     _metric.reference = THE_LAZY_FOX
     _metric.candidate = THE_LAZY_FOX
 
@@ -87,7 +87,7 @@ def test_metric_bow_from_reasonable_input():
     """simple bag of words test"""
 
     # arrange
-    _metric = deme.MetricBoW()
+    _metric = digem.MetricBoW()
     _metric.reference = THE_LAZY_FOX
     _metric.candidate = THE_FOX_LAZY
 
@@ -99,7 +99,7 @@ def test_metric_bow_from_empty_gt_and_empty_candidate():
     """how to handle empty data - means: no errors"""
 
     # arrange
-    _metric = deme.MetricBoW()
+    _metric = digem.MetricBoW()
     _metric.reference = ''
     _metric.candidate = ''
 
@@ -117,7 +117,7 @@ def test_bow_ocrd_similarity_rate():
     """
 
     # arrange
-    _metric = deme.MetricBoW()
+    _metric = digem.MetricBoW()
     _metric.reference = "der Mann steht an der Ampel"
     _metric.candidate = "cer Mann fteht an der Ampel"
 
@@ -135,7 +135,7 @@ def test_bow_ocrd_spec_similarity_rate_ref_contains_more_data():
     """
 
     # arrange
-    _metric = deme.MetricBoW()
+    _metric = digem.MetricBoW()
     _metric.reference = "der Mann steht an der roten Ampel"
     _metric.candidate = "cer Mann fteht an der Ampel"
 
@@ -153,7 +153,7 @@ def test_bow_ocrd_spec_similarity_rate_ref_contains_less_data():
     """
 
     # arrange
-    _metric = deme.MetricBoW()
+    _metric = digem.MetricBoW()
     _metric.reference = "der Mann steht an der Ampel"
     _metric.candidate = "cer Mann fteht an der schönen roten Ampel"
 
@@ -171,7 +171,7 @@ def test_metric_character_accuracy():
     str2 = 'fthe lazy brown fox jumps ouer the hump'
 
     # arrange
-    char_metric = deme.MetricChars()
+    char_metric = digem.MetricChars()
     char_metric.reference = str1
     char_metric.candidate = str2
 
@@ -187,7 +187,7 @@ def test_metric_bot_ident():
     random.shuffle(list2)
     str2 = ' '.join(list2)
 
-    result = deme.bag_of_tokens(gt1.split(), str2.split())
+    result = digem.bag_of_tokens(gt1.split(), str2.split())
     assert result == 1.0
     assert len(gt1.split()) == len(str2.split())
 
@@ -201,7 +201,7 @@ def test_metric_bot_candidate_with_only_repetitions():
     str2 = "the dizzy brown fox fox fox jumps"
 
     # actsert
-    assert 0.83 == pytest.approx(deme.bag_of_tokens(gt1.split(), str2.split()), abs=1e-2)
+    assert 0.83 == pytest.approx(digem.bag_of_tokens(gt1.split(), str2.split()), abs=1e-2)
 
 
 def test_metric_bot_miss_tokens():
@@ -211,7 +211,7 @@ def test_metric_bot_miss_tokens():
     str2 = "the brown fux jumps"
 
     # acsert
-    assert 0.66 == pytest.approx(deme.bag_of_tokens(gt1.split(), str2.split()), abs=1e-2)
+    assert 0.66 == pytest.approx(digem.bag_of_tokens(gt1.split(), str2.split()), abs=1e-2)
 
 
 def test_ir_metric_precision_fox():
@@ -219,7 +219,7 @@ def test_ir_metric_precision_fox():
     having all tokens included (minus stopwords)"""
 
     # arrange
-    m_prec = deme.MetricIRPre()
+    m_prec = digem.MetricIRPre()
     m_prec.reference = THE_LAZY_FOX
     m_prec.candidate = THE_FOX_INPUT_IR
 
@@ -236,7 +236,7 @@ def test_ir_metric_recall_fox():
     (minus stoppwords)"""
 
     # arrange
-    m_prec = deme.MetricIRRec()
+    m_prec = digem.MetricIRRec()
     m_prec.reference = THE_LAZY_FOX
     m_prec.candidate = THE_FOX_INPUT_IR
 
@@ -256,7 +256,7 @@ def test_ir_metrics_precision_english_poor_candidate():
     a rather poor candidate"""
 
     # arrange
-    pre = deme.MetricIRPre()
+    pre = digem.MetricIRPre()
     pre.reference = THE_LAZY_FOX
     pre.candidate = IR_CANDIDATE_TEXT
 
@@ -271,7 +271,7 @@ def test_ir_metrics_recall_english_poor_candidate():
     a rather poor candidate"""
 
     # arrange
-    rec = deme.MetricIRRec()
+    rec = digem.MetricIRRec()
     rec.reference = THE_LAZY_FOX
     rec.candidate = IR_CANDIDATE_TEXT
 
@@ -284,7 +284,7 @@ def test_ir_metrics_fmeasure_english_poor_candidate():
     a rather poor candidate"""
 
     # arrange
-    metric_fm = deme.MetricIRFM()
+    metric_fm = digem.MetricIRFM()
     metric_fm.reference = THE_LAZY_FOX
     metric_fm.candidate = IR_CANDIDATE_TEXT
 
@@ -302,7 +302,7 @@ def test_ir_metrics_precision_german():
     and very nice candidate precision"""
 
     # arrange
-    prec = deme.MetricIRPre(languages=['german'])
+    prec = digem.MetricIRPre(languages=['german'])
     prec.reference = IR_REFERENCE_TEXT_GERMAN
     prec.candidate = IR_CANDIDATE_TEXT_GERMAN
 
@@ -315,7 +315,7 @@ def test_ir_metrics_recall_german():
     and very nice candidate recall"""
 
     # arrange
-    rec = deme.MetricIRRec(languages=['german'])
+    rec = digem.MetricIRRec(languages=['german'])
     rec.reference = IR_REFERENCE_TEXT_GERMAN
     rec.candidate = IR_CANDIDATE_TEXT_GERMAN
 
@@ -328,7 +328,7 @@ def test_ir_metrics_precision_german_poor_candidate():
     and rather poor candidate"""
 
     # arrange
-    metric_pre = deme.MetricIRPre(languages=['german'])
+    metric_pre = digem.MetricIRPre(languages=['german'])
     metric_pre.reference = IR_CANDIDATE_TEXT_GERMAN
     metric_pre.candidate = IR_REFERENCE_TEXT_GERMAN_POOR
 
@@ -341,7 +341,7 @@ def test_ir_metrics_recall_german_poor_candidate():
     and rather poor candidate"""
 
     # arrange
-    metric_rec = deme.MetricIRRec(languages=['german'])
+    metric_rec = digem.MetricIRRec(languages=['german'])
     metric_rec.reference = IR_CANDIDATE_TEXT_GERMAN
     metric_rec.candidate = IR_REFERENCE_TEXT_GERMAN_POOR
 
@@ -367,7 +367,7 @@ def test_metrics_token_based_more_gt_than_tc():
     cand = "faule springt Fuchs Hecke".split()
 
     # act
-    m_word = deme.MetricWords()
+    m_word = digem.MetricWords()
     m_word._data_reference = gt1
     m_word._data_candidate = cand
 

@@ -7,16 +7,16 @@ Python3 Tool to report evaluation outcomes from mass digitalization workflows.
 
 ## Features
 
-* match automatically groundtruth (i.e. reference data) and candidates by filename
+* match groundtruth (i.e. reference data) and candidates by filename start
 * use geometric information to evaluate only specific frame (i.e. specific column or region from large page) of
   candidates (requires ALTO or PAGE format)
-* aggregate evaluation outcome on domain range (with multiple subdomains)
+* aggregate evaluation outcomes on domain range (with multiple subdomains) according to folder layout
 * choose from textual metrics based on characters or words plus common Information Retrieval
-* choose between accuracy / error rate and different UTF-8 Python norms
+* choose from different UTF-8 Python norms
 * formats: ALTO, PAGE or plain text for both groundtruth and candidates
 * speedup with parallel execution
 * additional OCR util:
-  * filter custom areas of single OCR files
+  * filter custom areas of single OCR files of ALTO files
 
 ## Installation
 
@@ -28,13 +28,12 @@ pip install digital-eval
 
 ### Metrics
 
-Calculate similarity (`acc`) or difference (`err`) ratios between single reference/groundtruth and test/candidate item.
+#### Edit-Distance based Strin Similarity
 
-#### Edit-Distance based
-
-Character-based text string minus whitechars (`Cs`, `Characters`) or Letter-based (`Ls`, `Letters`) minus whites,
-punctuation and digits.
-Word/Token-based edit-distance of single tokens identified by whitespaces.
+Calculate similarity for each single reference/groundtruth and test/candidate item.
+Complete haracter-based text string (`Cs`, `Characters`) or Letter-based (`Ls`, `Letters`) minus whitespaces,
+punctuation and common digits (arabic, persian). 
+Word/Token-based edit-distance of single tokens identified by Word or String elements or whitespaces, depending on data.
 
 #### Set based
 
@@ -141,8 +140,8 @@ digital-eval --help
 
 Contributions, suggestions and proposals welcome!
 
-## Licence
+## License
 
 Under terms of the [MIT license](https://opensource.org/licenses/MIT).
 
-**NOTE**: This software depends on other packages that _may_ be licensed under different open source licenses.
+**NOTE**: This software depends on packages that _may_ be licensed under different terms.

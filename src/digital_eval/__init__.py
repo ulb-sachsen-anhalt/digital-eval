@@ -1,6 +1,5 @@
-#
-# provided API exports
-#
+"""digital eval main API"""
+__version__ = '1.6.0'
 from .evaluation import (
     Evaluator,
     find_groundtruth,
@@ -18,4 +17,3 @@ from .metrics import (
     MetricIRRec,
     MetricIRFM,
 )
-

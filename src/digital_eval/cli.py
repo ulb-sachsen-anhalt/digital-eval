@@ -2,12 +2,9 @@
 """OCR QA Evaluation CLI"""
 
 import argparse
-import datetime as dt
 import os
 import sys
-from typing import (
-    List, Type
-)
+import typing
 
 import digital_eval as digev
 import digital_eval.dictionary_metrics.common as digev_cm
@@ -46,29 +43,18 @@ METRIC_DICT = {
 }
 
 
-def _get_info():
-    here = os.path.abspath(os.path.dirname(__file__))
-    _v = ''
-    _t = ''
-    _fp = os.path.join(here, 'VERSION')
-    with open(_fp) as fp:
-        _v = fp.read()
-    _t = dt.datetime.fromtimestamp(os.stat(_fp).st_mtime).strftime("%Y-%m-%d")
-    return f'v{_v}/{_t}'
-
-
 def _initialize_metrics(
         the_metrics,
         norm,
-) -> List[digem.SimilarityMetric]:
+) -> typing.List[digem.SimilarityMetric]:
     _tokens = the_metrics.split(',')
     try:
-        metric_objects: List[digem.SimilarityMetric] = []
+        metric_objects: typing.List[digem.SimilarityMetric] = []
         for m in _tokens:
-            clazz: Type[digem.SimilarityMetric] = METRIC_DICT[m]
+            clazz: typing.Type[digem.SimilarityMetric] = METRIC_DICT[m]
             if 'Dict' in m:
                 norm = digem.UC_NORMALIZATION_NFKD
-            metric_inst: digem.SimilarityMetric = clazz(normalization=norm) 
+            metric_inst: digem.SimilarityMetric = clazz(normalization=norm)
             metric_objects.append(metric_inst)
         return metric_objects
     except KeyError as _err:
@@ -78,30 +64,66 @@ def _initialize_metrics(
         sys.exit(1)
 
 
-########
-# MAIN #
-########
-def _main(
-        path_candidates,
-        path_reference,
-        metrics,
-        utf8norm,
-        # calc,
-        xtra,
-        is_sequential=False,
-):
+#########
+# START #
+#########
+def start_evaluation(parse_args: typing.Dict):
+    """Main workflow"""
+
+    path_candidates = parse_args["candidates"]
+    path_reference = parse_args["reference"]
+    metrics: str = parse_args["metrics"]
+    utf8norm = parse_args["utf8"]
+    verbosity = parse_args["verbosity"]
+    is_seq = parse_args["sequential"] if "sequential" in parse_args else False
+    xtra = parse_args["extra"] if "extra" in parse_args else None
+
+    if "language" in parse_args:
+        digem.MetricDictionary.LANGUAGE = parse_args["language"]
+    uses_lang_tool: bool = 'DictLT' in metrics or "DictionaryLangTool" in metrics
+    if uses_lang_tool:
+        lt_url: str = parse_args["lt_api_url"] if "lp_api_url" in parse_args else LanguageTool.DEFAULT_URL
+        LanguageTool.initialize(lt_url)
+
+    # go on with basic validation
+    if not os.path.isdir(path_candidates):
+        print(f'[ERROR] input "{path_candidates}": invalid directory! exit!')
+        sys.exit(1)
+    if path_reference and not os.path.isdir(path_reference):
+        print(f'[ERROR] reference "{path_reference}": invalid directory! exit!')
+        sys.exit(1)
+
+    # sanitize trailing slash
+    if not isinstance(path_candidates, str):
+        path_candidates = str(path_candidates)
+    if not isinstance(path_reference, str):
+        path_reference = str(path_reference)
+    path_candidates = path_candidates[:-1] if path_candidates.endswith('/') else path_candidates
+    path_reference = path_reference[:-1] if path_reference.endswith('/') else path_reference
+
+    # if candidates and both reference provided: do domains match?
+    if path_candidates and path_reference:
+        _base_can = os.path.basename(path_candidates)
+        _base_ref = os.path.basename(path_reference)
+        if _base_can != _base_ref:
+            print(f"[WARN ] start domains '{_base_can}' and '{_base_ref}' mismatch, summary might be inaccurate!")
+
+    # some diagnostics
+    if verbosity >= 2:
+        args = f"{path_candidates}, {path_reference}, {verbosity}, {xtra}"
+        print(f'[DEBUG] called with {args}')
+
     # create basic evaluator instance
     evaluator = digev.Evaluator(
         path_candidates,
-        verbosity=VERBOSITY,
+        verbosity=verbosity,
         extras=xtra,
     )
     evaluator.metrics = _initialize_metrics(metrics, norm=utf8norm)#, calc=calc)
-    # evaluator.calc = calc
-    if VERBOSITY >= 1:
-        print(f"[DEBUG] text normalized using '{utf8norm}' values for '{metrics}'")
+    if verbosity >= 1:
+        print(f"[DEBUG] text normalized using '{utf8norm}' code points for '{metrics}'")
 
-    evaluator.is_sequential = is_sequential
+    evaluator.is_sequential = is_seq
     evaluator.domain_reference = path_reference
 
     # gather structure information
@@ -122,7 +144,7 @@ def _main(
     n_diff = n_entries - len(gt_entries)
     gt_missing = set(gt_entries) ^ set(candidates)
     rnd_str = f" ({gt_missing})" if gt_missing else ""
-    if VERBOSITY >= 1:
+    if verbosity >= 1:
         print(f'[DEBUG] from "{n_entries}" filtered "{n_diff}" candidates missing groundtruth{rnd_str}')
 
     # trigger actual evaluation
@@ -135,110 +157,67 @@ def _main(
     evaluator.eval_map()
 
     # serialize stdout report
-    if VERBOSITY >= 0:
-        digev.report_stdout(evaluator, VERBOSITY)
-    
+    if verbosity >= 0:
+        digev.report_stdout(evaluator, verbosity)
+
     # for testing purposes
-    return evaluator.get_results()
+    eval_results =  evaluator.get_results()
+
+    # final clean-up
+    if uses_lang_tool:
+        LanguageTool.deinitialize()
+
+    return eval_results
 
 
 def start():
-    PARSER = argparse.ArgumentParser(description=f"""
-        Evaluate Mass Digital Data. ({_get_info()})
-        """)
-    PARSER.add_argument(
-        "candidates",
-        help="Root Directory for evaluation candidates"
-    )
-    PARSER.add_argument("-ref", "--reference",
+    """Wrap argparsing"""
+    parser = argparse.ArgumentParser(description=f"Evaluate Mass Digitalization Data {digev.__version__}")
+    parser.add_argument("candidates",
+                        help="Root Directory for evaluation candidates"
+                        )
+    parser.add_argument("-ref", "--reference",
                         required=False,
                         help="Root directory for Reference/Groundtruth data (optional, but necessary for most metrics)"
                         )
-    PARSER.add_argument("-v", "--VERBOSITY",
+    parser.add_argument("-v", "--verbosity",
                         action='count',
                         default=DEFAULT_VERBOSITY,
                         required=False,
                         help=f"Verbosity flag. To increase, append multiple 'v's (optional; default: '{DEFAULT_VERBOSITY}')"
                         )
-    PARSER.add_argument("--metrics",
+    parser.add_argument("--metrics",
                         default=DEFAULT_OCR_METRICS,
                         required=False,
                         help=f"List of metrics to use (optional, default: '{DEFAULT_OCR_METRICS}'; available: '{','.join(METRIC_DICT.keys())}')"
                         )
-    PARSER.add_argument("--utf8",
+    parser.add_argument("--utf8",
                         default=DEFAULT_UTF8_NORM,
                         required=False,
                         help=f"UTF-8 Unicode Python Normalization (optional; default: '{DEFAULT_UTF8_NORM}'; available: 'NFC','NFKC','NFD','NFKD')",
                         )
-    PARSER.add_argument("-s", "--sequential",
+    parser.add_argument("-s", "--sequential",
                         action='store_true',
                         required=False,
                         help="Execute calculations sequentially (optional; default: 'False')",
                         )
-    PARSER.add_argument("-x", "--extra",
+    parser.add_argument("-x", "--extra",
                         required=False,
                         help="pass additional information to evaluation, like 'ignore_geometry' (compare only text, ignore coords)"
                         )
-    PARSER.add_argument('-l', "--language",
+    parser.add_argument('-l', "--language",
                         default=digev_cm.LANGUAGE_KEY_DEFAULT,
                         choices=digev_cm.LANGUAGE_KEYS,
                         required=False,
                         help=f"Language code for LanguagTool according to ISO 639-2 (optional; default: '{digev_cm.LANGUAGE_KEY_DEFAULT}')",
                         )
-    PARSER.add_argument('-u', "--lt-api-url",
+    parser.add_argument('-u', "--lt-api-url",
                         default=LanguageTool.DEFAULT_URL,
                         required=False,
                         help=f"Language Tool Api URL (optional; default: '{LanguageTool.DEFAULT_URL}')",
                         )
-    PARSER.set_defaults(sequential=False)
-
-    ARGS = vars(PARSER.parse_args())
-    path_candidates = ARGS["candidates"]
-    path_reference = ARGS["reference"]
-    global VERBOSITY
-    VERBOSITY = ARGS["VERBOSITY"]
-    IS_SEQUENTIAL = ARGS["sequential"]
-    xtra = ARGS["extra"]
-    metrics: str = ARGS["metrics"]
-    utf8norm = ARGS["utf8"]
-    digem.MetricDictionary.LANGUAGE = ARGS["language"]
-    lt_api_url = ARGS["lt_api_url"]
-
-    uses_lang_tool: bool = 'DictLT' in metrics or "DictionaryLangTool" in metrics
-
-    if uses_lang_tool:
-        lt_url: str = lt_api_url if LanguageTool.DEFAULT_URL != lt_api_url else LanguageTool.DEFAULT_URL
-        LanguageTool.initialize(lt_url)
-    # go on
-    # basic validation
-    if not os.path.isdir(path_candidates):
-        print(f'[ERROR] input "{path_candidates}": invalid directory! exit!')
-        sys.exit(1)
-    if path_reference and not os.path.isdir(path_reference):
-        print(f'[ERROR] reference "{path_reference}": invalid directory! exit!')
-        sys.exit(1)
-
-    # sanitize trailing slash
-    path_candidates = path_candidates[:-1] if path_candidates.endswith('/') else path_candidates
-    path_reference = path_reference[:-1] if path_reference.endswith('/') else path_reference
-
-    # if candidates and both reference provided: do domains match?
-    if path_candidates and path_reference:
-        _base_can = os.path.basename(path_candidates)
-        _base_ref = os.path.basename(path_reference)
-        if _base_can != _base_ref:
-            print(f"[WARN ] start domains '{_base_can}' and '{_base_ref}' mismatch, summary might be inaccurate!")
-
-    # some diagnostics
-    if VERBOSITY >= 2:
-        args = f"{path_candidates}, {path_reference}, {VERBOSITY}, {xtra}"
-        print(f'[DEBUG] called with {args}')
-
-    # here we go
-    _main(path_candidates, path_reference, metrics, utf8norm, xtra, is_sequential=IS_SEQUENTIAL)
-
-    if uses_lang_tool:
-        LanguageTool.deinitialize()
+    main_args = vars(parser.parse_args())
+    start_evaluation(main_args)
 
 
 if __name__ == "__main__":

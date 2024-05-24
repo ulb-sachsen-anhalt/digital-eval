@@ -5,7 +5,7 @@ import shutil
 
 from pathlib import Path
 
-import digital_eval.cli as dival
+import digital_eval.cli as dig
 
 from .conftest import TEST_RES_DIR
 
@@ -25,7 +25,7 @@ def test_mwe_cli(tmp_path, capsys):
     """
 
     # arrange
-    dival.VERBOSITY = 1
+    dig.VERBOSITY = 1
     src_candidates = TEST_RES_DIR / 'candidate' / 'frk_alto'
     src_reference = TEST_RES_DIR / 'groundtruth' / 'page'
     dst_candidates = tmp_path / 'candidate' / _DOMAIN_LABEL
@@ -38,16 +38,18 @@ def test_mwe_cli(tmp_path, capsys):
     assert _DOMAIN_LABEL == tmp_reference.name
 
     # act
-    _results = dival._main(dst_candidates, dst_reference,
-                           dival.DEFAULT_OCR_METRICS, dival.DEFAULT_UTF8_NORM, None)
+    cli_args = {"candidates": dst_candidates, "reference": dst_reference,
+                "metrics": dig.DEFAULT_OCR_METRICS,
+                "verbosity": 1,
+                "utf8": dig.DEFAULT_UTF8_NORM,
+                "sequential": True}
+    eval_results = dig.start_evaluation(cli_args)
 
     # assert
+    assert len(eval_results) == 4
     captured = capsys.readouterr().out
-    assert captured.startswith("[DEBUG] text normalized using 'NFC'")
-    assert len(captured) == 1027
     std_lines = captured.split('\n')
     assert len(std_lines) == 11
-    assert std_lines[1].startswith('[DEBUG] from "5" filtered "3" candidates')
+    assert std_lines[0] == "[DEBUG] text normalized using 'NFC' code points for 'Cs,Ls'"
+    assert str(std_lines[1]).startswith('[DEBUG] from "5" filtered "3" candidates')
     assert std_lines[4] == "[DEBUG] [1667522809_J_0001_0002](art) [Cs:39.20(5309), Ls:38.54(4383)(- 0.66)]"
-    assert len(_results) == 4
-    assert _results[0]
