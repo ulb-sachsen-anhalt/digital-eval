@@ -48,12 +48,12 @@ def strip_outliers_from(data_tuples, fence_ratio=1.5):
 
     data_points = [e[1] for e in data_tuples]
     median = np.median(data_points)
-    Q1 = np.median([v for v in data_points if v < median])
-    Q3 = np.median([v for v in data_points if v > median])
+    quart_one = np.median([v for v in data_points if v < median])
+    quart_thr = np.median([v for v in data_points if v > median])
     regulars = [data
                 for data in data_tuples
-                if data[1] >= (Q1 - fence_ratio * (Q3 - Q1)) and data[1] <= (Q1 + fence_ratio * (Q3 - Q1))]
-    return (regulars, Q1, Q3)
+                if data[1] >= (quart_one - fence_ratio * (quart_thr - quart_one)) and data[1] <= (quart_one + fence_ratio * (quart_thr - quart_one))]
+    return (regulars, quart_one, quart_thr)
 
 
 def get_statistics(data_points):
@@ -65,11 +65,13 @@ def get_statistics(data_points):
     return (the_mean, the_deviation, the_median)
 
 
-def gather_candidates(start_path) -> typing.List[EvalEntry]:
+def gather_candidates(start_path, file_ext='.xml') -> typing.List[EvalEntry]:
+    """gather all files from start_path, by default
+    XML-like (ALTO, PAGE)"""
     candidates = []
     if os.path.isdir(start_path):
         for curr_dir, _, files in os.walk(start_path):
-            xml_files = [f for f in files if str(f).endswith('.xml')]
+            xml_files = [f for f in files if str(f).endswith(file_ext)]
             if xml_files:
                 for xml_file in xml_files:
                     rel_path = os.path.join(curr_dir, xml_file)
@@ -83,6 +85,9 @@ def gather_candidates(start_path) -> typing.List[EvalEntry]:
 
 
 def find_groundtruth(path_candidate, root_candidates, root_groundtruth):
+    """Find correspondig groundtruth file for
+    given candidate by domain_name
+    """
     candidate_name = os.path.basename(path_candidate)
     candidate_dir = os.path.dirname(path_candidate)
     cand_path_segmts = candidate_dir.split(os.sep)
@@ -100,6 +105,7 @@ def find_groundtruth(path_candidate, root_candidates, root_groundtruth):
     if os.path.exists(groundtruth_filepath_parent):
         path_groundtruth = match_candidate(groundtruth_filepath)
         return path_groundtruth
+    return None
 
 
 def match_candidates(path_candidates, path_gt_file):
