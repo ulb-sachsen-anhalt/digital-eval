@@ -36,25 +36,20 @@ METRIC_DICT = {
     'Precision': digev.MetricIRPre,
     'IRRec': digev.MetricIRRec,
     'Rec': digev.MetricIRRec,
-    'IRFMeasure': digev.MetricIRFM,
-    'FM': digev.MetricIRFM,
     'DictLT': digem.MetricDictionaryLangTool,
     'DictionaryLangTool': digem.MetricDictionaryLangTool,
 }
 
 
-def _initialize_metrics(
-        the_metrics,
-        norm,
-) -> typing.List[digem.SimilarityMetric]:
+def _initialize_metrics(the_metrics, norm) -> typing.List[digem.OCRMetric]:
     _tokens = the_metrics.split(',')
     try:
-        metric_objects: typing.List[digem.SimilarityMetric] = []
+        metric_objects: typing.List[digem.OCRMetric] = []
         for m in _tokens:
-            clazz: typing.Type[digem.SimilarityMetric] = METRIC_DICT[m]
-            if 'Dict' in m:
-                norm = digem.UC_NORMALIZATION_NFKD
-            metric_inst: digem.SimilarityMetric = clazz(normalization=norm)
+            clazz: typing.Type[digem.OCRMetric] = METRIC_DICT[m]
+            metric_inst: digem.OCRMetric = clazz()
+            if isinstance(metric_inst, digem.SimilarityMetric):
+                metric_inst.code_norm = norm
             metric_objects.append(metric_inst)
         return metric_objects
     except KeyError as _err:

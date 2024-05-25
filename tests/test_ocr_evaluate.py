@@ -3,6 +3,8 @@
 
 import os
 import shutil
+
+from pathlib import Path
 from xml.etree.ElementTree import (
     ParseError
 )
@@ -14,6 +16,8 @@ from pytest import (
 
 import digital_eval.evaluation as digev
 import digital_eval.metrics as digem
+import digital_eval.preprocessing as dipre
+import digital_eval.resolve as dire
 
 from .conftest import (
     TEST_RES_DIR
@@ -21,7 +25,7 @@ from .conftest import (
 
 
 def test_match_candidates_alto_candidate_with_coords():
-    actual_matches = digev.match_candidates(f'{TEST_RES_DIR}/candidate/frk_alto',
+    actual_matches = dire.match_candidates(f'{TEST_RES_DIR}/candidate/frk_alto',
                                       f'{TEST_RES_DIR}/groundtruth/alto/1667522809_J_0073_0001_375x2050_2325x9550.xml')
     assert f'{TEST_RES_DIR}/candidate/frk_alto/1667522809_J_0073_0001_part.xml' == actual_matches[0]
 
@@ -29,13 +33,13 @@ def test_match_candidates_alto_candidate_with_coords():
 def test_match_candidates_both_txt_files():
     path_candidates = f'{TEST_RES_DIR}/candidate/txt'
     path_gt = f'{TEST_RES_DIR}/groundtruth/txt/1246734.gt.txt'
-    actual_matches = digev.match_candidates(path_candidates, path_gt)
+    actual_matches = dire.match_candidates(path_candidates, path_gt)
     assert f'{TEST_RES_DIR}/candidate/txt/OCR-Fraktur_1246734.txt' == actual_matches[0]
 
 
 def test_match_candidates_fails_no_groundtruth():
     with pytest.raises(IOError) as exc:
-        digev.match_candidates(
+        dire.match_candidates(
             f'{TEST_RES_DIR}/candidate/txt',
             './test/sresources/txt/no_gt.txt')
     assert "invalid groundtruth data path" in str(exc)
@@ -43,7 +47,7 @@ def test_match_candidates_fails_no_groundtruth():
 
 def test_match_candidates_fails_no_candidates():
     with pytest.raises(IOError) as exc:
-        digev.match_candidates(
+        dire.match_candidates(
             './text/no_results',
             f'{TEST_RES_DIR}/txt/gt/1246734.txt')
     assert "invalid ocr result path" in str(exc)
@@ -54,7 +58,7 @@ def test_match_candidates_groundtruth_txt_candidate_alto():
     path_gt = f'{TEST_RES_DIR}/groundtruth/txt/217745.gt.txt'
 
     # act
-    actual_matches = digev.match_candidates(path_cd, path_gt)
+    actual_matches = dire.match_candidates(path_cd, path_gt)
 
     # assert
     assert actual_matches[0] == f'{TEST_RES_DIR}/candidate/ara_alto/217745.xml'
@@ -68,7 +72,7 @@ def test_piece_to_text_alto_candidate_with_coords():
     p2 = (6200, 3425)
 
     # act
-    _as_lines, _ = digem.digital_object_to_text(alto_path, frame=(p1, p2), oneliner=False)
+    _as_lines, _ = dipre.file_to_text(alto_path, frame=(p1, p2), oneliner=False)
     _gt_type = digev._get_groundtruth_from_filename(alto_path)
 
     # assert
@@ -186,23 +190,23 @@ def test_evaluate_set_with_5_entries(tmp_path):
     evaluator.domain_reference = path_dir_gt
     _metric_ca1 = digem.MetricChars()
     _metric_ca1._value = 95.70
-    _metric_ca1._data_reference = 't' * 810
+    _metric_ca1.data_reference = 't' * 810
     _metric_ca2 = digem.MetricChars()
     _metric_ca2._value = 96.53
-    _metric_ca2._data_reference = 't' * 675
+    _metric_ca2.data_reference = 't' * 675
     _metric_ca3 = digem.MetricChars()
     _metric_ca3._value = 94.91
-    _metric_ca3._data_reference = 't' * 1395
+    _metric_ca3.data_reference = 't' * 1395
     _metric_ca4 = digem.MetricChars()
     _metric_ca4._value = 94.40
-    _metric_ca4._data_reference = 't' * 1466
+    _metric_ca4.data_reference = 't' * 1466
     # outlier !
     _metric_ca5 = digem.MetricChars()
     _metric_ca5._value = 86.44
-    _metric_ca5._data_reference = 't' * 1520
+    _metric_ca5.data_reference = 't' * 1520
     _metric_ca6 = digem.MetricChars()
     _metric_ca6._value = 93.44
-    _metric_ca6._data_reference = 't' * 1520
+    _metric_ca6.data_reference = 't' * 1520
 
     entry1 = digev.EvalEntry(path_dir_c / 'eng' / 'urn+nbn+de+gbv+3+1-135654-p0403-5_eng.xml')
     entry1.path_g = str(path_dir_gt / 'eng' / 'urn+nbn+de+gbv+3+1-135654-p0403-5_eng.gt.xml')
@@ -264,9 +268,10 @@ def test_handle_exception_invalid_literal_for_int():
     """
 
     # arrange
-    path_gt = f'{TEST_RES_DIR}/groundtruth/page/urn+nbn+de+gbv+3+1-792101-p0667-5_ger.gt.xml'
-    eval_entry = digev.EvalEntry('dummy_candidate')
-    eval_entry.path_g = path_gt
+    path_gt = TEST_RES_DIR / 'groundtruth' / 'page' / 'urn+nbn+de+gbv+3+1-792101-p0667-5_ger.gt.xml'
+    assert path_gt.exists()
+    eval_entry = digev.EvalEntry(path_gt)
+    eval_entry.path_g = Path(path_gt).absolute()
 
     # act
     evaluator = digev.Evaluator('dummy_path')
@@ -290,9 +295,9 @@ def test_handle_empty_candidate_information_retrival():
     path_gt = f'{TEST_RES_DIR}/groundtruth/page/urn+nbn+de+gbv+3+1-138193-p0904-0_ger.gt.xml'
     path_cd = f'{TEST_RES_DIR}/candidate/frk_page/urn+nbn+de+gbv+3+1-138193-p0904-0_ger.xml'
     eval_entry = digev.EvalEntry(path_cd)
-    eval_entry.path_g = path_gt
+    eval_entry.path_g = Path(path_gt).absolute()
     evaluator = digev.Evaluator('/data')
-    evaluator.metrics = [digem.MetricIRPre(), digem.MetricIRRec(), digem.MetricIRFM()]
+    evaluator.metrics = [digem.MetricIRPre(), digem.MetricIRRec()]
     evaluator.verbosity = 1
 
     # act
@@ -303,8 +308,6 @@ def test_handle_empty_candidate_information_retrival():
     assert eval_entry.metrics[0].value == 0.0
     assert eval_entry.metrics[1].label == 'Rec'
     assert eval_entry.metrics[1].value == 0.0
-    assert eval_entry.metrics[2].label == 'FM'
-    assert eval_entry.metrics[2].value == 0.0
 
 
 def test_handle_table_text_groundtruth():
@@ -325,9 +328,9 @@ def test_handle_table_text_groundtruth():
     evaluator.metrics = [digem.MetricChars()]
     evaluator._wrap_eval_entry(eval_entry)
 
-    # assert / legacy: 5.825 , actual 4.0
+    # assert / legacy 1: 5.825 / legacy2: 4.0
     _result_cca = eval_entry.metrics[0].value
-    assert 5.8 < _result_cca < 6.1
+    assert 5.9 < _result_cca < 6.1
 
 
 def test_get_box_from_empty_page():
@@ -337,7 +340,7 @@ def test_get_box_from_empty_page():
     _path_gt = f'{TEST_RES_DIR}/groundtruth/page/urn+nbn+de+gbv+3+1-201080-p0034-8_ger.gt.xml'
 
     # act
-    _p1, _p2 = digev.get_bbox_data(_path_gt)
+    _p1, _p2 = digev.get_bounding_box(_path_gt)
 
     # assert 
     assert _p1 == (77, 58)
@@ -353,7 +356,7 @@ def test_get_box_when_line_points_messy():
     _path_gt = f'{TEST_RES_DIR}/groundtruth/page/rahbar-1771946695-00000040.xml'
 
     # act
-    _p1, _p2 = digev.get_bbox_data(_path_gt)
+    _p1, _p2 = digev.get_bounding_box(_path_gt)
 
     # assert
     assert _p1 == (368, 619)

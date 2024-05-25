@@ -1,15 +1,17 @@
-from typing import Final, Dict, Literal, Union, NamedTuple, List
+# from typing import Final, Dict, Literal, Union, NamedTuple, List
+
+import typing
 
 
 # ISO 639-1 https://de.wikipedia.org/wiki/Liste_der_ISO-639-1-Codes
-class LanguageMapItem(NamedTuple):
+class LanguageMapItem(typing.NamedTuple):
     iso_639_2B: str
     iso_639_1: str
     lt_variant: str
 
 
 # https://en.wikipedia.org/wiki/Category:Dialects_of_languages_with_ISO_639-3_code
-LANGUAGE_MAP: Final[Dict[str, LanguageMapItem]] = {
+LANGUAGE_MAP: typing.Dict[str, LanguageMapItem] = {
     'ger': LanguageMapItem(
         iso_639_2B='ger',
         iso_639_1='de',
@@ -78,5 +80,5 @@ LANGUAGE_MAP: Final[Dict[str, LanguageMapItem]] = {
     # 'yid', n.a.
 }
 
-LANGUAGE_KEYS: Final[List[str]] = list(LANGUAGE_MAP.keys())
-LANGUAGE_KEY_DEFAULT: Final[str] = LANGUAGE_KEYS[0]
+LANGUAGE_KEYS: typing.List[str] = list(LANGUAGE_MAP.keys())
+LANGUAGE_KEY_DEFAULT: str = LANGUAGE_KEYS[0]
