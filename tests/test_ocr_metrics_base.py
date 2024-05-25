@@ -7,66 +7,6 @@ import pytest
 
 import digital_eval.metrics as digem
 
-# default reference
-THE_COMBINED_A_FOX = 'the á lazy brown fox jumps over the hump'
-THE_LAZY_FOX = 'the lazy brown fox jumps over the hump'
-THE_FOX_LAZY = 'the fox lazy brown jumps over the hump'
-THE_FOX_INPUT_IR = 'the hump lazy brown fox fox fox jumps'
-
-
-def test_metric_unicode_normalization_happens():
-    """Normalization required and effects examined
-    raw1 has "á" as {U+00E0} => gets canonical decomposed
-    raw2 has "á" as {U+0061}+{U+0301}
-    """
-
-    # arrange
-    raw1 = 'the á lazy brown fox jumps over the hump'
-    raw2 = THE_COMBINED_A_FOX
-    norm1 = digem.normalize_unicode(raw1, uc_norm_by=digem.UC_NORMALIZATION_NFKD)
-    norm2 = digem.normalize_unicode(raw2, uc_norm_by=digem.UC_NORMALIZATION_NFKD)
-
-    # act
-    similarity = digem.levenshtein_norm(norm1, norm2)
-    assert 1.0 == pytest.approx(similarity, abs=1e-6)
-
-    # assert
-    # although both raw string look similar, they differ in fact
-    assert raw1 != raw2
-    # after normalization, they *are* similar
-    assert norm1 == norm2
-    assert len(norm1) == 41
-    # the "á" char from raw1 string gets
-    # decomposed into {U+0061}+{U+0301}
-    # by normalization with de-composition
-    # therefore normalised str is
-    # one char longer
-    assert len(raw1) + 1 == len(norm1)
-
-
-def test_metric_unicode_normalization_not_happens():
-    """Normalization has no effect since
-    the letters "a" and "á" are still different
-    after normalization, they just stay
-    {U+0061} and {U+00e1} for NFC and {U+0061}+{U+0301} for NFKD
-    """
-
-    # arrange
-    raw1 = THE_LAZY_FOX
-    raw2 = THE_COMBINED_A_FOX
-    norm1_nfc = digem.normalize_unicode(raw1, uc_norm_by=digem.UC_NORMALIZATION_DEFAULT)
-    norm1_nfkd = digem.normalize_unicode(raw1, uc_norm_by=digem.UC_NORMALIZATION_NFKD)
-    norm2_nfc = digem.normalize_unicode(raw2, uc_norm_by=digem.UC_NORMALIZATION_DEFAULT)
-    norm2_nfkd = digem.normalize_unicode(raw2, uc_norm_by=digem.UC_NORMALIZATION_NFKD)
-
-    # act
-    sim_nfc = digem.levenshtein_norm(norm1_nfc, norm2_nfc)
-    sim_nfkd = digem.levenshtein_norm(norm1_nfkd, norm2_nfkd)
-
-    # assert
-    assert 0.95 == sim_nfc
-    assert 0.92 == pytest.approx(sim_nfkd, 1e-2)
-
 
 def test_metric_calculate_character_edit_distance():
     """explore edit-distance"""

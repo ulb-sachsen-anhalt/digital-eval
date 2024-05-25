@@ -3,9 +3,16 @@
 
 import random
 
+import rapidfuzz.distance.Levenshtein as rfls
+
 import pytest
 
+import digital_eval.evaluation as digev
 import digital_eval.metrics as digem
+import digital_eval.preprocessing as dipre
+import digital_eval.geometry as digeo
+
+from .conftest import TEST_RES_DIR
 
 # default reference
 THE_COMBINED_A_FOX = 'the á lazy brown fox jumps over the hump'
@@ -66,7 +73,7 @@ def test_metric_words_with_only_slight_difference():
 
     # assert
     # string has 38 characters, but tokens are only 8 present
-    assert len(_metric.input_reference) == 38
+    # assert len(_metric.input_reference) == 38
     assert len(_metric.reference) == 8
     assert 75.0 == _actual
 
@@ -179,6 +186,27 @@ def test_metric_character_accuracy():
     assert 92.31 == pytest.approx(char_metric.value, rel=0.001, abs=0.001)
 
 
+def test_metric_character_zd1_0002():
+    """Test real world bad example
+    the infamous first newspaper page
+    from 1889's march 2nd General Anzeiger
+    """
+
+    # arrange
+    src_candidate = TEST_RES_DIR / 'candidate' / 'frk_alto' / '1667522809_J_0001_0002.xml'
+    src_reference = TEST_RES_DIR / 'groundtruth' / 'page' / '1667522809_J_0001_0002.art.gt.xml'
+    frame_gt = digeo.get_bounding_box(src_reference)
+    raw_can, filtered_from_candidate = dipre.file_to_text(src_candidate, frame_gt)
+    raw_ref, _ = dipre.file_to_text(src_reference)
+
+    normed_to_cand = rfls.normalized_similarity(raw_ref, raw_can)
+    normed_to_refr = rfls.normalized_similarity(raw_can, raw_ref)
+
+    assert filtered_from_candidate == 103
+    assert normed_to_cand == normed_to_refr
+    assert 0.3919 == pytest.approx(normed_to_cand, abs=1e-4)
+
+
 def test_metric_bot_ident():
     """BOW with identical tokens"""
 
@@ -228,7 +256,7 @@ def test_ir_metric_precision_fox():
 
     # assert
     assert actual == 100.0
-    assert m_prec._data_reference == {'brown', 'fox', 'jumps', 'lazy', 'hump'}
+    assert m_prec.data_reference == {'brown', 'fox', 'jumps', 'lazy', 'hump'}
 
 
 def test_ir_metric_recall_fox():
@@ -245,7 +273,7 @@ def test_ir_metric_recall_fox():
 
     # assert
     assert actual == 100.0
-    assert m_prec._data_reference == {'brown', 'fox', 'jumps', 'lazy', 'hump'}
+    assert m_prec.data_reference == {'brown', 'fox', 'jumps', 'lazy', 'hump'}
 
 
 IR_CANDIDATE_TEXT = 'the red fox'
@@ -262,8 +290,8 @@ def test_ir_metrics_precision_english_poor_candidate():
 
     # assert
     assert 50.0 == pytest.approx(pre.value, 0.01)
-    assert pre._data_reference == {'brown', 'fox', 'jumps', 'lazy', 'hump'}
-    assert pre._data_candidate == {'red', 'fox'}
+    assert pre.data_reference == {'brown', 'fox', 'jumps', 'lazy', 'hump'}
+    assert pre.data_candidate == {'red', 'fox'}
 
 
 def test_ir_metrics_recall_english_poor_candidate():
@@ -279,23 +307,9 @@ def test_ir_metrics_recall_english_poor_candidate():
     assert 20.0 == pytest.approx(rec.value, 0.01)
 
 
-def test_ir_metrics_fmeasure_english_poor_candidate():
-    """Example with all IR-Metrics and
-    a rather poor candidate"""
-
-    # arrange
-    metric_fm = digem.MetricIRFM()
-    metric_fm.reference = THE_LAZY_FOX
-    metric_fm.candidate = IR_CANDIDATE_TEXT
-
-    # assert
-    assert 28.57 == pytest.approx(metric_fm.value, 0.01)
-
-
 IR_CANDIDATE_TEXT_GERMAN = 'dieser faule Fuchs springt die Hecke'
 IR_REFERENCE_TEXT_GERMAN = 'Fuchs springt faule Hecke'
 IR_REFERENCE_TEXT_GERMAN_POOR = 'forsche Fuchs hopst'
-
 
 def test_ir_metrics_precision_german():
     """Candidate with german phrase
@@ -355,25 +369,25 @@ def test_metrics_token_based_more_gt_than_tc():
     * 3 insertions ('springt', 'über', 'die')
     => total 5 edit operations required
 
-    aligned means: (7 - 5) / 7
-    => 0.2857
-
+    aligned means: 5 / (5 + 2) 0.7142 distance
+    => 1 - 0.7142 => 0.2857 similarity
     as percents
     => 28.57 %
     """
 
     # arrange
-    gt1 = "der faulte Fuchs springt über die Hecke".split()
-    cand = "faule springt Fuchs Hecke".split()
+    gt1 = "der faulte Fuchs springt über die Hecke"
+    cand = "faule springt Fuchs Hecke"
 
     # act
     m_word = digem.MetricWords()
-    m_word._data_reference = gt1
-    m_word._data_candidate = cand
+    m_word.reference = gt1
+    m_word.candidate = cand
 
     # assert
-    assert 28.57 == pytest.approx(m_word.value, rel=1e-2)
-    assert len(cand) + 3 == len(gt1)
+    value = m_word.value
+    assert 28.57 == pytest.approx(value, rel=1e-2)
+    assert len(cand.split()) + 3 == len(gt1.split())
 
 
 

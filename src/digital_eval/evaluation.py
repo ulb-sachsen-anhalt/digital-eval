@@ -11,8 +11,6 @@ import os
 import re
 import sys
 import typing
-import xml.dom.minidom
-import xml.etree.ElementTree as ET
 
 from pathlib import (
     Path
@@ -22,291 +20,18 @@ import numpy as np
 
 import digital_eval.metrics as digem
 
-PAGE_2013 = 'http://schema.primaresearch.org/PAGE/gts/pagecontent/2013-07-15'
-XML_NS = {'alto': 'http://www.loc.gov/standards/alto/ns-v3#',
-          'pg2013': PAGE_2013}
+from digital_eval.geometry import get_bounding_box
 
 # just use textual information for evaluation
 # do *not* respect any geometrics
 EVAL_EXTRA_IGNORE_GEOMETRY = 'ignore_geometry'
 
 # mark unset values as 'not available'
-NOT_SET = 'n.a.'
+_NOT_SET = 'n.a.'
 
 # how long evaluation shall take maximal
 # where "None" means "no timeout"
 EVAL_TIMEOUT = None
-
-
-def strip_outliers_from(data_tuples, fence_ratio=1.5):
-    """Determine a data set's outliers by interquartile range (IQR)
-    
-    calculate data points 
-     * below median of quartile 1 (lower fence), and
-     * above median of quartile 3 (upper fence)
-    """
-
-    data_points = [e[1] for e in data_tuples]
-    median = np.median(data_points)
-    quart_one = np.median([v for v in data_points if v < median])
-    quart_thr = np.median([v for v in data_points if v > median])
-    regulars = [data
-                for data in data_tuples
-                if data[1] >= (quart_one - fence_ratio * (quart_thr - quart_one)) and data[1] <= (quart_one + fence_ratio * (quart_thr - quart_one))]
-    return (regulars, quart_one, quart_thr)
-
-
-def get_statistics(data_points):
-    """Get common statistics like mean, median and std for data_points"""
-
-    the_mean = np.mean(data_points)
-    the_deviation = np.std(data_points)
-    the_median = np.median(data_points)
-    return (the_mean, the_deviation, the_median)
-
-
-def gather_candidates(start_path, file_ext='.xml') -> typing.List[EvalEntry]:
-    """gather all files from start_path, by default
-    XML-like (ALTO, PAGE)"""
-    candidates = []
-    if os.path.isdir(start_path):
-        for curr_dir, _, files in os.walk(start_path):
-            xml_files = [f for f in files if str(f).endswith(file_ext)]
-            if xml_files:
-                for xml_file in xml_files:
-                    rel_path = os.path.join(curr_dir, xml_file)
-                    entry = (EvalEntry(os.path.abspath(rel_path)))
-                    candidates.append(entry)
-    else:
-        candidates.append(EvalEntry(start_path))
-
-    candidates.sort(key=lambda e: e.path_c)
-    return candidates
-
-
-def find_groundtruth(path_candidate, root_candidates, root_groundtruth):
-    """Find correspondig groundtruth file for
-    given candidate by domain_name
-    """
-    candidate_name = os.path.basename(path_candidate)
-    candidate_dir = os.path.dirname(path_candidate)
-    cand_path_segmts = candidate_dir.split(os.sep)
-    candidate_root_dir = os.path.basename(root_candidates) if os.path.isdir(
-        root_candidates) else os.path.dirname(root_candidates)
-    _segm_cand = cand_path_segmts.pop()
-    _segm_gt = [os.path.splitext(candidate_name)[0]]
-    while candidate_root_dir != _segm_cand:
-        _segm_gt.append(_segm_cand)
-        _segm_cand = cand_path_segmts.pop()
-    _segm_gt.reverse()
-    _gt_path = str(os.sep).join(_segm_gt)
-    groundtruth_filepath = os.path.join(root_groundtruth, _gt_path)
-    groundtruth_filepath_parent = os.path.dirname(groundtruth_filepath)
-    if os.path.exists(groundtruth_filepath_parent):
-        path_groundtruth = match_candidate(groundtruth_filepath)
-        return path_groundtruth
-    return None
-
-
-def match_candidates(path_candidates, path_gt_file):
-    '''Find candidates that match groundtruth'''
-
-    if not os.path.isdir(path_candidates):
-        raise IOError(f'invalid ocr result path "{path_candidates}"')
-    if not os.path.exists(path_gt_file):
-        raise IOError(f'invalid groundtruth data path "{path_gt_file}"')
-
-    gt_filename = os.path.basename(path_gt_file)
-
-    # 0: assume groundtruth is xml data
-    cleared_name = ''
-    if gt_filename.endswith('.xml'):
-        # 1: get image name from metadata
-        doc_root = ET.parse(path_gt_file).getroot()
-        if 'alto' in doc_root.tag:
-            filename_el = doc_root.find(
-                './/alto:sourceImageInformation/alto:fileName', XML_NS)
-            if filename_el is not None:
-                filename_text = filename_el.text
-                if filename_text:
-                    cleared_name = os.path.splitext(filename_text.strip())[0]
-
-        # 2: 2nd try: calculate cleared_name by matching 1st 6 chars as digits from file_name
-        if cleared_name == '' and re.match(r'^[\d{6,}].*', gt_filename):
-            file_name_tokens = gt_filename.split("_")
-            tokens = []
-            if len(file_name_tokens) > 4:
-                tokens = file_name_tokens[:4]
-            elif len(file_name_tokens) == 4:
-                tokens = file_name_tokens[:3]
-                if ".xml" in file_name_tokens[3]:
-                    last_token = file_name_tokens[3].split('.')[0]
-                    tokens = tokens + [last_token]
-            cleared_name = "_".join(tokens)
-
-        matches = [f for f in os.listdir(
-            path_candidates) if names_match(cleared_name, f)]
-        if matches:
-            return [os.path.join(path_candidates, m) for m in matches]
-
-    # 3: assume gt is textfile and name is contained in results data
-    elif re.match(r'^[\d{5,}].*\.txt$', gt_filename):
-        cleared_name = os.path.splitext(gt_filename)[0]
-        matches = [f
-                   for f in os.listdir(path_candidates)
-                   if names_match(cleared_name, f)]
-        if matches:
-            return [os.path.join(path_candidates, m)
-                    for m in matches]
-
-    return []
-
-
-def match_candidate(path_gt_file_pattern):
-    '''Find candidates that match groundtruth'''
-
-    gt_filename = os.path.basename(path_gt_file_pattern)
-
-    # 1: assume groundtruth is straight name like xml data
-    gt_path_xml = path_gt_file_pattern + '.xml'
-    if os.path.exists(gt_path_xml):
-        return gt_path_xml
-
-    # inspect all files in given directory if it fits anyway
-    # assume groundtruth starts with same tokens
-    gt_dir = os.path.dirname(path_gt_file_pattern)
-    gt_files = [f
-                for f in os.listdir(gt_dir)
-                if f.endswith(".xml") or f.endswith(".txt")]
-    for _file in gt_files:
-        if _file.startswith(gt_filename):
-            return os.path.join(gt_dir, _file)
-
-
-def names_match(name_groundtruth, name_candidate):
-    if '.gt' in name_groundtruth:
-        name_groundtruth = name_groundtruth.replace('.gt', '')
-    if name_groundtruth in name_candidate:
-        candidate_ext = os.path.splitext(name_candidate)[1]
-        if candidate_ext == '.txt' or candidate_ext == '.xml':
-            return True
-
-    return False
-
-
-def get_bbox_data(file_path):
-    '''Get Bounding Box Data from given resource, if any exists'''
-
-    if not os.path.exists(file_path):
-        raise IOError(f'{file_path} not existing!')
-
-    # 1: inspect filename
-    file_name = os.path.basename(file_path)
-    result = re.match(r'.*_(\d{2,})x(\d{2,})_(\d{2,})x(\d{2,})', file_name)
-    if result:
-        groups = result.groups()
-        x0 = int(groups[0])
-        x1 = int(groups[2])
-        y1 = int(groups[3])
-        y0 = int(groups[1])
-        return ((x0, y0), (x1, y1))
-
-    with open(file_path, encoding='utf-8') as _handle:
-        # rather brute force approach
-        # to recognize OCR formats inside
-        start_token = _handle.read(128)
-        _frame_points = None
-
-        # switch by estimated ocr format
-        if 'alto' in start_token:
-            # legacy: read from custom ALTO meta data
-            root_element = ET.parse(file_path).getroot()
-            element = root_element.find(
-                './/alto:Tags/alto:OtherTag[@ID="ulb_groundtruth_points"]', XML_NS)
-            if element is not None:
-                points = element.attrib['VALUE'].split(' ')
-                _p1 = points[0].split(',')
-                p1 = (int(_p1[0]), int(_p1[1]))
-                _p2 = points[2].split(',')
-                p2 = (int(_p2[0]), int(_p2[1]))
-                return (p1, p2)
-
-            # read from given alto coordinates
-            raw_elements = root_element.findall('.//alto:String', XML_NS)
-            non_empty = [s for s in raw_elements if s.attrib['CONTENT'].strip(
-            ) and re.match(r'[^\d]', s.attrib['CONTENT'])]
-            return calculate_bounding_box(non_empty, _map_alto)
-
-        elif 'PcGts' in start_token:
-            # read from given page coordinates
-            doc_root = xml.dom.minidom.parse(file_path).documentElement
-            name_space = doc_root.namespaceURI
-            root_element = ET.parse(file_path).getroot()
-            # step one: read PAGE border coords
-            _xpr_page_borders = f'{{{name_space}}}Page/{{{name_space}}}Border/{{{name_space}}}Coords'
-            _page_coords = root_element.findall(_xpr_page_borders)
-            if len(_page_coords) > 0:
-                _frame_points = calculate_bounding_box(_page_coords, _map_page2013)
-            # step two: if possible, go for sub-part geometry
-            _xpr_line_coords = f'.//{{{name_space}}}TextLine/{{{name_space}}}Coords'
-            _line_coords = root_element.findall(_xpr_line_coords)
-            if len(_line_coords) > 0:
-                _frame_points = calculate_bounding_box(_line_coords, _map_page2013)
-            if _frame_points:
-                return _frame_points
-            else:
-                raise RuntimeError(f"{file_path} missing page/line coords!")
-    return None
-
-
-def _map_alto(e: ET.Element) -> typing.Tuple[str, int, int, int, int]:
-    i = e.attrib['ID']
-    x0 = int(e.attrib['HPOS'])
-    y0 = int(e.attrib['VPOS'])
-    x1 = x0 + int(e.attrib['WIDTH'])
-    y1 = y0 + int(e.attrib['HEIGHT'])
-    return (i, x0, y0, x1, y1)
-
-
-def _map_page2013(elem: ET.Element) -> typing.Tuple[str, int, int, int, int]:
-    points = elem.attrib['points'].strip().split(' ')
-    _xs = [int(p.split(',')[0]) for p in points]
-    _ys = [int(p.split(',')[1]) for p in points]
-    return (NOT_SET, min(_xs), min(_ys), max(_xs), max(_ys))
-
-
-def calculate_bounding_box(elements: typing.List[ET.Element], map_func) -> typing.Tuple[int, int, int, int]:
-    """Review element's points to get points for
-    minimum (top-left) and maximum (bottom-right)"""
-
-    all_points = [map_func(e) for e in elements]
-    all_x1 = [p[1] for p in all_points]
-    all_y1 = [p[2] for p in all_points]
-    all_x2 = [p[3] for p in all_points]
-    all_y2 = [p[4] for p in all_points]
-    return ((min(all_x1), min(all_y1)), (max(all_x2), max(all_y2)))
-
-
-def _get_groundtruth_from_filename(file_path) -> str:
-    _file_name = os.path.basename(file_path)
-    result = re.match(r'.*gt.(\w{3,}).xml$', _file_name)
-    if result:
-        return result[1]
-    else:
-        alternative = re.match(r'.*\.(\w{3,})\.gt\.xml$', _file_name)
-        if alternative:
-            return alternative[1]
-        else:
-            return NOT_SET
-
-
-def _normalize_gt_type(label) -> str:
-    if label.startswith('art'):
-        return 'article'
-    elif label.startswith('ann'):
-        return 'announcement'
-    else:
-        return NOT_SET
 
 
 class EvaluationResult:
@@ -348,7 +73,7 @@ class EvalEntry:
     def __init__(self, path):
         self.path_c = path
         self.path_g = None
-        self.gt_type = NOT_SET
+        self.gt_type = _NOT_SET
         self.metrics = []
 
     def __str__(self) -> str:
@@ -388,13 +113,7 @@ class Evaluator:
         RuntimeError: if candidates or reference data missing
     """
 
-    def __init__(
-            self,
-            root_candidates,
-            verbosity=0,
-            extras=None,
-
-    ):
+    def __init__(self, root_candidates, verbosity=0, extras=None):
         """initiate new Evaluator
 
         Args:
@@ -460,58 +179,35 @@ class Evaluator:
 
     def eval_entry(self, entry: EvalEntry) -> EvalEntry:
         """Create evaluation entry for matching pair of 
-        groundtruth and candidate data"""
+        groundtruth and candidate data
+        rather clumsy copy construct due parallelization
+        """
 
         # evaluate metric copies
         _current_metrics = []
 
-        for _m in self.metrics:
-
-            path_g = entry.path_g
-            path_c = entry.path_c
-
+        for metric in self.metrics:
             # read coordinate information (if any provided)
             # to create frame for candidate data
-            coords = get_bbox_data(path_g)
+            coords = get_bounding_box(entry.path_g)
             if coords is not None and self.verbosity >= 2:
                 print(f"[TRACE] token coordinates {coords[0]}, {coords[1]}")
-
-            to_text_func = _m.to_text_func
-
-            # load ground-thruth text
-            (txt_gt, _) = to_text_func(path_g, oneliner=True)
-
-            if not txt_gt:
-                print(f"[WARN ] groundtrooth '{path_g}' contains no text")
-
-            # if text mode is enforced
-            # forget groundtruth coordinates
+            # reset in text mode
             coords = None if self.text_mode else coords
 
-            # read candidate data as text
-            (txt_c, _) = to_text_func(path_c, coords, oneliner=True)
-
-            if not txt_c:
-                print(f"[WARN ] candidate '{path_c}' contains no text")
-
-            if self.verbosity >= 2:
-                _label_ref = os.path.basename(path_g)
-                _label_can = os.path.basename(path_c)
-                print(f'[TRACE][{_label_ref}] RAW GROUNDTRUTH :: "{txt_gt}"')
-                print(f'[TRACE][{_label_can}] RAW CANDIDATE   :: "{txt_c}"')
-
-            _curr = copy.copy(_m)
-            _curr.reference = txt_gt
-            _curr.candidate = txt_c
+            _curr:digem.OCRMetric = copy.copy(metric)
+            _curr.reference = Path(entry.path_g).absolute()
+            _curr.candidate = Path(entry.path_c).absolute()
+            _curr.candidate_frame = coords
             # ATTENZIONE! inital access to this attribute
             # triggers preprocessing and calculation!
-            _curr.value
+            _ = _curr.value
             _current_metrics.append(_curr)
             if self.verbosity >= 2:
-                _label_ref = os.path.basename(path_g)
-                _label_can = os.path.basename(path_c)
-                print(f'[TRACE][{_label_ref}][{_curr.label}] REFERENCE :: "{_curr._data_reference}"')
-                print(f'[TRACE][{_label_can}][{_curr.label}] CANDIDATE :: "{_curr._data_candidate}"')
+                _label_ref = os.path.basename(entry.path_g)
+                _label_can = os.path.basename(entry.path_c)
+                print(f'[TRACE][{_label_ref}][{_curr.label}] REFERENCE :: "{_curr.data_reference}"')
+                print(f'[TRACE][{_label_can}][{_curr.label}] CANDIDATE :: "{_curr.data_candidate}"')
 
         # enrich entry with metrics and
         # normalize data type (i.e., art or ann or ...)
@@ -529,7 +225,7 @@ class Evaluator:
                 image_name = _tkns[0].replace('+', ':') + '_' + _tkns[1]
             if '.xml' in image_name:
                 image_name = image_name.replace('.xml', '')
-            gt_label = f"({_type[:3]})" if _type and _type != NOT_SET else ''
+            gt_label = f"({_type[:3]})" if _type and _type != _NOT_SET else ''
             return f'[{image_name}]{gt_label} [{the_entry}]'
         except Exception as exc:
             print(f'[WARN ] {exc}')
@@ -608,7 +304,7 @@ class Evaluator:
                             self.evaluation_map[path_key] = []
                         self.evaluation_map[path_key].append((ee.path_c, metric_value, metric_gt_refs))
                         # if by_type, aggregate type at top level
-                        if by_type and ee.gt_type and ee.gt_type != NOT_SET:
+                        if by_type and ee.gt_type and ee.gt_type != _NOT_SET:
                             type_key = path_key + '@' + ee.gt_type
                             if type_key not in self.evaluation_map:
                                 self.evaluation_map[type_key] = []
@@ -631,6 +327,55 @@ class Evaluator:
 
     def get_results(self):
         return self.evaluation_results
+
+
+def get_statistics(data_points):
+    """Get common statistics like mean, median and std for data_points"""
+
+    the_mean = np.mean(data_points)
+    the_deviation = np.std(data_points)
+    the_median = np.median(data_points)
+    return (the_mean, the_deviation, the_median)
+
+
+def strip_outliers_from(data_tuples, fence_ratio=1.5):
+    """Determine a data set's outliers by interquartile range (IQR)
+    
+    calculate data points 
+     * below median of quartile 1 (lower fence), and
+     * above median of quartile 3 (upper fence)
+    """
+
+    data_points = [e[1] for e in data_tuples]
+    median = np.median(data_points)
+    quart_one = np.median([v for v in data_points if v < median])
+    quart_thr = np.median([v for v in data_points if v > median])
+    regulars = [data
+                for data in data_tuples
+                if data[1] >= (quart_one - fence_ratio * (quart_thr - quart_one)) and data[1] <= (quart_one + fence_ratio * (quart_thr - quart_one))]
+    return (regulars, quart_one, quart_thr)
+
+
+def _get_groundtruth_from_filename(file_path) -> str:
+    _file_name = os.path.basename(file_path)
+    result = re.match(r'.*gt.(\w{3,}).xml$', _file_name)
+    if result:
+        return result[1]
+    else:
+        alternative = re.match(r'.*\.(\w{3,})\.gt\.xml$', _file_name)
+        if alternative:
+            return alternative[1]
+        else:
+            return _NOT_SET
+
+
+def _normalize_gt_type(label) -> str:
+    if label.startswith('art'):
+        return 'article'
+    elif label.startswith('ann'):
+        return 'announcement'
+    else:
+        return _NOT_SET
 
 
 def report_stdout(evaluator: Evaluator, verbosity):
