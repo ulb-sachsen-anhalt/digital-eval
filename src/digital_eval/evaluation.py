@@ -647,12 +647,12 @@ def report_stdout(evaluator: Evaluator, verbosity):
     print(f'[INFO ] Evaluation Summary (candidates: "{_path_can}" vs. reference: "{_path_ref}" ({evaluation_date})')
     for result in results:
         (gt_type, n_total, mean_total, med, _n_refs) = result.get_defaults()
-        add_stats = f', std: {result.std:5.2f}, median: {med:5.2f}' if n_total > 1 else ''
-        print(f'[INFO ] "{gt_type}"\t∅: {mean_total:5.2f}\t{n_total: 3d} items, {_n_refs:_} refs{add_stats}')
+        add_stats = f' M:{med:5.2f} σ:{result.std:5.2f}' if n_total > 1 else ''
+        print(f'[INFO ] {gt_type}\t{n_total: 3d} items {_n_refs:_} refs\t∅:{mean_total:5.2f}{add_stats}')
         if result.cleared_result:
             (_, n_t2, mean2, med2, n_c2) = result.cleared_result.get_defaults()
             ccr_std = result.cleared_result.std
             drops = n_total - n_t2
             if drops > 0:
                 print(
-                    f'[INFO ] "{gt_type}(-{drops})"\t∅: {mean2:5.2f}\t{n_t2: 3d} items, {n_c2:_} refs, std: {ccr_std:5.2f}, median: {med2:5.2f}')
+                    f'[INFO ] {gt_type}(-{drops})\t{n_t2: 3d} items {n_c2:_} refs\t∅:{mean2:5.2f} M:{med2:5.2f} σ:{ccr_std:5.2f}')
