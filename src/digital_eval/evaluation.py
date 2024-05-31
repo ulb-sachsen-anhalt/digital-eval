@@ -29,6 +29,8 @@ EVAL_EXTRA_IGNORE_GEOMETRY = 'ignore_geometry'
 # mark unset values as 'not available'
 _NOT_SET = 'n.a.'
 
+_IGNORE_DIRS = ['GT-PAGE']
+
 # how long evaluation shall take maximal
 # where "None" means "no timeout"
 EVAL_TIMEOUT = None
@@ -67,14 +69,36 @@ class EvaluationResult:
 
 
 class EvalEntry:
-    """Container to transform evaluation results into
-    string representation"""
+    """Container to transform evaluation inputs
+    and results into string representation"""
 
-    def __init__(self, path):
-        self.path_c = path
-        self.path_g = None
+    def __init__(self, path, candidate_root = None):
+        self.path_candidate: Path = path
+        self.candidate_root_domain = candidate_root
+        self.domain_directories = []
+        self.path_groundtruth:Path = None
         self.gt_type = _NOT_SET
         self.metrics = []
+
+    def align_domains(self):
+        """If reference data found, fix domain
+        directory order for metriccal
+        aggregation"""
+
+        if self.path_groundtruth and self.candidate_root_domain:
+            candidate_parents = list(self.path_candidate.parent.parts)
+            candidate_rootdom = self.candidate_root_domain.name
+            # find start
+            ds = []
+            curr = candidate_parents.pop()
+            ds.append(curr)
+            while curr != candidate_rootdom and len(candidate_parents) > 0:
+                curr = candidate_parents.pop()
+                ds.append(curr)
+
+            # having start?
+            dirs = [d for d in ds if d not in _IGNORE_DIRS]
+            self.domain_directories = dirs
 
     def __str__(self) -> str:
         """Dependency between metrics 
@@ -103,7 +127,7 @@ class EvalEntry:
         return ', '.join(_raws)
 
     def __repr__(self) -> str:
-        return f'{self.gt_type} {self.path_c}'
+        return f'{self.gt_type} {self.path_candidate}'
 
 
 class Evaluator:
@@ -162,7 +186,7 @@ class Evaluator:
                 print(f"[DEBUG] processed {len(_entries)}, omitted {len(_entries) - len(_not_nones)} empty results")
             self.evaluation_entries = _not_nones
 
-        self.evaluation_entries = sorted(self.evaluation_entries, key=lambda e: e.path_c)
+        self.evaluation_entries = sorted(self.evaluation_entries, key=lambda e: e.path_candidate)
         # detail report
         self.evaluation_report['candidates'] = [self._generate_report_candidate(e)
                                                 for e in self.evaluation_entries]
@@ -171,11 +195,11 @@ class Evaluator:
         """Wrapper for creation of evaluation data
         to be used in common process-pooling"""
 
-        if entry.path_g:
+        if entry.path_groundtruth:
             try:
                 return self.eval_entry(entry)
             except Exception as exc:
-                print(f"[WARN ][{entry.path_g}] _wrap {exc}")
+                print(f"[WARN ][{entry.path_groundtruth}] _wrap {exc}")
 
     def eval_entry(self, entry: EvalEntry) -> EvalEntry:
         """Create evaluation entry for matching pair of 
@@ -189,36 +213,36 @@ class Evaluator:
         for metric in self.metrics:
             # read coordinate information (if any provided)
             # to create frame for candidate data
-            coords = get_bounding_box(entry.path_g)
+            coords = get_bounding_box(entry.path_groundtruth)
             if coords is not None and self.verbosity >= 2:
                 print(f"[TRACE] token coordinates {coords[0]}, {coords[1]}")
             # reset in text mode
             coords = None if self.text_mode else coords
 
             _curr:digem.OCRMetric = copy.copy(metric)
-            _curr.reference = Path(entry.path_g).absolute()
-            _curr.candidate = Path(entry.path_c).absolute()
+            _curr.reference = Path(entry.path_groundtruth).absolute()
+            _curr.candidate = Path(entry.path_candidate).absolute()
             _curr.candidate_frame = coords
             # ATTENZIONE! inital access to this attribute
             # triggers preprocessing and calculation!
             _ = _curr.value
             _current_metrics.append(_curr)
             if self.verbosity >= 2:
-                _label_ref = os.path.basename(entry.path_g)
-                _label_can = os.path.basename(entry.path_c)
+                _label_ref = os.path.basename(entry.path_groundtruth)
+                _label_can = os.path.basename(entry.path_candidate)
                 print(f'[TRACE][{_label_ref}][{_curr.label}] REFERENCE :: "{_curr.data_reference}"')
                 print(f'[TRACE][{_label_can}][{_curr.label}] CANDIDATE :: "{_curr.data_candidate}"')
 
         # enrich entry with metrics and
         # normalize data type (i.e., art or ann or ...)
-        _normed_gt_type = _normalize_gt_type(_get_groundtruth_from_filename(entry.path_g))
+        _normed_gt_type = _normalize_gt_type(_get_groundtruth_from_filename(entry.path_groundtruth))
         entry.gt_type = _normed_gt_type
         entry.metrics = _current_metrics
         return entry
 
-    def _generate_report_candidate(self, the_entry):
+    def _generate_report_candidate(self, the_entry: EvalEntry):
         try:
-            image_name = os.path.basename(the_entry.path_c)
+            image_name = os.path.basename(the_entry.path_candidate)
             _type = the_entry.gt_type
             if '+' in image_name and '_' in image_name:
                 _tkns = image_name.split('_')
@@ -255,16 +279,17 @@ class Evaluator:
                 evaluation_result.median = median
                 evaluation_result.std = std
                 if std >= 1.0:
-                    (regulars, _, _) = strip_outliers_from(data_tuples)
-                    regulars_data_points = [e[1] for e in regulars]
-                    clear_result = EvaluationResult(k, len(regulars))
-                    (mean2, std2, med2) = get_statistics(regulars_data_points)
-                    clear_result.mean = mean2
-                    clear_result.std = std2
-                    clear_result.median = med2
-                    clear_result.n_chars = sum([e[2] for e in regulars])
-                    # set as child component
-                    evaluation_result.cleared_result = clear_result
+                    (stripped, _, _) = strip_outliers_from(data_tuples)
+                    if len(stripped) < len(data_tuples):
+                        regulars_data_points = [e[1] for e in stripped]
+                        clear_result = EvaluationResult(k, len(stripped))
+                        (mean2, std2, med2) = get_statistics(regulars_data_points)
+                        clear_result.mean = mean2
+                        clear_result.std = std2
+                        clear_result.median = med2
+                        clear_result.n_chars = sum([e[2] for e in stripped])
+                        # set as child component
+                        evaluation_result.cleared_result = clear_result
             self._add(evaluation_result)
             # re-order
             self.evaluation_results = sorted(self.evaluation_results, key=lambda e: e.eval_key)
@@ -278,46 +303,33 @@ class Evaluator:
         if by_metrics is None:
             by_metrics = [0, 1, 2, 3]
 
-        root_base = Path(self.domain_reference).parts[-1]
-
         # aggregate on each directory
         for _metrics_index in by_metrics:
-            for ee in self.evaluation_entries:
+            for entry in self.evaluation_entries:
                 # if we do not have all these different metrics set,
                 # do of course not aggregate by non-existing index!
                 if _metrics_index >= len(self.evaluation_entries[0].metrics):
                     continue
-                path_key = f"{ee.metrics[_metrics_index].label}@{root_base}"
                 # ATTENZIONE! works only when forehand
                 # the *real* attribute has been accessed
                 # *at least one time*
                 # kept this way for testing reasons
-                metric_value = ee.metrics[_metrics_index].value
-                metric_gt_refs = ee.metrics[_metrics_index].n_ref
-                dir_o = os.path.dirname(ee.path_c)
-                ocr_parts = Path(dir_o).parts
-                if root_base in ocr_parts:
-                    tokens = list(ocr_parts[ocr_parts.index(root_base):])
-                    if tokens:
-                        # store at top-level
-                        if path_key not in self.evaluation_map:
-                            self.evaluation_map[path_key] = []
-                        self.evaluation_map[path_key].append((ee.path_c, metric_value, metric_gt_refs))
-                        # if by_type, aggregate type at top level
-                        if by_type and ee.gt_type and ee.gt_type != _NOT_SET:
-                            type_key = path_key + '@' + ee.gt_type
-                            if type_key not in self.evaluation_map:
-                                self.evaluation_map[type_key] = []
-                            self.evaluation_map[type_key].append((ee.path_c, metric_value, metric_gt_refs))
-                        tokens.pop(0)
-                        # store at any sub-level
-                        curr = path_key
-                        while tokens:
-                            token = tokens.pop(0)
-                            curr = curr + os.sep + token
-                            if curr not in self.evaluation_map:
-                                self.evaluation_map[curr] = []
-                            self.evaluation_map[curr].append((ee.path_c, metric_value, metric_gt_refs))
+                metric_value = entry.metrics[_metrics_index].value
+                metric_gt_refs = entry.metrics[_metrics_index].n_ref
+                domain_dirs = entry.domain_directories
+                for domain in domain_dirs:
+                    current_domain = f"{entry.metrics[_metrics_index].label}@{domain}"
+                    if current_domain not in self.evaluation_map:
+                        self.evaluation_map[current_domain] = []
+                    self.evaluation_map[current_domain].append((entry.path_candidate, metric_value, metric_gt_refs))
+                # if by_type, aggregate type at top level
+                if by_type and entry.gt_type and entry.gt_type != _NOT_SET:
+                    root_base = entry.candidate_root_domain.name
+                    path_key = f"{entry.metrics[_metrics_index].label}@{root_base}"
+                    type_key = path_key + '@' + entry.gt_type
+                    if type_key not in self.evaluation_map:
+                        self.evaluation_map[type_key] = []
+                    self.evaluation_map[type_key].append((entry.path_candidate, metric_value, metric_gt_refs))
 
     def _check_aggregate_preconditions(self):
         if not self.evaluation_entries:

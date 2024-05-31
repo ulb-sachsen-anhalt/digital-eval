@@ -1,7 +1,9 @@
 """digital eval main API"""
-__version__ = '1.6.0'
+__version__ = '1.7.0'
+
 from .evaluation import (
     Evaluator,
+    EvalEntry,
     report_stdout,
 )
 from .resolve import (
