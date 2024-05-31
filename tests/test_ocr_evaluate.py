@@ -17,51 +17,10 @@ from pytest import (
 import digital_eval.evaluation as digev
 import digital_eval.metrics as digem
 import digital_eval.preprocessing as dipre
-import digital_eval.resolve as dire
 
 from .conftest import (
     TEST_RES_DIR
 )
-
-
-def test_match_candidates_alto_candidate_with_coords():
-    actual_matches = dire.match_candidates(f'{TEST_RES_DIR}/candidate/frk_alto',
-                                      f'{TEST_RES_DIR}/groundtruth/alto/1667522809_J_0073_0001_375x2050_2325x9550.xml')
-    assert f'{TEST_RES_DIR}/candidate/frk_alto/1667522809_J_0073_0001_part.xml' == actual_matches[0]
-
-
-def test_match_candidates_both_txt_files():
-    path_candidates = f'{TEST_RES_DIR}/candidate/txt'
-    path_gt = f'{TEST_RES_DIR}/groundtruth/txt/1246734.gt.txt'
-    actual_matches = dire.match_candidates(path_candidates, path_gt)
-    assert f'{TEST_RES_DIR}/candidate/txt/OCR-Fraktur_1246734.txt' == actual_matches[0]
-
-
-def test_match_candidates_fails_no_groundtruth():
-    with pytest.raises(IOError) as exc:
-        dire.match_candidates(
-            f'{TEST_RES_DIR}/candidate/txt',
-            './test/sresources/txt/no_gt.txt')
-    assert "invalid groundtruth data path" in str(exc)
-
-
-def test_match_candidates_fails_no_candidates():
-    with pytest.raises(IOError) as exc:
-        dire.match_candidates(
-            './text/no_results',
-            f'{TEST_RES_DIR}/txt/gt/1246734.txt')
-    assert "invalid ocr result path" in str(exc)
-
-
-def test_match_candidates_groundtruth_txt_candidate_alto():
-    path_cd = f'{TEST_RES_DIR}/candidate/ara_alto'
-    path_gt = f'{TEST_RES_DIR}/groundtruth/txt/217745.gt.txt'
-
-    # act
-    actual_matches = dire.match_candidates(path_cd, path_gt)
-
-    # assert
-    assert actual_matches[0] == f'{TEST_RES_DIR}/candidate/ara_alto/217745.xml'
 
 
 def test_piece_to_text_alto_candidate_with_coords():
@@ -100,8 +59,8 @@ def test_evaluate_single_alto_candidate_with_page_groundtruth(tmp_path):
     shutil.copy(_gt_src, _gt_dst)
 
     # act
-    eval_entry = digev.EvalEntry(str(eval_domain / '1667522809_J_0001_0002.xml'))
-    eval_entry.path_g = _gt_dst
+    eval_entry = digev.EvalEntry(eval_domain / '1667522809_J_0001_0002.xml', eval_domain)
+    eval_entry.path_groundtruth = _gt_dst
     evaluator.eval_all([eval_entry], sequential=True)
     evaluator.aggregate(by_type=True)
     evaluator.eval_map()
@@ -111,7 +70,7 @@ def test_evaluate_single_alto_candidate_with_page_groundtruth(tmp_path):
     # assert
     assert 5 == len(defaults)
     # metric label
-    assert 'Cs@1667522809_J_0001' == defaults[0]
+    assert 'Cs@1667522809_J_0001@article' == defaults[0]
     assert 1 == defaults[1]  # number of data points
     # metric raw
     assert 39.19 == pytest.approx(defaults[2], rel=1e-3)
@@ -145,8 +104,8 @@ def test_evaluate_page_groundtruth_with_itself(tmp_path):
     shutil.copy(_gt_src, _gt_dst)
 
     # act
-    eval_entry = digev.EvalEntry(str(eval_domain / '1667522809_J_0001_0002.xml'))
-    eval_entry.path_g = _gt_dst
+    eval_entry = digev.EvalEntry(eval_domain / '1667522809_J_0001_0002.xml', eval_domain)
+    eval_entry.path_groundtruth = _gt_dst
     evaluator.eval_all([eval_entry], sequential=True)
     evaluator.aggregate(by_type=True)
     evaluator.eval_map()
@@ -156,7 +115,7 @@ def test_evaluate_page_groundtruth_with_itself(tmp_path):
     # assert
     assert 5 == len(defaults)
     # metric label
-    assert 'Cs@1667522809_J_0001' == defaults[0]
+    assert 'Cs@1667522809_J_0001@article' == defaults[0]
     assert 1 == defaults[1]  # number of data points
     assert 100.00 == pytest.approx(defaults[2], rel=1e-3)
     # reference size chars
@@ -208,23 +167,35 @@ def test_evaluate_set_with_5_entries(tmp_path):
     _metric_ca6._value = 93.44
     _metric_ca6.data_reference = 't' * 1520
 
-    entry1 = digev.EvalEntry(path_dir_c / 'eng' / 'urn+nbn+de+gbv+3+1-135654-p0403-5_eng.xml')
-    entry1.path_g = str(path_dir_gt / 'eng' / 'urn+nbn+de+gbv+3+1-135654-p0403-5_eng.gt.xml')
+    entry1 = digev.EvalEntry(path_dir_c / 'eng' / 'urn+nbn+de+gbv+3+1-135654-p0403-5_eng.xml',
+                             path_dir_c / 'eng')
+    entry1.path_groundtruth = str(path_dir_gt / 'eng' / 'urn+nbn+de+gbv+3+1-135654-p0403-5_eng.gt.xml')
+    entry1.align_domains()
     entry1.metrics = [_metric_ca1]
-    entry2 = digev.EvalEntry(path_dir_c / 'ger' / 'urn+nbn+de+gbv+3+1-816198-p0493-2_ger.xml')
-    entry2.path_g = str('/data/ocr/groundtruth/odem/ger/urn+nbn+de+gbv+3+1-816198-p0493-2_ger.gt.xml')
+    entry2 = digev.EvalEntry(path_dir_c / 'ger' / 'urn+nbn+de+gbv+3+1-816198-p0493-2_ger.xml',
+                             path_dir_c / 'ger')
+    entry2.path_groundtruth = str('/data/ocr/groundtruth/odem/ger/urn+nbn+de+gbv+3+1-816198-p0493-2_ger.gt.xml')
+    entry2.align_domains()
     entry2.metrics = [_metric_ca2]
-    entry3 = digev.EvalEntry(path_dir_c / 'ger' / 'urn+nbn+de+gbv+3+1-818383-p0034-5_ger.xml')
-    entry3.path_g = '/data/ocr/groundtruth/odem/ger/urn+nbn+de+gbv+3+1-818383-p0034-5_ger.gt.xml'
+    entry3 = digev.EvalEntry(path_dir_c / 'ger' / 'urn+nbn+de+gbv+3+1-818383-p0034-5_ger.xml',
+                             path_dir_c / 'ger')
+    entry3.path_groundtruth = '/data/ocr/groundtruth/odem/ger/urn+nbn+de+gbv+3+1-818383-p0034-5_ger.gt.xml'
+    entry3.align_domains()
     entry3.metrics = [_metric_ca3]
-    entry4 = digev.EvalEntry(path_dir_c / 'ger' / 'urn+nbn+de+gbv+3+1-822479-p1119-4_ger.xml')
-    entry4.path_g = '/data/ocr/groundtruth/odem/ger/urn+nbn+de+gbv+3+1-822479-p1119-4_ger.gt.xml'
+    entry4 = digev.EvalEntry(path_dir_c / 'ger' / 'urn+nbn+de+gbv+3+1-822479-p1119-4_ger.xml',
+                             path_dir_c / 'ger')
+    entry4.path_groundtruth = '/data/ocr/groundtruth/odem/ger/urn+nbn+de+gbv+3+1-822479-p1119-4_ger.gt.xml'
+    entry4.align_domains()
     entry4.metrics = [_metric_ca4]
-    entry5 = digev.EvalEntry(path_dir_c / 'ger' / 'urn+nbn+de+gbv+3+1-828020-p0173-6_ger.xml')
-    entry5.path_g = '/data/ocr/groundtruth/odem/ger/urn+nbn+de+gbv+3+1-828020-p0173-6_ger.gt.xml'
+    entry5 = digev.EvalEntry(path_dir_c / 'ger' / 'urn+nbn+de+gbv+3+1-828020-p0173-6_ger.xml',
+                             path_dir_c / 'ger')
+    entry5.path_groundtruth = '/data/ocr/groundtruth/odem/ger/urn+nbn+de+gbv+3+1-828020-p0173-6_ger.gt.xml'
+    entry5.align_domains()
     entry5.metrics = [_metric_ca5]
-    entry6 = digev.EvalEntry(path_dir_c / 'ger' / 'urn+nbn+de+gbv+3+1-125584-p0314-6_ger.xml')
-    entry6.path_g = '/data/ocr/groundtruth/odem/ger/urn+nbn+de+gbv+3+1-125584-p0314-6_ger.gt.xml'
+    entry6 = digev.EvalEntry(path_dir_c / 'ger' / 'urn+nbn+de+gbv+3+1-125584-p0314-6_ger.xml',
+                             path_dir_c / 'ger')
+    entry6.path_groundtruth = '/data/ocr/groundtruth/odem/ger/urn+nbn+de+gbv+3+1-125584-p0314-6_ger.gt.xml'
+    entry6.align_domains()
     entry6.metrics = [_metric_ca6]
     evaluator.evaluation_entries = [entry1, entry2, entry3, entry4, entry5, entry6]
 
@@ -235,10 +206,9 @@ def test_evaluate_set_with_5_entries(tmp_path):
 
     # assert
     # ensure standard deviation decreases by dropping outlier
-    assert 3 == len(results)
-    assert results[0].std == approx(3.33, abs=1e-2)
-    assert results[0].cleared_result.std < results[0].std
-    assert results[0].cleared_result.std == approx(1.06, abs=1e-2)
+    assert 2 == len(results)
+    assert results[1].std == approx(3.498, abs=1e-2)
+    assert not results[1].cleared_result
 
 
 def test_no_groundtruth_at_all(tmp_path):
@@ -268,10 +238,11 @@ def test_handle_exception_invalid_literal_for_int():
     """
 
     # arrange
-    path_gt = TEST_RES_DIR / 'groundtruth' / 'page' / 'urn+nbn+de+gbv+3+1-792101-p0667-5_ger.gt.xml'
+    domain = TEST_RES_DIR / 'groundtruth' / 'page'
+    path_gt =  domain / 'urn+nbn+de+gbv+3+1-792101-p0667-5_ger.gt.xml'
     assert path_gt.exists()
-    eval_entry = digev.EvalEntry(path_gt)
-    eval_entry.path_g = Path(path_gt).absolute()
+    eval_entry = digev.EvalEntry(path_gt, domain)
+    eval_entry.path_groundtruth = Path(path_gt).absolute()
 
     # act
     evaluator = digev.Evaluator('dummy_path')
@@ -295,7 +266,7 @@ def test_handle_empty_candidate_information_retrival():
     path_gt = f'{TEST_RES_DIR}/groundtruth/page/urn+nbn+de+gbv+3+1-138193-p0904-0_ger.gt.xml'
     path_cd = f'{TEST_RES_DIR}/candidate/frk_page/urn+nbn+de+gbv+3+1-138193-p0904-0_ger.xml'
     eval_entry = digev.EvalEntry(path_cd)
-    eval_entry.path_g = Path(path_gt).absolute()
+    eval_entry.path_groundtruth = Path(path_gt).absolute()
     evaluator = digev.Evaluator('/data')
     evaluator.metrics = [digem.MetricIRPre(), digem.MetricIRRec()]
     evaluator.verbosity = 1
@@ -321,7 +292,7 @@ def test_handle_table_text_groundtruth():
     path_gt = f'{TEST_RES_DIR}/groundtruth/page/urn+nbn+de+gbv+3+1-126343-p0285-7_ger.gt.xml'
     path_cd = f'{TEST_RES_DIR}/candidate/frk_page/urn+nbn+de+gbv+3+1-126343-p0285-7_ger.xml'
     eval_entry = digev.EvalEntry(path_cd)
-    eval_entry.path_g = path_gt
+    eval_entry.path_groundtruth = path_gt
 
     # act
     evaluator = digev.Evaluator('/data')
@@ -373,7 +344,7 @@ def test_handle_exception_invalid_alto_xml():
     # arrange
     path_gt = f'{TEST_RES_DIR}/candidate/frk_alto/1667522809_J_0001_0256_corrupt.xml'
     eval_entry = digev.EvalEntry('dummy_candidate')
-    eval_entry.path_g = path_gt
+    eval_entry.path_groundtruth = path_gt
 
     # act
     evaluator = digev.Evaluator('dummy_path')

@@ -2,9 +2,10 @@
 """OCR QA Evaluation CLI"""
 
 import argparse
-import os
 import sys
 import typing
+
+from pathlib import Path
 
 import digital_eval as digev
 import digital_eval.dictionary_metrics.common as digev_cm
@@ -81,27 +82,21 @@ def start_evaluation(parse_args: typing.Dict):
         LanguageTool.initialize(lt_url)
 
     # go on with basic validation
-    if not os.path.isdir(path_candidates):
+    path_candidates = Path(path_candidates)
+    if not path_candidates.is_dir():
         print(f'[ERROR] input "{path_candidates}": invalid directory! exit!')
         sys.exit(1)
-    if path_reference and not os.path.isdir(path_reference):
-        print(f'[ERROR] reference "{path_reference}": invalid directory! exit!')
-        sys.exit(1)
+    if path_reference is not None:
+        path_reference = Path(path_reference)
+        if not path_reference.is_dir():
+            print(f'[ERROR] reference "{path_reference}": invalid directory! exit!')
+            sys.exit(1)
 
-    # sanitize trailing slash
-    if not isinstance(path_candidates, str):
-        path_candidates = str(path_candidates)
-    if not isinstance(path_reference, str):
-        path_reference = str(path_reference)
-    path_candidates = path_candidates[:-1] if path_candidates.endswith('/') else path_candidates
-    path_reference = path_reference[:-1] if path_reference.endswith('/') else path_reference
-
-    # if candidates and both reference provided: do domains match?
     if path_candidates and path_reference:
-        _base_can = os.path.basename(path_candidates)
-        _base_ref = os.path.basename(path_reference)
+        _base_can = path_candidates.name
+        _base_ref = path_reference.name
         if _base_can != _base_ref:
-            print(f"[WARN ] start domains '{_base_can}' and '{_base_ref}' mismatch, summary might be inaccurate!")
+            print(f"[WARN ] base domains '{_base_can}' and '{_base_ref}' mismatch, aggregation might fail!")
 
     # some diagnostics
     if verbosity >= 2:
@@ -122,19 +117,21 @@ def start_evaluation(parse_args: typing.Dict):
     evaluator.domain_reference = path_reference
 
     # gather structure information
-    candidates = digev.gather_candidates(path_candidates)
-    if not candidates:
-        print(f"[WARN ] no ocr data (.*xml) in any dir starting from '{path_candidates}'! exit.")
+    candidates: typing.List[digev.EvalEntry] = digev.gather_candidates(path_candidates)
+    if len(candidates) == 0:
+        print(f"[WARN ] no ocr data (.*xml) in dir starting from '{path_candidates}'! exit.")
         sys.exit(0)
 
     # match groundtruth
-    for entry in candidates:
-        gt = digev.find_groundtruth(entry.path_c, path_candidates, path_reference)
-        if gt:
-            entry.path_g = gt
+    if path_reference:
+        for entry in candidates:
+            gt = digev.find_groundtruth(entry, path_reference)
+            if gt:
+                entry.path_groundtruth = gt
+                entry.align_domains()
 
     # remove all paths where no groundtruth exists
-    gt_entries = [c for c in candidates if c.path_g]
+    gt_entries = [c for c in candidates if c.path_groundtruth]
     n_entries = len(candidates)
     n_diff = n_entries - len(gt_entries)
     gt_missing = set(gt_entries) ^ set(candidates)
