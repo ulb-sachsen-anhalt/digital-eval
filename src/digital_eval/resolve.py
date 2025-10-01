@@ -31,16 +31,22 @@ def gather_candidates(start_path:Path, file_ext='.xml') -> typing.List[EvalEntry
 
 def find_groundtruth(eval_entry: EvalEntry, gt_domain_root):
     """Find correspondig groundtruth file for
-    given candidate by directory layout
+    given candidate by directory layout and check 
+    start and end of probably match
     """
     candidate_name = eval_entry.path_candidate.stem
 
     gt_files = [Path(c, f) 
-                for c, _, fs in os.walk(gt_domain_root)
+                for c, _, fs in os.walk(gt_domain_root, followlinks=True)
                 for f in fs
-                if str(f).startswith(candidate_name)
+                if _name_approved(f, candidate_name)
             ]
     if len(gt_files) > 0:
         eval_entry.path_groundtruth = gt_files[0]
         return gt_files[0]
     return None
+
+
+def _name_approved(fname:str, estm_name:str) -> bool:
+    suffix_ok = fname.endswith('.gt.xml') or fname.endswith('gt.txt')
+    return fname.startswith(estm_name) and suffix_ok

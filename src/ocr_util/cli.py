@@ -5,8 +5,8 @@ import argparse
 import re
 from pathlib import PurePath
 
-import digital_object as do
-import digital_object.filter as dofi
+import digital_eval.model as do
+import digital_eval.model.filter as dofi
 
 # script constants
 DEFAULT_VERBOSITY = 0
