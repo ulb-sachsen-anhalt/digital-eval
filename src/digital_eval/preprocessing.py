@@ -10,7 +10,7 @@ from pathlib import Path
 import nltk
 import nltk.corpus as nltk_corp
 
-import digital_object as do
+import digital_eval.model as dimo
 
 # Python3 standard Unicode Normalization
 #
@@ -256,7 +256,7 @@ def file_to_text(file_path, frame=None, oneliner=True) -> typing.Tuple:
     """Convert file data into plain text"""
 
     try:
-        top_digo: do.DigitalObjectTree = do.to_digital_object(str(file_path))
+        top_digo: dimo.DigitalObjectTree = dimo.to_digital_object(str(file_path))
         # explicit filter frame?
         if not frame:
             frame = top_digo.dimensions
@@ -265,7 +265,7 @@ def file_to_text(file_path, frame=None, oneliner=True) -> typing.Tuple:
                      [frame[1][0], frame[0][1]],
                      [frame[1][0], frame[1][1]],
                      [frame[0][0], frame[1][1]]]
-        frame_digo = do.DigitalObjectTree()
+        frame_digo = dimo.DigitalObjectTree()
         frame_digo.dimensions = frame
         filter_word_pieces(frame_digo, top_digo)
         the_lines = _get_digos_from_digo(top_digo)
@@ -293,12 +293,12 @@ def filter_word_pieces(frame, current) -> int:
     _total_stack.append(current)
     _tmp_stack.append(current)
     while _tmp_stack:
-        _current: do.DigitalObjectTree = _tmp_stack.pop()
+        _current: dimo.DigitalObjectTree = _tmp_stack.pop()
         if _current.children:
             _tmp_stack += _current.children
             _total_stack += _current.children
     # now pick words
-    _words = [_p for _p in _total_stack if _p.level == do.DigitalObjectLevel.WORD]
+    _words = [_p for _p in _total_stack if _p.level == dimo.DigitalObjectLevel.WORD]
 
     # check for each word piece
     for _word in _words:
@@ -308,17 +308,17 @@ def filter_word_pieces(frame, current) -> int:
     return _filtered
 
 
-def _uplete(curr: do.DigitalObjectTree):
-    if len(curr.children) == 0 and curr.level < do.DigitalObjectLevel.PAGE:
-        _pa: do.DigitalObjectTree = curr.parent
+def _uplete(curr: dimo.DigitalObjectTree):
+    if len(curr.children) == 0 and curr.level < dimo.DigitalObjectLevel.PAGE:
+        _pa: dimo.DigitalObjectTree = curr.parent
         _pa.remove_children(curr)
         _uplete(_pa)
 
 
-def _get_digos_from_digo(digo: do.DigitalObjectTree, lines=None) -> typing.List:
+def _get_digos_from_digo(digo: dimo.DigitalObjectTree, lines=None) -> typing.List:
     if lines is None:
         lines = []
-    if digo.level == do.DigitalObjectLevel.LINE and digo.transcription:
+    if digo.level == dimo.DigitalObjectLevel.LINE and digo.transcription:
         lines.append(digo)
         return lines
     for child in digo.children:
