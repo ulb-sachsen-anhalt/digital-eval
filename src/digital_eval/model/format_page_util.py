@@ -59,20 +59,21 @@ class FormatPageUtil:
         line_pieces = []
         for page_line in page_lines:
             line_piece = FormatPageUtil.__from_text_element(page_line, parent, ns)
-            word_tokens = page_line.getElementsByTagNameNS(ns, 'Word')
-            line_piece.parent = parent
-            # inspect PAGE on word level, if set
-            if len(word_tokens) > 0:
-                try:
-                    word_pieces = [FormatPageUtil.__from_text_element(el, line_piece, ns)
-                                   for el in word_tokens]
-                    if not word_pieces:
-                        raise RuntimeError(f"No words in line {line_piece.id}!")
-                    # remove line content in favour of words content
-                    line_piece.transcriptions = []
-                    line_piece.children = word_pieces
-                except DigitalObjectException as _pex:
-                    raise RuntimeError(_pex.args) from _pex
+            if line_piece.max_level != DigitalObjectLevel.LINE:
+                word_tokens = page_line.getElementsByTagNameNS(ns, 'Word')
+                line_piece.parent = parent
+                # inspect PAGE on word level, if set
+                if len(word_tokens) > 0:
+                    try:
+                        word_pieces = [FormatPageUtil.__from_text_element(el, line_piece, ns)
+                                    for el in word_tokens]
+                        if not word_pieces:
+                            raise RuntimeError(f"No words in line {line_piece.id}!")
+                        # remove line content in favour of words content
+                        line_piece.transcriptions = []
+                        line_piece.children = word_pieces
+                    except DigitalObjectException as _pex:
+                        raise RuntimeError(_pex.args) from _pex
             line_pieces.append(line_piece)
         return line_pieces
 
@@ -120,20 +121,19 @@ class FormatPageUtil:
                                  for _point in first_coord_points]
         except ValueError as _val_err:
             raise DigitalObjectException(f"{_local}@ID={element_id} invalid {first_coord_points}") from _val_err
-
-        # replace current text with next order children text
-        # txt_eqs = [n for n in element.childNodes
-        #            if n.localName == 'TextEquiv' and \
-        #               FormatPageUtil.__contains_textual_content(n)
-        #         ]
-        txt_eqs = [n for n in element.childNodes if n.localName == 'TextEquiv']
+        #replace current text with next order children text
+        txt_eqs = [n for n in element.childNodes
+                   if n.localName == 'TextEquiv' and \
+                      FormatPageUtil.__contains_value(n, ns)
+        ]
         if txt_eqs:
-            first_equiv: Element = txt_eqs[0] # of old
-            # if len(txt_eqs) == 1:
-            #     first_equiv: Element = txt_eqs[0]
-            # else:
-            #     # take first indexed element's text content
-            #     first_equiv = sorted(txt_eqs, key=lambda x: x.getAttribute('index'))[0]
+            if len(txt_eqs) == 1:
+                first_equiv: Element = txt_eqs[0]
+            else:
+                # pick ZERO indexed element with content
+                first_equiv = sorted(txt_eqs, key=lambda x: x.getAttribute('index'))[0]
+                if element.localName == 'TextLine':
+                    piece.max_level = DigitalObjectLevel.LINE
             unicodes = first_equiv.getElementsByTagNameNS(ns, 'Unicode')
             if len(unicodes) < 1:
                 raise DigitalObjectException(f"{_local}@ID={element_id} text missing unicode")
@@ -149,8 +149,8 @@ class FormatPageUtil:
         return piece
 
     @staticmethod
-    def __contains_textual_content(element: Element) -> bool:
-        unicodes = element.getElementsByTagName('Unicode')
+    def __contains_value(element: Element, ns) -> bool:
+        unicodes = element.getElementsByTagNameNS(ns, 'Unicode')
         if len(unicodes) < 1:
             return False
         the_unicode = unicodes[0]
