@@ -42,6 +42,7 @@ class DigitalObjectUtil:
         """read xml and create DigitalObject structure based on file format"""
         try:
             document: Document = parse(path_in)
+            assert document.documentElement is not None
             doc_root: Element = document.documentElement
         except Exception as _exc:
             raise RuntimeError(f"corrupt XML '{path_in}!") from _exc

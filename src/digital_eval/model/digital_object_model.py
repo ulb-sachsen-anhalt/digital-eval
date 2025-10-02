@@ -1,9 +1,11 @@
 """digital_object module"""
 from __future__ import annotations
 
+
+import typing
+
 from copy import copy
 from pathlib import PurePath
-from typing import Dict, List, Optional
 from xml.dom.minidom import Document, Element
 
 from shapely import Polygon
@@ -29,23 +31,25 @@ class DigitalObjectTree:
     def __init__(
             self,
             identifier: str = UNSET,
-            xml_element: Element = None,
-            document: Document = None,
+            xml_element: typing.Optional[Element] = None,
+            document: typing.Optional[Document] = None,
             file_format: DigitalObjectTreeOCRFileFormat = DigitalObjectTreeOCRFileFormat.UNKNOWN,
-            file_path: PurePath = None
+            file_path: typing.Optional[PurePath] = None
     ):
         self.id: str = identifier
         self.level: DigitalObjectLevel = DigitalObjectLevel.PAGE
         self.subject: DigitalObjectContent = DigitalObjectContent.UNKNOWN
-        self.data: Optional[DigitalObjectData] = None
-        self.parent: Optional[DigitalObjectTree] = None
-        self.custom: Dict = {}
-        self._transcriptions: List = []
-        self.__file_path: Optional[PurePath] = file_path
+        self.data: typing.Optional[DigitalObjectData] = None
+        self.parent: typing.Optional[DigitalObjectTree] = None
+        self.custom: typing.Dict = {}
+        self._transcriptions: typing.List = []
+        self.__file_path: typing.Optional[PurePath] = file_path
         self.__dimensions: DigitalObjectDimensions = []
-        self.__children: List[DigitalObjectTree] = []
-        self.__xml_element: Element = xml_element
-        self.__document: Document = document
+        self.__children: typing.List[DigitalObjectTree] = []
+        if xml_element is not None:
+            self.__xml_element: Element = xml_element
+        if document is not None:
+            self.__document: Document = document
         self.__file_format: DigitalObjectTreeOCRFileFormat = file_format
 
     @property
@@ -83,11 +87,11 @@ class DigitalObjectTree:
         return self.__xml_element
 
     @property
-    def children(self) -> List[DigitalObjectTree]:
+    def children(self) -> typing.List[DigitalObjectTree]:
         return copy(self.__children)
 
     @children.setter
-    def children(self, children: List[DigitalObjectTree]) -> None:
+    def children(self, children: typing.List[DigitalObjectTree]) -> None:
         self.__children = children
 
     def remove_children(self, *children: DigitalObjectTree) -> None:
@@ -95,10 +99,10 @@ class DigitalObjectTree:
         for piece in children:
             self.__children.remove(piece)
             element: Element = piece.xml_element
-            removable_tags: List[str] = []
+            removable_tags: typing.List[str] = []
             if piece.file_format == DigitalObjectTreeOCRFileFormat.ALTO_V3:
                 removable_tags.append('SP')
-            removed_elements: List[Element] = MinidomUtil.remove_element_and_clear_parent(element, removable_tags)
+            removed_elements: typing.List[Element] = MinidomUtil.remove_element_and_clear_parent(element, removable_tags)
             DigitalObjectChanges.removed_elements.extend(removed_elements)
 
     @property
@@ -170,14 +174,14 @@ class DigitalObjectTree:
     @staticmethod
     def dimensions_to_str(dimensions: DigitalObjectDimensions) -> str:
         """create string of point pairs"""
-        strs: List[str] = list(map(lambda p: f'{int(p[0])},{int(p[1])}', dimensions))
+        strs: typing.List[str] = list(map(lambda p: f'{int(p[0])},{int(p[1])}', dimensions))
         return ' '.join(strs)
 
     def __set_dimensions_in_xml(self, dimensions: DigitalObjectDimensions) -> bool:
         """set dimension in xml based on file format"""
         xml_element: Element = self.xml_element
-        top_left: List[float] = dimensions[0]
-        bottom_right: List[float] = dimensions[2]
+        top_left: typing.List[float] = dimensions[0]
+        bottom_right: typing.List[float] = dimensions[2]
         x1: float = top_left[0]
         y1: float = top_left[1]
         x2: float = bottom_right[0]
@@ -201,3 +205,31 @@ class DigitalObjectTree:
         else:
             raise NotImplementedError(f'__set_dimensions_in_xml() not implemented for "{self.file_format}"')
         return has_changed
+
+
+# class DigitalPAGETree(DigitalObjectTree):
+#     """DigitalObject representing a PAGE XML structure"""
+
+#     def __init__(
+#             self,
+#             identifier: str = UNSET,
+#             xml_element: Element = None,
+#             document: Document = None,
+#             file_path: PurePath = None
+#     ):
+#         super().__init__(
+#             identifier=identifier,
+#             xml_element=xml_element,
+#             document=document,
+#             file_format=DigitalObjectTreeOCRFileFormat.PAGE,
+#             file_path=file_path
+#         )
+
+#     def __set_dimensions_in_xml(self, dimensions: DigitalObjectDimensions) -> bool:
+#         super_changed = super().__set_dimensions_in_xml(dimensions)
+#         xml_element: Element = self.xml_element
+#         points: str = self.dimensions_to_str(dimensions)
+#         if MinidomUtil.set_attribute(xml_element, 'points', points):
+#             has_changed = True
+#             return has_changed or super_changed
+#         return super_changed

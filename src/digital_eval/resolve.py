@@ -48,5 +48,5 @@ def find_groundtruth(eval_entry: EvalEntry, gt_domain_root):
 
 
 def _name_approved(fname:str, estm_name:str) -> bool:
-    suffix_ok = fname.endswith('.gt.xml') or fname.endswith('gt.txt')
+    suffix_ok = fname.endswith('.gt.xml') or fname.endswith('gt.txt') or fname.endswith('.xml')
     return fname.startswith(estm_name) and suffix_ok

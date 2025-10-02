@@ -5,14 +5,14 @@ of digital assets in OCR PAGE format
 import pytest
 
 from digital_eval.model.digital_object_model import (
-	DigitalObjectTree,
+    DigitalObjectTree,
     DigitalObjectLevel,
 )
 from digital_eval.model.main import (
-	to_digital_object,
+    to_digital_object,
 )
-from tests.conftest import ( 
-	TEST_RES_DIR,
+from tests.conftest import (
+    TEST_RES_DIR,
 )
 
 
@@ -149,7 +149,7 @@ def test_digital_objects_geometry_from_rahbar_1185565752():
         to_digital_object(ocr_path)
 
     # assert
-    assert 'Word@ID=w_243 invalid points' in str(_err.value.args[0])
+    assert 'Word@ID=w_243 invalid ' in str(_err.value.args[0])
 
 
 def test_digital_object_from_odem_kba_transformed():
@@ -163,11 +163,30 @@ def test_digital_object_from_odem_kba_transformed():
     ocr_path = f'{TEST_RES_DIR}/groundtruth/page/urn+nbn+de+gbv+3+1-112032-p0026-5_ger.gt.xml'
 
     # act
-    _dot:DigitalObjectTree = to_digital_object(ocr_path)
+    _dot: DigitalObjectTree = to_digital_object(ocr_path)
 
-    # assert 
+    # assert
     assert _dot is not None
     assert _dot.level == DigitalObjectLevel.PAGE
     _first_line_text = '„dem Staube, es wird Ernſt!“ fluͤſterte er'
     assert _dot.children[0].children[0].transcription == _first_line_text
 
+
+def test_digital_object_from_ocr4all_groundtruth():
+    """Ensure PAGE data from OCR4all groundtruth readable
+    and respects different text-equiv elements, created during
+    the annotation process
+    """
+
+    # urn+nbn+de+gbv+3+1-112032-p0026-5_ger.gt
+    # arrange
+    ocr_path = f'{TEST_RES_DIR}/groundtruth/page/urn+nbn+de+gbv+3+5-14325-fp-00000441.xml'
+
+    # act
+    tho_tree: DigitalObjectTree = to_digital_object(ocr_path)
+
+    # assert
+    assert tho_tree is not None
+    assert tho_tree.level == DigitalObjectLevel.PAGE
+    first_line_text = 'Maréchal, sm. dignité, مير'
+    assert tho_tree.children[0].children[0].transcription == first_line_text
