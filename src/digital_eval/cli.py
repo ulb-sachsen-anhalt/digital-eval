@@ -82,7 +82,7 @@ def start_evaluation(parse_args: typing.Dict):
         LanguageTool.initialize(lt_url)
 
     # go on with basic validation
-    path_candidates = Path(path_candidates)
+    path_candidates = Path(path_candidates).absolute()
     if not path_candidates.is_dir():
         print(f'[ERROR] input "{path_candidates}": invalid directory! exit!')
         sys.exit(1)

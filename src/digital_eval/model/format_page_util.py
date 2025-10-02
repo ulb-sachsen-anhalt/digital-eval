@@ -42,13 +42,13 @@ class FormatPageUtil:
         # inspect *all* regions
         region_pieces: List[DigitalObjectTree] = []
         for region in regions:
-            _piece = FormatPageUtil.__from_text_element(region, top_piece, ns)
+            this_piece: DigitalObjectTree = FormatPageUtil.__from_text_element(region, top_piece, ns)
             # go into details
             page_lines = region.getElementsByTagNameNS(ns, 'TextLine')
             if len(page_lines) > 0:
-                _piece.children = FormatPageUtil.__read_lines(page_lines, _piece, ns)
-            _piece.parent = top_piece
-            region_pieces.append(_piece)
+                this_piece.children = FormatPageUtil.__read_lines(page_lines, this_piece, ns)
+            this_piece.parent = top_piece
+            region_pieces.append(this_piece)
         top_piece.children = region_pieces
         _all_points = [point for reg in region_pieces for point in reg.dimensions]
         top_piece.dimensions = _all_points
@@ -97,60 +97,81 @@ class FormatPageUtil:
         * Unicode exists, but lacking any text content
 
         """
-        _id = element.getAttribute('id')
-        _type, _local = FormatPageUtil.__map_piece_type(element)
-        _piece = DigitalObjectTree(
-            _id,
+        element_id = element.getAttribute('id')
+        the_level, _local = FormatPageUtil.__map_piece_type(element)
+        piece = DigitalObjectTree(
+            element_id,
             element,
             file_format=DigitalObjectTreeOCRFileFormat.PAGE
         )
-        _piece.level = _type
-        _piece.parent = parent
+        piece.level = the_level
+        piece.parent = parent
 
         # inspect geometry
-        _coords = [n for n in element.childNodes if n.localName == 'Coords']
-        if len(_coords) < 1 or 'points' not in _coords[0].attributes:
-            raise DigitalObjectException(f"{_local}@ID={_id} invalid coordinate data")
-        _points = _coords[0].getAttribute('points').split()
-        # invariant: at least want 3 points, otherwise polygon area == Zero
-        if len(_points) < 3:
-            raise DigitalObjectException(f"{_local}@ID={_id} way too few points {_points}")
+        coords = [n for n in element.childNodes if n.localName == 'Coords']
+        if len(coords) < 1 or 'points' not in coords[0].attributes:
+            raise DigitalObjectException(f"{_local}@ID={element_id} invalid coordinate data")
+        first_coord_points = coords[0].getAttribute('points').split()
+        # invariant: require at least 3 points, otherwise invalid polygon area
+        if len(first_coord_points) < 3:
+            raise DigitalObjectException(f"{_local}@ID={element_id} too few points {first_coord_points}")
         try:
-            _piece.dimensions = [[int(_point.split(',')[0]), int(_point.split(',')[1])]
-                                 for _point in _points]
+            piece.dimensions = [[int(_point.split(',')[0]), int(_point.split(',')[1])]
+                                 for _point in first_coord_points]
         except ValueError as _val_err:
-            raise DigitalObjectException(f"{_local}@ID={_id} invalid points {_points}") from _val_err
+            raise DigitalObjectException(f"{_local}@ID={element_id} invalid {first_coord_points}") from _val_err
 
         # replace current text with next order children text
-        _txt_eqs = [n for n in element.childNodes if n.localName == 'TextEquiv']
-        if _txt_eqs:
-            _first_text: Element = _txt_eqs[0]
-            _unicodes = _first_text.getElementsByTagNameNS(ns, 'Unicode')
-            if len(_unicodes) < 1:
-                raise DigitalObjectException(f"{_local}@ID={_id} text missing unicode")
-            _first_unicode = _unicodes[0]
-            if _first_unicode.firstChild:
+        # txt_eqs = [n for n in element.childNodes
+        #            if n.localName == 'TextEquiv' and \
+        #               FormatPageUtil.__contains_textual_content(n)
+        #         ]
+        txt_eqs = [n for n in element.childNodes if n.localName == 'TextEquiv']
+        if txt_eqs:
+            first_equiv: Element = txt_eqs[0] # of old
+            # if len(txt_eqs) == 1:
+            #     first_equiv: Element = txt_eqs[0]
+            # else:
+            #     # take first indexed element's text content
+            #     first_equiv = sorted(txt_eqs, key=lambda x: x.getAttribute('index'))[0]
+            unicodes = first_equiv.getElementsByTagNameNS(ns, 'Unicode')
+            if len(unicodes) < 1:
+                raise DigitalObjectException(f"{_local}@ID={element_id} text missing unicode")
+            the_unicode = unicodes[0]
+            if the_unicode.firstChild and the_unicode.firstChild.nodeValue is not None:
                 # replace linebreak if text only at region level
-                _content = _first_unicode.firstChild.nodeValue.replace('\n', ' ')
-                if _content:
-                    _piece.transcription = _content
+                txt_content = the_unicode.firstChild.nodeValue.replace('\n', ' ')
+                if txt_content:
+                    piece.transcription = txt_content
                     # overthrow existing parent transcription
-                    if _piece.parent.transcriptions:
-                        _piece.parent.transcriptions = []
-        return _piece
+                    if piece.parent is not None and piece.parent.transcriptions:
+                        piece.parent.transcriptions = []
+        return piece
+
+    @staticmethod
+    def __contains_textual_content(element: Element) -> bool:
+        unicodes = element.getElementsByTagName('Unicode')
+        if len(unicodes) < 1:
+            return False
+        the_unicode = unicodes[0]
+        if the_unicode.firstChild \
+            and the_unicode.firstChild.nodeValue is not None \
+            and len(the_unicode.firstChild.nodeValue.strip()) > 0:
+            return True
+        return False
 
     @staticmethod
     def __map_piece_type(element) -> Tuple[DigitalObjectLevel, str]:
-        _local = element.localName
-        _name = DigitalObjectLevel.UNKNOWN
-        if _local == 'Word':
-            _name = DigitalObjectLevel.WORD
-        elif _local == 'TextLine':
-            _name = DigitalObjectLevel.LINE
-        elif _local == 'TextRegion':
-            _name = DigitalObjectLevel.REGION
-        elif _local == 'TableRegion':
-            _name = DigitalObjectLevel.TABLE
-        elif _local == 'TableCell':
-            _name = DigitalObjectLevel.TABLE_CELL
-        return _name, _local
+        local_name = element.localName
+        the_level = DigitalObjectLevel.UNKNOWN
+        if local_name == 'Word':
+            the_level = DigitalObjectLevel.WORD
+        elif local_name == 'TextLine':
+            the_level = DigitalObjectLevel.LINE
+        elif local_name == 'TextRegion':
+            the_level = DigitalObjectLevel.REGION
+        elif local_name == 'TableRegion':
+            the_level = DigitalObjectLevel.TABLE
+        elif local_name == 'TableCell':
+            the_level = DigitalObjectLevel.TABLE_CELL
+        return the_level, local_name
