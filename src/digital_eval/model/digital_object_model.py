@@ -42,6 +42,7 @@ class DigitalObjectTree:
         self.data: typing.Optional[DigitalObjectData] = None
         self.parent: typing.Optional[DigitalObjectTree] = None
         self.custom: typing.Dict = {}
+        self.max_level: DigitalObjectLevel = DigitalObjectLevel.WORD
         self._transcriptions: typing.List = []
         self.__file_path: typing.Optional[PurePath] = file_path
         self.__dimensions: DigitalObjectDimensions = []
