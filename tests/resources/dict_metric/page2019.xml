@@ -4,80 +4,80 @@
           xsi:schemaLocation="http://schema.primaresearch.org/PAGE/gts/pagecontent/2019-07-15 http://schema.primaresearch.org/PAGE/gts/pagecontent/2019-07-15/pagecontent.xsd"
           pcGtsId="OCR-D-BIN-REG-4074_007817778_00001">
     <pc:Page imageFilename="OCR-D-IMG/4074_007817778_00001.tif" imageWidth="4619" imageHeight="3312" orientation="0.">
-        <pc:TextRegion id="TR-1" orientation="0.">
+        <pc:TextRegion id="region0004" orientation="0.">
             <pc:Coords points="111,1758 111,1621 71,1621 72,1758"/>
-            <pc:TextLine id="TR-1_line0001">
+            <pc:TextLine id="region0004_line0001">
                 <pc:Coords points="111,1758 111,1621 71,1621 72,1758"/>
                 <pc:TextEquiv>
                     <pc:Unicode>Dieſe uͤberfruͤhte An⸗</pc:Unicode>
                 </pc:TextEquiv>
-                <pc:Word id="region0004_line0008_word0003">
+                <pc:Word id="region0004_line0001_word0001">
                     <pc:Coords points="111,1758 111,1621 71,1621 72,1758"/>
                     <pc:TextEquiv conf="0.899207534790039">
                         <pc:Unicode>Dieſe</pc:Unicode>
                     </pc:TextEquiv>
                 </pc:Word>
-                <pc:Word id="region0004_line0008_word0003">
+                <pc:Word id="region0004_line0001_word0002">
                     <pc:Coords points="111,1758 111,1621 71,1621 72,1758"/>
                     <pc:TextEquiv conf="0.899207534790039">
                         <pc:Unicode>uͤberfruͤhte</pc:Unicode>
                     </pc:TextEquiv>
                 </pc:Word>
-                <pc:Word id="region0004_line0008_word0003">
+                <pc:Word id="region0004_line0001_word0003">
                     <pc:Coords points="111,1758 111,1621 71,1621 72,1758"/>
                     <pc:TextEquiv conf="0.899207534790039">
                         <pc:Unicode>An⸗</pc:Unicode>
                     </pc:TextEquiv>
                 </pc:Word>
             </pc:TextLine>
-            <pc:TextLine id="TR-1_line0001">
+            <pc:TextLine id="region0004_line0002">
                 <pc:Coords points="111,1758 111,1621 71,1621 72,1758"/>
                 <pc:TextEquiv>
                     <pc:Unicode>kunft des hailigen Raimarſ. ſachſen-</pc:Unicode>
                 </pc:TextEquiv>
-                <pc:Word id="region0004_line0008_word0003">
+                <pc:Word id="region0004_line0002_word0001">
                     <pc:Coords points="111,1758 111,1621 71,1621 72,1758"/>
                     <pc:TextEquiv conf="0.899207534790039">
                         <pc:Unicode>kunft</pc:Unicode>
                     </pc:TextEquiv>
                 </pc:Word>
-                <pc:Word id="region0004_line0008_word0003">
+                <pc:Word id="region0004_line0002_word0002">
                    <pc:Coords points="111,1758 111,1621 71,1621 72,1758"/>
                     <pc:TextEquiv conf="0.899207534790039">
                         <pc:Unicode>des</pc:Unicode>
                     </pc:TextEquiv>
                 </pc:Word>
-                <pc:Word id="region0004_line0008_word0003">
+                <pc:Word id="region0004_line0002_word0003">
                     <pc:Coords points="111,1758 111,1621 71,1621 72,1758"/>
                     <pc:TextEquiv conf="0.899207534790039">
                         <pc:Unicode>hailigen</pc:Unicode>
                     </pc:TextEquiv>
                 </pc:Word>
-                <pc:Word id="region0004_line0008_word0003">
+                <pc:Word id="region0004_line0002_word0004">
                     <pc:Coords points="111,1758 111,1621 71,1621 72,1758"/>
                     <pc:TextEquiv conf="0.899207534790039">
                         <pc:Unicode>Raimarſ.</pc:Unicode>
                     </pc:TextEquiv>
                 </pc:Word>
-                <pc:Word id="region0004_line0008_word0003">
+                <pc:Word id="region0004_line0002_word0005">
                     <pc:Coords points="111,1758 111,1621 71,1621 72,1758"/>
                     <pc:TextEquiv conf="0.899207534790039">
                         <pc:Unicode>ſachſen-</pc:Unicode>
                     </pc:TextEquiv>
                 </pc:Word>
             </pc:TextLine>
-            <pc:TextLine id="TR-1_line0001">
+            <pc:TextLine id="region0004_line0003">
                 <pc:Coords points="111,1758 111,1621 71,1621 72,1758"/>
                 <pc:TextEquiv>
                     <pc:Unicode>ſtolz, aͤhnlich</pc:Unicode>
                 </pc:TextEquiv>
-                <pc:Word id="region0004_line0008_word0003">
+                <pc:Word id="region0004_line0003_word0001">
                     <pc:Coords points="111,1758 111,1621 71,1621 72,1758"/>
                     <pc:TextEquiv conf="0.899207534790039">
                         <pc:Unicode>ſtolz,</pc:Unicode>
                     </pc:TextEquiv>
                 </pc:Word>
-                <pc:Word id="region0004_line0008_word0003">
+                <pc:Word id="region0004_line0003_word0002">
                     <pc:Coords points="111,1758 111,1621 71,1621 72,1758"/>
                     <pc:TextEquiv conf="0.899207534790039">
                         <pc:Unicode>aͤhnlich</pc:Unicode>
