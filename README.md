@@ -3,21 +3,26 @@
 ![example workflow](https://github.com/ulb-sachsen-anhalt/digital-eval/actions/workflows/python-app.yml/badge.svg)
 [![PyPi version](https://badgen.net/pypi/v/digital-eval/)](https://pypi.org/project/digital-eval) ![PyPI - Downloads](https://img.shields.io/pypi/dm/digital-eval) ![PyPI - License](https://img.shields.io/pypi/l/digital-eval) ![PyPI - Python Version](https://img.shields.io/pypi/pyversions/digital-eval)
 
-Python3 Tool to report evaluation outcomes from mass digitalization workflows.
+Python3 Tool evaluation for the masses - evaluate outcomes from mass digitalization workflows to reference data with 1.000+ pages in resonable time.
 
 ## Features
 
 * [OCR-D compliant](https://ocr-d.de/en/spec/ocrd_eval#character-error-rate-cer) normalized similarity for edit-distance based metrics based on characters, letters and words
 * choose from textual metrics based on characters or words plus common Information Retrieval
 * choose from different UTF-8 Python norms
-* match groundtruth (i.e. reference data) and candidates by filename start
-* use geometric information to evaluate only specific frame (i.e. specific column or region from large page) of
-  candidates (requires ALTO or PAGE format)
-* aggregate evaluation outcomes on domain range (with multiple subdomains) according to folder layout
+* match groundtruth (i.e. reference data) and candidates by filename within local filesystems
+* use geometric information to consider specific areas (i.e. certain region) of reference / candidate
+  Please note: requires both reference and ground truth to include geometrical information (ALTO / PAGE XML format)
+* includes descriptive statistics for different aggregation levels
 * formats: ALTO, PAGE or plain text for both groundtruth and candidates
 * speedup with parallel execution
 * additional OCR util:
-  * filter custom areas of single OCR files of ALTO files
+  * filter custom area of ALTO file
+
+## Requirements
+
+* recent *nix-OS
+* Python3.10 Environment
 
 ## Installation
 
@@ -52,34 +57,11 @@ Use standard Python Implementation of UTF-8 normalizations; default: `NFC` (cf.:
 
 ### Statistics
 
-Statistics calculated by [numpy](https://numpy.org/) include arithmetic mean, median. Additionally includes an outlier detection with
-interquartile range and are shown in relation to the total amount of specific groundtruth/reference (ref) for each metric, i.e. char, letters or tokens/words.
+Statistics calculated by [numpy](https://numpy.org/) include arithmetic mean, median.
 
-### Evaluate treelike structures
+Includes outlier detection with interquartile range.
 
-To evaluate OCR-candidate-data batch-like versus existing groundtruth, please make sure that your structures fit this layout:
-
-```bash
-groundtruth root/
-├── <domain>/ 
-│    └── <subdomain>/
-│         └── <page-01>.gt.xml
-candidate root/
-├── <domain>/ 
-│    └── <subdomain>/
-│         └── <page-01>.xml
-```
-
-Now call:
-
-```bash
-digital-eval <path-candidate-root>/domain/ -ref <path-groundtruth>/domain/
-```
-
-for an aggregated overview on stdout. Increase verbosity with `-v` (or even `-vv`) to get detailed
-information about each single data item evaluated.
-
-Structured OCR is considered to contain valid geometrical and textual data on word level, even though for recent PAGE also line level is possible.
+Shows differences Characters vs. Letters and Words vs. Bag of Words to illustrate impact of Character classes and Layout detection.
 
 ### Data problems
 
@@ -108,7 +90,7 @@ ocr-util frame -i page_1.alto.xml -p "0,0 600,400" -o page_1_area.alto.xml
 
 ## Development
 
-Plattform: Intel(R) Core(TM) i5-6500 CPU@3.20GHz, 16GB RAM, Ubuntu 22.04 LTS, Python 3.8+
+Plattform: Intel(R) Core(TM) i5-6500 CPU@3.20GHz, 16GB RAM, Ubuntu 22.04 LTS, Python 3.10+
 
 ```bash
 # clone local

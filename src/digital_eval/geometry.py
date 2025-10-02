@@ -56,9 +56,10 @@ def get_bounding_box(file_path):
             ) and re.match(r'[^\d]', s.attrib['CONTENT'])]
             return _calculate_bounding_box(non_empty, _map_alto)
 
-        elif 'PcGts' in start_token:
+        if 'PcGts' in start_token:
             # read from given page coordinates
             doc_root = xml.dom.minidom.parse(file_path).documentElement
+            assert doc_root is not None
             name_space = doc_root.namespaceURI
             root_element = ET.parse(file_path).getroot()
             # step one: read PAGE border coords
@@ -94,7 +95,7 @@ def _map_page2013(elem: ET.Element) -> typing.Tuple[str, int, int, int, int]:
     return (_NOT_SET, min(_xs), min(_ys), max(_xs), max(_ys))
 
 
-def _calculate_bounding_box(elements: typing.List[ET.Element], map_func) -> typing.Tuple[int, int, int, int]:
+def _calculate_bounding_box(elements: typing.List[ET.Element], map_func) -> typing.Tuple[typing.Tuple[int, int], typing.Tuple[int, int]]:
     """Review element's points to get points for
     minimum (top-left) and maximum (bottom-right)"""
 
