@@ -1,6 +1,6 @@
 """format_page_util module"""
 from pathlib import PurePath
-from typing import List, Tuple
+from typing import Dict, List, Tuple
 from xml.dom.minidom import Document, Element, parse
 
 from digital_eval.model.digital_object_model import DigitalObjectTree
@@ -38,6 +38,13 @@ class FormatPageUtil:
         # don't raise exception, it's an empty page
         if len(regions) < 1:
             return top_piece
+
+        # extract reading order if available
+        reading_order_map = FormatPageUtil.__extract_reading_order(page_one, ns)
+        
+        # sort regions by reading order if available, otherwise use DOM order
+        if reading_order_map:
+            regions = FormatPageUtil.__sort_regions_by_reading_order(regions, reading_order_map)
 
         # inspect *all* regions
         region_pieces: List[DigitalObjectTree] = []
@@ -175,3 +182,52 @@ class FormatPageUtil:
         elif local_name == 'TableCell':
             the_level = DigitalObjectLevel.TABLE_CELL
         return the_level, local_name
+
+    @staticmethod
+    def __extract_reading_order(page_element: Element, ns: str) -> Dict[str, int]:
+        """Extract reading order mapping from PAGE XML
+        
+        Returns a dictionary mapping region IDs to their reading order index.
+        If no reading order is found, returns an empty dictionary.
+        """
+        reading_order_map = {}
+        reading_orders = page_element.getElementsByTagNameNS(ns, 'ReadingOrder')
+        if len(reading_orders) > 0:
+            region_refs = reading_orders[0].getElementsByTagNameNS(ns, 'RegionRefIndexed')
+            for ref in region_refs:
+                region_id = ref.getAttribute('regionRef')
+                index = ref.getAttribute('index')
+                if region_id and index:
+                    try:
+                        reading_order_map[region_id] = int(index)
+                    except ValueError:
+                        # Skip invalid index values
+                        pass
+        return reading_order_map
+
+    @staticmethod
+    def __sort_regions_by_reading_order(regions: List[Element], 
+                                       reading_order_map: Dict[str, int]) -> List[Element]:
+        """Sort regions according to reading order
+        
+        Regions with reading order indices are sorted first by their index.
+        Regions without reading order indices maintain their original order after.
+        """
+        regions_with_order = []
+        regions_without_order = []
+        
+        for region in regions:
+            region_id = region.getAttribute('id')
+            if region_id in reading_order_map:
+                regions_with_order.append((reading_order_map[region_id], region))
+            else:
+                regions_without_order.append(region)
+        
+        # Sort regions with reading order by their index
+        regions_with_order.sort(key=lambda x: x[0])
+        
+        # Combine: ordered regions first, then unordered ones
+        sorted_regions = [region for _, region in regions_with_order]
+        sorted_regions.extend(regions_without_order)
+        
+        return sorted_regions
