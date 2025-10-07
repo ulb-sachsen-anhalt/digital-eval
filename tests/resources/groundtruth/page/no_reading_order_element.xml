@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<PcGts xmlns="http://schema.primaresearch.org/PAGE/gts/pagecontent/2013-07-15">
+    <Page imageFilename="test.jpg" imageWidth="1000" imageHeight="1000">
+        <TextRegion id="region_001">
+            <Coords points="100,100 200,100 200,200 100,200"/>
+            <TextLine id="region_001_line1">
+                <Coords points="100,100 200,100 200,150 100,150"/>
+                <TextEquiv>
+                    <Unicode>First in DOM</Unicode>
+                </TextEquiv>
+            </TextLine>
+        </TextRegion>
+        <TextRegion id="region_002">
+            <Coords points="100,300 200,300 200,400 100,400"/>
+            <TextLine id="region_002_line1">
+                <Coords points="100,300 200,300 200,350 100,350"/>
+                <TextEquiv>
+                    <Unicode>Second in DOM</Unicode>
+                </TextEquiv>
+            </TextLine>
+        </TextRegion>
+    </Page>
+</PcGts>
