@@ -175,7 +175,7 @@ def test_digital_object_from_odem_kba_transformed():
 def test_digital_object_from_ocr4all_groundtruth():
     """Ensure PAGE data from OCR4all groundtruth readable
     and respects different text-equiv elements, created during
-    the annotation process
+    the annotation process. Also verifies that reading order is respected.
     """
 
     # urn+nbn+de+gbv+3+1-112032-p0026-5_ger.gt
@@ -188,5 +188,9 @@ def test_digital_object_from_ocr4all_groundtruth():
     # assert
     assert tho_tree is not None
     assert tho_tree.level == DigitalObjectLevel.PAGE
-    first_line_text = 'Maréchal, sm. dignité, مير'
-    assert tho_tree.children[0].children[0].transcription == first_line_text
+    # According to reading order, first region is r20 (index 0)
+    assert tho_tree.children[0].id == 'r20'
+    assert tho_tree.children[0].children[0].transcription == 'MAR'
+    # Region r1 with 'Maréchal, sm. dignité, مير' is at reading order index 12
+    assert tho_tree.children[12].id == 'r1'
+    assert tho_tree.children[12].children[0].transcription == 'Maréchal, sm. dignité, مير'
