@@ -14,8 +14,10 @@ class FormatPageUtil:
     @staticmethod
     def extract_data(path: str) -> DigitalObjectTree:
         document: Document = parse(path)
+        assert document.documentElement is not None
         doc_root: Element = document.documentElement
         ns = doc_root.namespaceURI
+        assert ns is not None
         pages = doc_root.getElementsByTagNameNS(ns, 'Page')
         if len(pages) != 1:
             raise DigitalObjectException(f"No unique page for {path}")
@@ -41,7 +43,7 @@ class FormatPageUtil:
 
         # extract reading order if available
         reading_order_map = FormatPageUtil.__extract_reading_order(page_one, ns)
-        
+
         # sort regions by reading order if available, otherwise use DOM order
         if reading_order_map:
             regions = FormatPageUtil.__sort_regions_by_reading_order(regions, reading_order_map)
@@ -186,7 +188,7 @@ class FormatPageUtil:
     @staticmethod
     def __extract_reading_order(page_element: Element, ns: str) -> Dict[str, int]:
         """Extract reading order mapping from PAGE XML
-        
+
         Returns a dictionary mapping region IDs to their reading order index.
         If no reading order is found, returns an empty dictionary.
         """
@@ -209,25 +211,24 @@ class FormatPageUtil:
     def __sort_regions_by_reading_order(regions: List[Element], 
                                        reading_order_map: Dict[str, int]) -> List[Element]:
         """Sort regions according to reading order
-        
+
         Regions with reading order indices are sorted first by their index.
         Regions without reading order indices maintain their original order after.
         """
         regions_with_order = []
         regions_without_order = []
-        
+
         for region in regions:
             region_id = region.getAttribute('id')
             if region_id in reading_order_map:
                 regions_with_order.append((reading_order_map[region_id], region))
             else:
                 regions_without_order.append(region)
-        
+
         # Sort regions with reading order by their index
         regions_with_order.sort(key=lambda x: x[0])
-        
+
         # Combine: ordered regions first, then unordered ones
         sorted_regions = [region for _, region in regions_with_order]
         sorted_regions.extend(regions_without_order)
-        
         return sorted_regions
