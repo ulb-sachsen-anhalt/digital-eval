@@ -14,9 +14,8 @@ from tests.conftest import TEST_RES_DIR
 
 
 def test_xml_parser_minidom():
-    """Ensure PAGE data from OCR4all groundtruth readable
-    and respects different text-equiv elements, created during
-    the annotation process. Also verifies that reading order is respected.
+    """Explore behavior of minidom parser with recent output from german
+    historical newspaper.
     """
 
     # arrange
@@ -31,7 +30,7 @@ def test_xml_parser_minidom():
 
 
 def test_xml_parser_std_etree():
-    """Compare different XML parsers for handling historical German text"""
+    """Behavior of std element tree parser with historical German text."""
 
     ocr_path = f'{TEST_RES_DIR}/candidate/page/1744746265_19330115.xml'
 
@@ -44,7 +43,7 @@ def test_xml_parser_std_etree():
 
 
 def test_xml_parser_lxml_etree():
-    """Compare different XML parsers for handling historical German text"""
+    """Ensure lxml can handle historical German text from eynollah."""
 
     ocr_path = f'{TEST_RES_DIR}/candidate/page/1744746265_19330115.xml'
 
