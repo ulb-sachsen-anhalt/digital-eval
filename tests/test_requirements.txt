@@ -4,3 +4,4 @@ coverage
 coverage-badge
 nose2
 pytest-cov
+lxml

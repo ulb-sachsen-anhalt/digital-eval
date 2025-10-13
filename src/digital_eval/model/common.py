@@ -51,6 +51,13 @@ class DigitalObjectException(Exception):
     """Mark custom Exception"""
 
 
+class DigitalObjectGeometryException(DigitalObjectException):
+    """Mark custom Exception for geometry issues, for example
+    when coordinates are not available or invalid or children
+    are not contained in the parent area.
+    """
+
+
 class DigitalObjectContent(Enum):
     """structural content type (Layout and semantics)"""
     UNKNOWN = 0

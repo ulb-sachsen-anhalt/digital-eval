@@ -4,8 +4,8 @@ from typing import Dict, List, Tuple
 from xml.dom.minidom import Document, Element, parse
 
 from digital_eval.model.digital_object_model import DigitalObjectTree
-from digital_eval.model.common import DigitalObjectException, DigitalObjectLevel, \
-    DigitalObjectTreeOCRFileFormat
+
+import digital_eval.model.common as dc
 
 
 class FormatPageUtil:
@@ -20,7 +20,7 @@ class FormatPageUtil:
         assert ns is not None
         pages = doc_root.getElementsByTagNameNS(ns, 'Page')
         if len(pages) != 1:
-            raise DigitalObjectException(f"No unique page for {path}")
+            raise dc.DigitalObjectException(f"No unique page for {path}")
         page_one = pages[0]
         page_width = int(page_one.getAttribute('imageWidth'))
         page_height = int(page_one.getAttribute('imageHeight'))
@@ -28,10 +28,10 @@ class FormatPageUtil:
             page_one.getAttribute('imageFilename'),
             page_one,
             document=document,
-            file_format=DigitalObjectTreeOCRFileFormat.PAGE,
+            file_format=dc.DigitalObjectTreeOCRFileFormat.PAGE,
             file_path=PurePath(path)
         )
-        top_piece.level = DigitalObjectLevel.PAGE
+        top_piece.level = dc.DigitalObjectLevel.PAGE
         top_piece.dimensions = [[0, 0], [page_width, 0],
                                 [page_width, page_height], [0, page_height]]
         regions = doc_root.getElementsByTagNameNS(ns, 'TextRegion')
@@ -64,11 +64,16 @@ class FormatPageUtil:
         return top_piece
 
     @staticmethod
-    def __read_lines(page_lines: List[Element], parent, ns) -> List[DigitalObjectTree]:
+    def __read_lines(page_lines: List[Element],
+                     parent: DigitalObjectTree, ns) -> List[DigitalObjectTree]:
         line_pieces = []
         for page_line in page_lines:
             line_piece = FormatPageUtil.__from_text_element(page_line, parent, ns)
-            if line_piece.max_level != DigitalObjectLevel.LINE:
+            if line_piece not in parent:
+                msg = f"{line_piece.id}/{line_piece.as_box()} not contained in "
+                msg += f"parent box {parent.id}/{parent.as_box()}"
+                raise dc.DigitalObjectGeometryException(msg)
+            if line_piece.max_level != dc.DigitalObjectLevel.LINE:
                 word_tokens = page_line.getElementsByTagNameNS(ns, 'Word')
                 line_piece.parent = parent
                 # inspect PAGE on word level, if set
@@ -81,7 +86,7 @@ class FormatPageUtil:
                         # remove line content in favour of words content
                         line_piece.transcriptions = []
                         line_piece.children = word_pieces
-                    except DigitalObjectException as _pex:
+                    except dc.DigitalObjectException as _pex:
                         raise RuntimeError(_pex.args) from _pex
             line_pieces.append(line_piece)
         return line_pieces
@@ -112,7 +117,7 @@ class FormatPageUtil:
         piece = DigitalObjectTree(
             element_id,
             element,
-            file_format=DigitalObjectTreeOCRFileFormat.PAGE
+            file_format=dc.DigitalObjectTreeOCRFileFormat.PAGE
         )
         piece.level = the_level
         piece.parent = parent
@@ -120,16 +125,16 @@ class FormatPageUtil:
         # inspect geometry
         coords = [n for n in element.childNodes if n.localName == 'Coords']
         if len(coords) < 1 or 'points' not in coords[0].attributes:
-            raise DigitalObjectException(f"{_local}@ID={element_id} invalid coordinate data")
+            raise dc.DigitalObjectGeometryException(f"{_local}@ID={element_id} invalid coordinate data")
         first_coord_points = coords[0].getAttribute('points').split()
         # invariant: require at least 3 points, otherwise invalid polygon area
         if len(first_coord_points) < 3:
-            raise DigitalObjectException(f"{_local}@ID={element_id} too few points {first_coord_points}")
+            raise dc.DigitalObjectGeometryException(f"{_local}@ID={element_id} too few points {first_coord_points}")
         try:
             piece.dimensions = [[int(_point.split(',')[0]), int(_point.split(',')[1])]
                                  for _point in first_coord_points]
         except ValueError as _val_err:
-            raise DigitalObjectException(f"{_local}@ID={element_id} invalid {first_coord_points}") from _val_err
+            raise dc.DigitalObjectGeometryException(f"{_local}@ID={element_id} invalid {first_coord_points}") from _val_err
         #replace current text with next order children text
         txt_eqs = [n for n in element.childNodes
                    if n.localName == 'TextEquiv' and \
@@ -142,10 +147,10 @@ class FormatPageUtil:
                 # pick ZERO indexed element with content
                 first_equiv = sorted(txt_eqs, key=lambda x: x.getAttribute('index'))[0]
                 if element.localName == 'TextLine':
-                    piece.max_level = DigitalObjectLevel.LINE
+                    piece.max_level = dc.DigitalObjectLevel.LINE
             unicodes = first_equiv.getElementsByTagNameNS(ns, 'Unicode')
             if len(unicodes) < 1:
-                raise DigitalObjectException(f"{_local}@ID={element_id} text missing unicode")
+                raise dc.DigitalObjectException(f"{_local}@ID={element_id} text missing unicode")
             the_unicode = unicodes[0]
             if the_unicode.firstChild and the_unicode.firstChild.nodeValue is not None:
                 # replace linebreak if text only at region level
@@ -170,19 +175,19 @@ class FormatPageUtil:
         return False
 
     @staticmethod
-    def __map_piece_type(element) -> Tuple[DigitalObjectLevel, str]:
+    def __map_piece_type(element) -> Tuple[dc.DigitalObjectLevel, str]:
         local_name = element.localName
-        the_level = DigitalObjectLevel.UNKNOWN
+        the_level = dc.DigitalObjectLevel.UNKNOWN
         if local_name == 'Word':
-            the_level = DigitalObjectLevel.WORD
+            the_level = dc.DigitalObjectLevel.WORD
         elif local_name == 'TextLine':
-            the_level = DigitalObjectLevel.LINE
+            the_level = dc.DigitalObjectLevel.LINE
         elif local_name == 'TextRegion':
-            the_level = DigitalObjectLevel.REGION
+            the_level = dc.DigitalObjectLevel.REGION
         elif local_name == 'TableRegion':
-            the_level = DigitalObjectLevel.TABLE
+            the_level = dc.DigitalObjectLevel.TABLE
         elif local_name == 'TableCell':
-            the_level = DigitalObjectLevel.TABLE_CELL
+            the_level = dc.DigitalObjectLevel.TABLE_CELL
         return the_level, local_name
 
     @staticmethod

@@ -1,14 +1,13 @@
 """digital_object module"""
 from __future__ import annotations
 
-
 import typing
 
 from copy import copy
 from pathlib import PurePath
 from xml.dom.minidom import Document, Element
 
-from shapely import Polygon
+import shapely.geometry
 
 from digital_eval.model.common import (
     UNSET,
@@ -75,6 +74,16 @@ class DigitalObjectTree:
         if self.__file_format != DigitalObjectTreeOCRFileFormat.UNKNOWN and self.__set_dimensions_in_xml(dims):
             DigitalObjectChanges.resized_elements.append(self.xml_element)
 
+    def as_box(self):
+        """Simple bounding box for complex shapes"""
+        if not self.dimensions:
+            return None
+        min_x = min(point[0] for point in self.dimensions)
+        min_y = min(point[1] for point in self.dimensions)
+        max_x = max(point[0] for point in self.dimensions)
+        max_y = max(point[1] for point in self.dimensions)
+        return [min_x, min_y], [max_x, min_y], [max_x, max_y], [min_x, max_y]
+
     @property
     def transcriptions(self):
         return self._transcriptions
@@ -131,10 +140,11 @@ class DigitalObjectTree:
             _transcription.text = transscr
         self._transcriptions.append(_transcription)
 
-    def is_in_polygon(self, poly: Polygon) -> bool:
+    def is_in_polygon(self, poly: shapely.geometry.Polygon) -> bool:
         """check whether current Element is geometrically included in convex hull"""
-        digo_poly: Polygon = Polygon(self.dimensions)
-        convex_hull: Polygon = poly.convex_hull
+        digo_poly: shapely.geometry.Polygon = shapely.geometry.Polygon(self.dimensions)
+        assert poly is not None
+        convex_hull: shapely.geometry.base.BaseGeometry = poly.convex_hull
         return convex_hull.contains(digo_poly.centroid)
 
     def __repr__(self) -> str:
@@ -158,8 +168,8 @@ class DigitalObjectTree:
         # Go for centriod for real life
         # cases where word bounds
         # scratch over region borders
-        self_hull = Polygon(self.dimensions).convex_hull
-        other_shape = Polygon(other_piece.dimensions)
+        self_hull = shapely.geometry.Polygon(self.dimensions).convex_hull
+        other_shape = shapely.geometry.Polygon(other_piece.dimensions)
         return self_hull.contains(other_shape.centroid)
 
     def __is_superstruct(self):
@@ -175,7 +185,7 @@ class DigitalObjectTree:
     @staticmethod
     def dimensions_to_str(dimensions: DigitalObjectDimensions) -> str:
         """create string of point pairs"""
-        strs: typing.List[str] = list(map(lambda p: f'{int(p[0])},{int(p[1])}', dimensions))
+        strs: typing.List[str] = [f'{round(p[0])},{round(p[1])}' for p in dimensions]
         return ' '.join(strs)
 
     def __set_dimensions_in_xml(self, dimensions: DigitalObjectDimensions) -> bool:

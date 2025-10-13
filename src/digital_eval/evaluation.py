@@ -18,6 +18,8 @@ import numpy as np
 
 import digital_eval.metrics as digem
 
+import digital_eval.model.common as dc
+
 from digital_eval.geometry import get_bounding_box
 
 # just use textual information for evaluation
@@ -74,7 +76,7 @@ class EvalEntry:
         self.path_candidate: Path = path
         self.candidate_root_domain = candidate_root
         self.domain_directories = []
-        self.path_groundtruth:Path = None
+        self.path_groundtruth: typing.Optional[Path] = None
         self.gt_type = _NOT_SET
         self.metrics = []
 
@@ -196,8 +198,10 @@ class Evaluator:
         if entry.path_groundtruth:
             try:
                 return self.eval_entry(entry)
+            except dc.DigitalObjectException as exc:
+                print(f"[WARN ] discard {entry.path_groundtruth}: {exc}")
             except Exception as exc:
-                print(f"[WARN ][{entry.path_groundtruth}] _wrap {exc}")
+                print(f"[WARN ][{entry.path_groundtruth}] {exc}")
 
     def eval_entry(self, entry: EvalEntry) -> EvalEntry:
         """Create evaluation entry for matching pair of 
@@ -217,19 +221,19 @@ class Evaluator:
             # reset in text mode
             coords = None if self.text_mode else coords
 
-            _curr:digem.OCRMetric = copy.copy(metric)
-            _curr.reference = Path(entry.path_groundtruth).absolute()
-            _curr.candidate = Path(entry.path_candidate).absolute()
-            _curr.candidate_frame = coords
+            current:digem.OCRMetric = copy.copy(metric)
+            current.reference = Path(entry.path_groundtruth).absolute()
+            current.candidate = Path(entry.path_candidate).absolute()
+            current.candidate_frame = coords
             # ATTENZIONE! inital access to this attribute
             # triggers preprocessing and calculation!
-            _ = _curr.value
-            _current_metrics.append(_curr)
+            _ = current.value
+            _current_metrics.append(current)
             if self.verbosity >= 2:
                 _label_ref = os.path.basename(entry.path_groundtruth)
                 _label_can = os.path.basename(entry.path_candidate)
-                print(f'[TRACE][{_label_ref}][{_curr.label}] REFERENCE :: "{_curr.data_reference}"')
-                print(f'[TRACE][{_label_can}][{_curr.label}] CANDIDATE :: "{_curr.data_candidate}"')
+                print(f'[TRACE][{_label_ref}][{current.label}] REFERENCE :: "{current.data_reference}"')
+                print(f'[TRACE][{_label_can}][{current.label}] CANDIDATE :: "{current.data_candidate}"')
 
         # enrich entry with metrics and
         # normalize data type (i.e., art or ann or ...)
