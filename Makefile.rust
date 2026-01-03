@@ -1,0 +1,150 @@
+# Makefile for digital-eval Rust implementation
+# Compatible with both Python and Rust builds
+
+.PHONY: help build-rust test-rust install-rust clean-rust run-rust format-rust lint-rust \
+        build test install clean all
+
+# Default target
+help:
+	@echo "digital-eval Makefile"
+	@echo ""
+	@echo "Rust targets:"
+	@echo "  build-rust     - Build Rust release version"
+	@echo "  test-rust      - Run Rust tests"
+	@echo "  install-rust   - Install Rust binaries"
+	@echo "  clean-rust     - Clean Rust build artifacts"
+	@echo "  run-rust       - Run Rust binary with --help"
+	@echo "  format-rust    - Format Rust code"
+	@echo "  lint-rust      - Lint Rust code with clippy"
+	@echo ""
+	@echo "Python targets (existing):"
+	@echo "  See original Makefile targets"
+	@echo ""
+	@echo "Combined targets:"
+	@echo "  build          - Build both Python and Rust"
+	@echo "  test           - Test both Python and Rust"
+	@echo "  clean          - Clean both Python and Rust artifacts"
+
+# Rust targets
+build-rust:
+	@echo "Building Rust release version..."
+	cargo build --release
+	@echo "Binaries available at:"
+	@echo "  target/release/digital-eval"
+	@echo "  target/release/ocr-util"
+
+test-rust:
+	@echo "Running Rust tests..."
+	cargo test --release
+
+install-rust:
+	@echo "Installing Rust binaries..."
+	cargo install --path .
+	@echo "Installed to ~/.cargo/bin/"
+
+clean-rust:
+	@echo "Cleaning Rust build artifacts..."
+	cargo clean
+
+run-rust:
+	@echo "Running digital-eval (Rust)..."
+	cargo run --release -- --help
+
+format-rust:
+	@echo "Formatting Rust code..."
+	cargo fmt
+
+lint-rust:
+	@echo "Linting Rust code..."
+	cargo clippy -- -D warnings
+
+check-rust:
+	@echo "Checking Rust code (fast)..."
+	cargo check
+
+bench-rust:
+	@echo "Running Rust benchmarks..."
+	cargo bench
+
+doc-rust:
+	@echo "Generating Rust documentation..."
+	cargo doc --no-deps --open
+
+# Quick development iterations
+dev-rust:
+	@echo "Running in development mode..."
+	cargo watch -x 'run -- --help'
+
+# Combined targets
+build: build-rust
+	@echo "Build complete!"
+
+test: test-rust
+	@echo "All tests complete!"
+
+clean: clean-rust
+	@echo "Clean complete!"
+
+# Default to help
+all: help
+
+# Rust-specific optimizations
+release-optimized:
+	@echo "Building with maximum optimizations..."
+	RUSTFLAGS="-C target-cpu=native" cargo build --release
+
+# Size-optimized build
+release-small:
+	@echo "Building size-optimized version..."
+	cargo build --release --config profile.release.opt-level=\"z\" \
+		--config profile.release.strip=true \
+		--config profile.release.panic=\"abort\"
+
+# Cross-compilation examples
+build-linux:
+	@echo "Cross-compiling for Linux..."
+	cross build --release --target x86_64-unknown-linux-gnu
+
+build-windows:
+	@echo "Cross-compiling for Windows..."
+	cross build --release --target x86_64-pc-windows-gnu
+
+# Docker build
+docker-build:
+	@echo "Building Docker image..."
+	docker build -t digital-eval:latest .
+
+# Dependency management
+update-deps:
+	@echo "Updating Rust dependencies..."
+	cargo update
+
+audit-deps:
+	@echo "Auditing Rust dependencies for security issues..."
+	cargo audit
+
+# Code quality
+quality-rust: format-rust lint-rust test-rust
+	@echo "Code quality checks complete!"
+
+# Installation verification
+verify-install:
+	@echo "Verifying installation..."
+	@which digital-eval || echo "digital-eval not found in PATH"
+	@which ocr-util || echo "ocr-util not found in PATH"
+	@digital-eval --version 2>/dev/null || echo "Could not run digital-eval"
+
+# Performance profiling (Linux)
+profile-rust:
+	@echo "Profiling with perf..."
+	cargo build --release --config profile.release.debug=true
+	@echo "Run: perf record target/release/digital-eval [args]"
+	@echo "Then: perf report"
+
+# Benchmarking
+benchmark: bench-rust
+	@echo "Benchmark complete!"
+
+# Full CI pipeline
+ci-rust: format-rust lint-rust test-rust build-rust
+	@echo "CI pipeline complete!"

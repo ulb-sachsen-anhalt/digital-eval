@@ -1,0 +1,67 @@
+[package]
+name = "digital-eval"
+version = "1.9.1"
+edition = "2021"
+authors = ["Universitäts- und Landesbibliothek Sachsen-Anhalt <development@bibliothek.uni-halle.de>"]
+description = "Evaluate Digitalization Data - OCR quality evaluation tool"
+license = "MIT"
+repository = "https://github.com/ulb-sachsen-anhalt/digital-eval"
+
+[[bin]]
+name = "digital-eval"
+path = "src/main.rs"
+
+[[bin]]
+name = "ocr-util"
+path = "src/ocr_util/main.rs"
+
+[dependencies]
+# CLI argument parsing
+clap = { version = "4.5", features = ["derive"] }
+
+# XML parsing for ALTO and PAGE formats
+quick-xml = "0.36"
+roxmltree = "0.20"
+
+# Text similarity and edit distance
+strsim = "0.11"
+rapidfuzz = "0.5"
+
+# Unicode normalization
+unicode-normalization = "0.1"
+
+# Parallel processing
+rayon = "1.10"
+
+# Statistics
+statrs = "0.17"
+
+# Error handling
+anyhow = "1.0"
+thiserror = "1.0"
+
+# Path utilities
+walkdir = "2.5"
+glob = "0.3"
+
+# Geometry
+geo = "0.28"
+
+# Serialization
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+
+# Regular expressions
+regex = "1.10"
+
+# Stopwords and NLP utilities (basic)
+# For more advanced NLP, consider nlprule crate
+
+[dev-dependencies]
+criterion = "0.5"
+tempfile = "3.10"
+
+[profile.release]
+opt-level = 3
+lto = true
+codegen-units = 1
