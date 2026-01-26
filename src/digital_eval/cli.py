@@ -83,20 +83,20 @@ def start_evaluation(parse_args: typing.Dict):
 
     # go on with basic validation
     path_candidates = Path(path_candidates).absolute()
-    if not path_candidates.is_dir():
-        print(f'[ERROR] input "{path_candidates}": invalid directory! exit!')
+    if not path_candidates.is_dir() and not path_candidates.is_file():
+        print(f'[ERROR] input "{path_candidates}": invalid! exit!')
         sys.exit(1)
     if path_reference is not None:
         path_reference = Path(path_reference)
         if not path_reference.is_dir():
-            print(f'[ERROR] reference "{path_reference}": invalid directory! exit!')
+            print(f'[ERROR] reference "{path_reference}": invalid! exit!')
             sys.exit(1)
 
     if path_candidates and path_reference:
-        _base_can = path_candidates.name
-        _base_ref = path_reference.name
-        if _base_can != _base_ref:
-            print(f"[WARN ] base domains '{_base_can}' and '{_base_ref}' mismatch, aggregation might fail!")
+        base_can = path_candidates.name if path_candidates.is_dir() else path_candidates.parent.name
+        base_ref = path_reference.name if path_reference.is_dir() else path_reference.parent.name
+        if base_can != base_ref:
+            print(f"[WARN ] base '{base_can}' and '{base_ref}' mismatch, aggregation might be inaccurate!")
 
     # some diagnostics
     if verbosity >= 2:
@@ -104,8 +104,10 @@ def start_evaluation(parse_args: typing.Dict):
         print(f'[DEBUG] called with {args}')
 
     # create basic evaluator instance
+    # If a single file is passed, use its parent directory as the root
+    evaluator_root = path_candidates if path_candidates.is_dir() else path_candidates.parent
     evaluator = digev.Evaluator(
-        path_candidates,
+        evaluator_root,
         verbosity=verbosity,
         extras=xtra,
     )
@@ -166,7 +168,7 @@ def start():
     """Wrap argparsing"""
     parser = argparse.ArgumentParser(description=f"Evaluate Mass Digitalization Data {digev.__version__}")
     parser.add_argument("candidates",
-                        help="Root Directory for evaluation candidates"
+                        help="Root Directory for evaluation candidates / Path to single candidate file"
                         )
     parser.add_argument("-ref", "--reference",
                         required=False,

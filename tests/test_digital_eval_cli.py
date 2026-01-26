@@ -129,6 +129,54 @@ def test_mwe_cli_data_resolving(tmp_path, capsys):
     captured = capsys.readouterr().out
     std_lines = captured.split('\n')
     assert len(std_lines) == 12
-    assert std_lines[0] == "[WARN ] base domains 'ger_frk' and 'GT-PAGE' mismatch, aggregation might fail!"
+    assert std_lines[0] == "[WARN ] base 'ger_frk' and 'GT-PAGE' mismatch, aggregation might be inaccurate!"
     assert std_lines[1] == "[DEBUG] text normalized using 'NFKD' code points for 'Cs,Ls'"
     assert std_lines[5] == "[DEBUG] [1667522809_J_0001_0002](art) [Cs:39.10(5363), Ls:38.52(4437)(- 0.58)]"
+
+
+def test_single_candidate_file_cli(tmp_path, capsys):
+    """Test CLI with a single candidate file as argument
+    
+    Ensures that a single candidate file can be passed directly
+    instead of a directory and is processed correctly.
+    """
+
+    # arrange
+    dig.VERBOSITY = 1
+    src_candidate_file = TEST_RES_DIR / 'candidate' / 'frk_alto' / '1667522809_J_0001_0002.xml'
+    src_reference = TEST_RES_DIR / 'groundtruth' / 'page'
+    # Place the file in a subdirectory to simulate normal structure
+    dst_candidate_dir = tmp_path / 'candidate' / 'ger_frk'
+    dst_candidate_file = dst_candidate_dir / '1667522809_J_0001_0002.xml'
+    # Match the reference directory name to candidate directory name
+    dst_reference = tmp_path / 'reference' / 'ger_frk'
+    
+    # create directories and copy single file
+    dst_candidate_dir.mkdir(parents=True, exist_ok=True)
+    shutil.copy(src_candidate_file, dst_candidate_file)
+    tmp_reference: Path = shutil.copytree(src_reference, dst_reference)
+
+    # assert file exists
+    assert dst_candidate_file.is_file()
+    assert tmp_reference.is_dir()
+
+    # act - pass single file as candidates argument
+    cli_args = {"candidates": dst_candidate_file, "reference": tmp_reference,
+                "metrics": dig.DEFAULT_OCR_METRICS,
+                "verbosity": 1,
+                "utf8": dig.DEFAULT_UTF8_NORM,
+                "sequential": True}
+    eval_results = dig.start_evaluation(cli_args)
+
+    # assert - should process single file and match with reference
+    # Note: aggregate() creates multiple results: one per metric per domain/type
+    # With 2 metrics (Cs, Ls) and by_type=True, we get multiple aggregation results
+    assert len(eval_results) > 0
+    # Check that the specific file was processed by checking eval_keys
+    eval_keys = [result.eval_key for result in eval_results]
+    assert any('ger_frk' in key or '1667522809_J_0001_0002' in key for key in eval_keys)
+    captured = capsys.readouterr().out
+    std_lines = captured.split('\n')
+    assert std_lines[0] == "[DEBUG] text normalized using 'NFC' code points for 'Cs,Ls'"
+    # Verify the specific file appears in the output
+    assert any('1667522809_J_0001_0002' in line for line in std_lines)
