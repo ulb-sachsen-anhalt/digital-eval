@@ -28,6 +28,17 @@ dependencies = [
     "shapely",
 ]
 
+[project.optional-dependencies]
+dev = [
+    "black",
+    "isort",
+    "pylint",
+]
+test = [
+    "pytest-cov",
+    "lxml",
+]
+
 [project.urls]
 Homepage = "https://github.com/ulb-sachsen-anhalt/digital-eval"
 
