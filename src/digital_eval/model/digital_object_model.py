@@ -1,4 +1,5 @@
 """digital_object module"""
+
 from __future__ import annotations
 
 import typing
@@ -28,12 +29,12 @@ class DigitalObjectTree:
     """
 
     def __init__(
-            self,
-            identifier: str = UNSET,
-            xml_element: typing.Optional[Element] = None,
-            document: typing.Optional[Document] = None,
-            file_format: DigitalObjectTreeOCRFileFormat = DigitalObjectTreeOCRFileFormat.UNKNOWN,
-            file_path: typing.Optional[PurePath] = None
+        self,
+        identifier: str = UNSET,
+        xml_element: typing.Optional[Element] = None,
+        document: typing.Optional[Document] = None,
+        file_format: DigitalObjectTreeOCRFileFormat = DigitalObjectTreeOCRFileFormat.UNKNOWN,
+        file_path: typing.Optional[PurePath] = None,
     ):
         self.id: str = identifier
         self.level: DigitalObjectLevel = DigitalObjectLevel.PAGE
@@ -54,7 +55,9 @@ class DigitalObjectTree:
 
     @property
     def file_format(self) -> DigitalObjectTreeOCRFileFormat:
-        return self.parent.file_format if self.parent is not None else self.__file_format
+        return (
+            self.parent.file_format if self.parent is not None else self.__file_format
+        )
 
     @property
     def document(self) -> Document:
@@ -71,7 +74,10 @@ class DigitalObjectTree:
     @dimensions.setter
     def dimensions(self, dims: DigitalObjectDimensions) -> None:
         self.__dimensions = dims
-        if self.__file_format != DigitalObjectTreeOCRFileFormat.UNKNOWN and self.__set_dimensions_in_xml(dims):
+        if (
+            self.__file_format != DigitalObjectTreeOCRFileFormat.UNKNOWN
+            and self.__set_dimensions_in_xml(dims)
+        ):
             DigitalObjectChanges.resized_elements.append(self.xml_element)
 
     def as_box(self):
@@ -111,8 +117,10 @@ class DigitalObjectTree:
             element: Element = piece.xml_element
             removable_tags: typing.List[str] = []
             if piece.file_format == DigitalObjectTreeOCRFileFormat.ALTO_V3:
-                removable_tags.append('SP')
-            removed_elements: typing.List[Element] = MinidomUtil.remove_element_and_clear_parent(element, removable_tags)
+                removable_tags.append("SP")
+            removed_elements: typing.List[Element] = (
+                MinidomUtil.remove_element_and_clear_parent(element, removable_tags)
+            )
             DigitalObjectChanges.removed_elements.extend(removed_elements)
 
     @property
@@ -128,8 +136,7 @@ class DigitalObjectTree:
             return self._transcriptions[0].text
 
         if not self._transcriptions and self.__is_superstruct():
-            return ' '.join([_p.transcription
-                             for _p in self.children])
+            return " ".join([_p.transcription for _p in self.children])
         raise RuntimeError(f"ID={self.id}: Can't get text_content for {self.id}!")
 
     @transcription.setter
@@ -164,7 +171,9 @@ class DigitalObjectTree:
             raise RuntimeError(f"{other_piece.id}: other has invalid dimensions!")
         # check order invariant
         if self.level < other_piece.level or self.level == other_piece.level:
-            raise RuntimeError(f"other {other_piece.id} is higher/equal level than {self.id}!")
+            raise RuntimeError(
+                f"other {other_piece.id} is higher/equal level than {self.id}!"
+            )
         # Go for centriod for real life
         # cases where word bounds
         # scratch over region borders
@@ -185,8 +194,8 @@ class DigitalObjectTree:
     @staticmethod
     def dimensions_to_str(dimensions: DigitalObjectDimensions) -> str:
         """create string of point pairs"""
-        strs: typing.List[str] = [f'{round(p[0])},{round(p[1])}' for p in dimensions]
-        return ' '.join(strs)
+        strs: typing.List[str] = [f"{round(p[0])},{round(p[1])}" for p in dimensions]
+        return " ".join(strs)
 
     def __set_dimensions_in_xml(self, dimensions: DigitalObjectDimensions) -> bool:
         """set dimension in xml based on file format"""
@@ -201,20 +210,22 @@ class DigitalObjectTree:
         height: float = y2 - y1
         has_changed: bool = False
         if self.file_format == DigitalObjectTreeOCRFileFormat.ALTO_V3:
-            if MinidomUtil.set_attribute(xml_element, 'HPOS', int(x1)):
+            if MinidomUtil.set_attribute(xml_element, "HPOS", int(x1)):
                 has_changed = True
-            if MinidomUtil.set_attribute(xml_element, 'VPOS', int(y1)):
+            if MinidomUtil.set_attribute(xml_element, "VPOS", int(y1)):
                 has_changed = True
-            if MinidomUtil.set_attribute(xml_element, 'WIDTH', int(width)):
+            if MinidomUtil.set_attribute(xml_element, "WIDTH", int(width)):
                 has_changed = True
-            if MinidomUtil.set_attribute(xml_element, 'HEIGHT', int(height)):
+            if MinidomUtil.set_attribute(xml_element, "HEIGHT", int(height)):
                 has_changed = True
         elif self.file_format == DigitalObjectTreeOCRFileFormat.PAGE:
             points: str = self.dimensions_to_str(dimensions)
-            if MinidomUtil.set_attribute(xml_element, 'points', points):
+            if MinidomUtil.set_attribute(xml_element, "points", points):
                 has_changed = True
         else:
-            raise NotImplementedError(f'__set_dimensions_in_xml() not implemented for "{self.file_format}"')
+            raise NotImplementedError(
+                f'__set_dimensions_in_xml() not implemented for "{self.file_format}"'
+            )
         return has_changed
 
 

@@ -12,61 +12,61 @@ class LanguageMapItem(typing.NamedTuple):
 
 # https://en.wikipedia.org/wiki/Category:Dialects_of_languages_with_ISO_639-3_code
 LANGUAGE_MAP: typing.Dict[str, LanguageMapItem] = {
-    'ger': LanguageMapItem(
-        iso_639_2B='ger',
-        iso_639_1='de',
-        lt_variant='de-de',
+    "ger": LanguageMapItem(
+        iso_639_2B="ger",
+        iso_639_1="de",
+        lt_variant="de-de",
     ),
-    'ara': LanguageMapItem(
-        iso_639_2B='ara',
-        iso_639_1='ar',
-        lt_variant='ar',
+    "ara": LanguageMapItem(
+        iso_639_2B="ara",
+        iso_639_1="ar",
+        lt_variant="ar",
     ),
-    'dut': LanguageMapItem(
-        iso_639_2B='dut',
-        iso_639_1='nl',
-        lt_variant='nl',
+    "dut": LanguageMapItem(
+        iso_639_2B="dut",
+        iso_639_1="nl",
+        lt_variant="nl",
     ),
-    'eng': LanguageMapItem(
-        iso_639_2B='eng',
-        iso_639_1='en',
-        lt_variant='en-gb',
+    "eng": LanguageMapItem(
+        iso_639_2B="eng",
+        iso_639_1="en",
+        lt_variant="en-gb",
     ),
-    'fre': LanguageMapItem(
-        iso_639_2B='fre',
-        iso_639_1='fr',
-        lt_variant='fr',
+    "fre": LanguageMapItem(
+        iso_639_2B="fre",
+        iso_639_1="fr",
+        lt_variant="fr",
     ),
-    'gre': LanguageMapItem(
-        iso_639_2B='gre',
-        iso_639_1='el',
-        lt_variant='el',
+    "gre": LanguageMapItem(
+        iso_639_2B="gre",
+        iso_639_1="el",
+        lt_variant="el",
     ),
     # old greek
-    'grc': LanguageMapItem(
-        iso_639_2B='grc',
-        iso_639_1='el',
-        lt_variant='el',
+    "grc": LanguageMapItem(
+        iso_639_2B="grc",
+        iso_639_1="el",
+        lt_variant="el",
     ),
-    'ita': LanguageMapItem(
-        iso_639_2B='ita',
-        iso_639_1='it',
-        lt_variant='it',
+    "ita": LanguageMapItem(
+        iso_639_2B="ita",
+        iso_639_1="it",
+        lt_variant="it",
     ),
-    'pol': LanguageMapItem(
-        iso_639_2B='pol',
-        iso_639_1='pl',
-        lt_variant='pl-pl',
+    "pol": LanguageMapItem(
+        iso_639_2B="pol",
+        iso_639_1="pl",
+        lt_variant="pl-pl",
     ),
-    'spa': LanguageMapItem(
-        iso_639_2B='spa',
-        iso_639_1='es',
-        lt_variant='es',
+    "spa": LanguageMapItem(
+        iso_639_2B="spa",
+        iso_639_1="es",
+        lt_variant="es",
     ),
-    'swe': LanguageMapItem(
-        iso_639_2B='swe',
-        iso_639_1='sv',
-        lt_variant='sv',
+    "swe": LanguageMapItem(
+        iso_639_2B="swe",
+        iso_639_1="sv",
+        lt_variant="sv",
     ),
     # 'per', premium only
     # 'heb', n.a.

@@ -14,8 +14,8 @@ import digital_eval.model as dimo
 
 # Python3 standard Unicode Normalization
 #
-UC_NORMALIZATION_DEFAULT = 'NFC'
-UC_NORMALIZATION_NFKD = 'NFKD'
+UC_NORMALIZATION_DEFAULT = "NFC"
+UC_NORMALIZATION_NFKD = "NFKD"
 
 # whitespaces
 #
@@ -29,46 +29,97 @@ WHITESPACES_EXCL_SPACE_CHARS = WHITESPACES[1:]
 #   * regular ASCII-punctuations
 #   * Dashes        \u2012-2017
 #   * Quotations    \u2018-201F
-PUNCTUATIONS = string.punctuation + '\u2012' + '\u2013' + '\u2014' + '\u2015' + '\u2016' + \
-               '\u2017' + '\u2018' + '\u2019' + '\u201A' + '\u201B' + \
-               '\u201C' + '\u201D' + '\u201E' + '\u201F'
+PUNCTUATIONS = (
+    string.punctuation
+    + "\u2012"
+    + "\u2013"
+    + "\u2014"
+    + "\u2015"
+    + "\u2016"
+    + "\u2017"
+    + "\u2018"
+    + "\u2019"
+    + "\u201a"
+    + "\u201b"
+    + "\u201c"
+    + "\u201d"
+    + "\u201e"
+    + "\u201f"
+)
 # no special line break delimiter
-PUNCTUATIONS = PUNCTUATIONS + '\u2E17'  # DOUBLE OBLIQUE HYPHEN
+PUNCTUATIONS = PUNCTUATIONS + "\u2e17"  # DOUBLE OBLIQUE HYPHEN
 # no spaces
-PUNCTUATIONS = PUNCTUATIONS + '\u0020' + '\u00a0' + '\u2000' + \
-               '\u2001' + '\u2002' + '\u2003' + '\u2004' + '\u2005' + \
-               '\u2006' + '\u2007' + '\u2008' + '\u2009' + \
-               '\u200a' + '\u2028' + '\u205f' + '\u3000'
+PUNCTUATIONS = (
+    PUNCTUATIONS
+    + "\u0020"
+    + "\u00a0"
+    + "\u2000"
+    + "\u2001"
+    + "\u2002"
+    + "\u2003"
+    + "\u2004"
+    + "\u2005"
+    + "\u2006"
+    + "\u2007"
+    + "\u2008"
+    + "\u2009"
+    + "\u200a"
+    + "\u2028"
+    + "\u205f"
+    + "\u3000"
+)
 
 # digits
 #
 #   * ASCII digits
 #   * arabic digits
 #   * persian / indic digits
-DIGITS = string.digits + '\u0660' + '\u0661' + '\u0662' + '\u0663' + \
-         '\u0664' + '\u0665' + '\u0666' + '\u0667' + '\u0668' + '\u0669'
+DIGITS = (
+    string.digits
+    + "\u0660"
+    + "\u0661"
+    + "\u0662"
+    + "\u0663"
+    + "\u0664"
+    + "\u0665"
+    + "\u0666"
+    + "\u0667"
+    + "\u0668"
+    + "\u0669"
+)
 # persian indic digits
-DIGITS = DIGITS + '\u06f0' + '\u06f1' + '\u06f2' + '\u06f3' + \
-         '\u06f4' + '\u06f5' + '\u06f6' + '\u06f7' + '\u06f8' + '\u06f9'
+DIGITS = (
+    DIGITS
+    + "\u06f0"
+    + "\u06f1"
+    + "\u06f2"
+    + "\u06f3"
+    + "\u06f4"
+    + "\u06f5"
+    + "\u06f6"
+    + "\u06f7"
+    + "\u06f8"
+    + "\u06f9"
+)
 
-WHITESPACE_TRNSL = str.maketrans('', '', WHITESPACES)
-PUNCT_TRNSL = str.maketrans('', '', PUNCTUATIONS)
-DIGIT_TRNSL = str.maketrans('', '', DIGITS)
+WHITESPACE_TRNSL = str.maketrans("", "", WHITESPACES)
+PUNCT_TRNSL = str.maketrans("", "", PUNCTUATIONS)
+DIGIT_TRNSL = str.maketrans("", "", DIGITS)
 
 #
 # information retrieval (nltk)
 #
 NLTK_STOPWORDS = [
-    'german',
-    'russian',
-    'english',
-    'french',
-    'greek',
-    'arabic',
-    'turkish',
-    'italian']
-STOPWORDS_DEFAULT = ['german', 'english', 'arabic', 'russian']
-
+    "german",
+    "russian",
+    "english",
+    "french",
+    "greek",
+    "arabic",
+    "turkish",
+    "italian",
+]
+STOPWORDS_DEFAULT = ["german", "english", "arabic", "russian"]
 
 
 class PreprocessingException(Exception):
@@ -102,16 +153,14 @@ class TextPreprocessor(Preprocessor):
         self.one_liner = True
 
     def normalize_encoding(self):
-        """Convert code points to 
+        """Convert code points to
         required unicode form"""
 
         self._input = unicodedata.normalize(self.code_norm, self._input)
 
     def run(self):
         if isinstance(self._input, Path):
-            self._input, _ = file_to_text(self._input,
-                                         self.frame,
-                                         self.one_liner)
+            self._input, _ = file_to_text(self._input, self.frame, self.one_liner)
         self.normalize_encoding()
 
 
@@ -136,7 +185,9 @@ class SimpleTokenizer(TextPreprocessor):
 
     def tokenize(self):
         """make string list"""
-        self._input = self._input.split() if isinstance(self._input, str) else self._input
+        self._input = (
+            self._input.split() if isinstance(self._input, str) else self._input
+        )
 
     def run(self):
         super().run()
@@ -159,13 +210,13 @@ class LanguageAwareTokenizer(SimpleTokenizer):
 
     def strip_stopwords(self):
         """remove some tokens"""
-        self._input = self._input - LanguageAwareTokenizer._get_stopwords(languages=self.languages)
+        self._input = self._input - LanguageAwareTokenizer._get_stopwords(
+            languages=self.languages
+        )
 
     def run(self):
         if isinstance(self._input, Path):
-            self._input, _ = file_to_text(self._input,
-                                         self.frame,
-                                         self.one_liner)
+            self._input, _ = file_to_text(self._input, self.frame, self.one_liner)
         self.normalize_encoding()
         self.tokenize_to_sorted_set()
         self.strip_stopwords()
@@ -182,13 +233,14 @@ class LanguageAwareTokenizer(SimpleTokenizer):
             for mapping in nltk_mappings:
                 nltk_corp.stopwords.words(mapping)
         except LookupError:
-            nltk.download('stopwords')
+            nltk.download("stopwords")
         if languages is None:
             languages = STOPWORDS_DEFAULT
-        _stopwords = {_all_words
-                    for _lang in languages
-                    for _all_words in nltk_corp.stopwords.words(_lang)
-                    }
+        _stopwords = {
+            _all_words
+            for _lang in languages
+            for _all_words in nltk_corp.stopwords.words(_lang)
+        }
         return _stopwords
 
 
@@ -196,8 +248,9 @@ class DictionaryTextPreprocessor(TextPreprocessor):
     """Prepare input data to be comparable
     with dictionary entries or spellcheckers
     """
+
     # diacritica to take care of
-    _COMBINING_SMALL_E = u'\u0364'
+    _COMBINING_SMALL_E = "\u0364"
 
     def __init__(self, input_data):
         if isinstance(input_data, Path):
@@ -217,13 +270,13 @@ class DictionaryTextPreprocessor(TextPreprocessor):
             if _c == DictionaryTextPreprocessor._COMBINING_SMALL_E:
                 _preceeding_vocal = _out[i - 1]
                 _vocal_name = unicodedata.name(_preceeding_vocal)
-                _replacement = ''
-                if 'LETTER A' in _vocal_name:
-                    _replacement = 'ä'
-                elif 'LETTER O' in _vocal_name:
-                    _replacement = 'ö'
-                elif 'LETTER U' in _vocal_name:
-                    _replacement = 'ü'
+                _replacement = ""
+                if "LETTER A" in _vocal_name:
+                    _replacement = "ä"
+                elif "LETTER O" in _vocal_name:
+                    _replacement = "ö"
+                elif "LETTER U" in _vocal_name:
+                    _replacement = "ü"
                 else:
                     _msg = f"No conversion for {_preceeding_vocal} ('{self._input}')!"
                     raise PreprocessingException(f"normalize vocal ligatures: {_msg}")
@@ -231,7 +284,9 @@ class DictionaryTextPreprocessor(TextPreprocessor):
             _out.append(_c)
 
         # strip all combining e's anyway
-        self._input = ''.join(_out).replace(DictionaryTextPreprocessor._COMBINING_SMALL_E, '')
+        self._input = "".join(_out).replace(
+            DictionaryTextPreprocessor._COMBINING_SMALL_E, ""
+        )
 
     def run(self):
         self.normalize_encoding()
@@ -244,11 +299,15 @@ def file_to_dict_text(file_path: str, frame=None, oneliner=False) -> typing.Tupl
 
     line_texts: typing.List[str]
     len_lines: int
-    line_texts, len_lines = file_to_text(file_path=file_path, frame=frame, oneliner=False)
-    non_empty_lines: typing.List[str] = [line_text for line_text in line_texts if len(line_text) > 0]
+    line_texts, len_lines = file_to_text(
+        file_path=file_path, frame=frame, oneliner=False
+    )
+    non_empty_lines: typing.List[str] = [
+        line_text for line_text in line_texts if len(line_text) > 0
+    ]
     lines_sanitized_wraps: typing.List[str] = _sanitize_wraps(non_empty_lines)
     lines_sanitized_chars: typing.List[str] = _sanitize_chars(lines_sanitized_wraps)
-    text = ' '.join(lines_sanitized_chars) if oneliner else lines_sanitized_chars
+    text = " ".join(lines_sanitized_chars) if oneliner else lines_sanitized_chars
     return text, len_lines
 
 
@@ -261,10 +320,12 @@ def file_to_text(file_path, frame=None, oneliner=True) -> typing.Tuple:
         if not frame:
             frame = top_digo.dimensions
         elif len(frame) == 2:
-            frame = [[frame[0][0], frame[0][1]],
-                     [frame[1][0], frame[0][1]],
-                     [frame[1][0], frame[1][1]],
-                     [frame[0][0], frame[1][1]]]
+            frame = [
+                [frame[0][0], frame[0][1]],
+                [frame[1][0], frame[0][1]],
+                [frame[1][0], frame[1][1]],
+                [frame[0][0], frame[1][1]],
+            ]
         frame_digo = dimo.DigitalObjectTree()
         frame_digo.dimensions = frame
         filter_word_pieces(frame_digo, top_digo)
@@ -273,10 +334,10 @@ def file_to_text(file_path, frame=None, oneliner=True) -> typing.Tuple:
             return top_digo.transcription, len(the_lines)
         return [line.transcription for line in the_lines], len(the_lines)
     except xml.parsers.expat.ExpatError as _:
-        with open(file_path, mode='r', encoding='utf-8') as fhandle:
+        with open(file_path, mode="r", encoding="utf-8") as fhandle:
             text_lines = fhandle.readlines()
             if oneliner:
-                text_lines = ' '.join([l.strip() for l in text_lines])
+                text_lines = " ".join([l.strip() for l in text_lines])
             return text_lines, len(text_lines)
     except RuntimeError as exc:
         raise RuntimeError(f"{file_path}: {exc}") from exc
@@ -332,6 +393,7 @@ _HYPHENS: typing.List[str] = [
     "—",
 ]
 
+
 def _sanitize_wraps(lines: typing.List[str]) -> typing.List[str]:
     """Sanitize word wraps if
     * last word token ends with '-', "⸗" or "—"
@@ -351,7 +413,7 @@ def _sanitize_wraps(lines: typing.List[str]) -> typing.List[str]:
                     next_line_tokens = next_line.split()
                     nextline_first_token = next_line_tokens.pop(0)
                     # join the rest of valid next line
-                    lines[i + 1] = ' '.join(next_line_tokens)
+                    lines[i + 1] = " ".join(next_line_tokens)
                     line = line[:-1] + nextline_first_token
                     break
         normalized_lines.append(line)
@@ -364,13 +426,13 @@ def _sanitize_chars(lines: typing.List[str]) -> typing.List[str]:
     sanitized: typing.List[str] = []
     for line in lines:
         text = line.strip()
-        bad_chars = '0123456789“„"\'?!*.;:-=[]()|'
-        text = ''.join([c for c in text if c not in bad_chars])
-        if '..' in text:
-            text = text.replace('..', '')
-        if '  ' in text:
-            text = text.replace('  ', ' ')
-        text = ' '.join([t for t in text.split() if len(t) > 1])
+        bad_chars = "0123456789“„\"'?!*.;:-=[]()|"
+        text = "".join([c for c in text if c not in bad_chars])
+        if ".." in text:
+            text = text.replace("..", "")
+        if "  " in text:
+            text = text.replace("  ", " ")
+        text = " ".join([t for t in text.split() if len(t) > 1])
         sanitized.append(text)
 
     return sanitized

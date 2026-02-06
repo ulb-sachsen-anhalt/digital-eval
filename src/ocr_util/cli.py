@@ -10,7 +10,7 @@ import digital_eval.model.filter as dofi
 
 # script constants
 DEFAULT_VERBOSITY = 0
-SUB_CMD_FRAME = 'frame'
+SUB_CMD_FRAME = "frame"
 
 
 def points_type(points: str) -> str:
@@ -25,41 +25,42 @@ def start() -> None:
         prog="ocr-util",
     )
     sub_arg_parsers = arg_parser.add_subparsers(
-        title='Subkommandos',
-        dest='subcommand',
+        title="Subkommandos",
+        dest="subcommand",
         required=True,
     )
     frame_arg_parser = sub_arg_parsers.add_parser(
         SUB_CMD_FRAME,
-        help='Filter Contents of provided ALTO-v3-Data by provided Coordinates, where Coordinates span a rectangular'
-             ' box with'
+        help="Filter Contents of provided ALTO-v3-Data by provided Coordinates, where Coordinates span a rectangular"
+        " box with",
     )
     frame_arg_parser.add_argument(
-        "-v", "--verbosity",
-        action='count',
+        "-v",
+        "--verbosity",
+        action="count",
         default=DEFAULT_VERBOSITY,
         required=False,
-        help=f"Verbosity flag. To increase, append multiple 'v's (optional; default: '{DEFAULT_VERBOSITY}')"
+        help=f"Verbosity flag. To increase, append multiple 'v's (optional; default: '{DEFAULT_VERBOSITY}')",
     )
     frame_arg_parser.add_argument(
-        "-i", "--input-ocr-file",
-        help="Path of OCR-Data file to process",
-        required=True
+        "-i", "--input-ocr-file", help="Path of OCR-Data file to process", required=True
     )
     frame_arg_parser.add_argument(
-        "-o", "--output-ocr-file",
+        "-o",
+        "--output-ocr-file",
         help="Path of resulting OCR-Data file",
         required=False,
-        default=None
+        default=None,
     )
     frame_arg_parser.add_argument(
-        "-p", "--points",
+        "-p",
+        "--points",
         required=True,
         type=points_type,
         help="""
         Frame to slice words/lines/regions from input OCR-Data
         f.e.: --frame "2892,2480 5072,2480 5072,5148 2892,5148"
-        """
+        """,
     )
     args = arg_parser.parse_args()
 
@@ -69,16 +70,16 @@ def start() -> None:
         output_ocr_file: str = args.output_ocr_file
         points: str = args.points
         if verbosity > 1:
-            print(f"[DEBUG] args: {input_ocr_file}, {output_ocr_file}, {points}, {verbosity}")
+            print(
+                f"[DEBUG] args: {input_ocr_file}, {output_ocr_file}, {points}, {verbosity}"
+            )
         polygon_frame_filter: dofi.PolygonFrameFilter = dofi.PolygonFrameFilter(
-            input_ocr_file,
-            points,
-            verbosity
+            input_ocr_file, points, verbosity
         )
         piece_result: do.DigitalObjectTree = polygon_frame_filter.process()
         file_result: PurePath = do.from_digital_object(piece_result, output_ocr_file)
         if verbosity > 0:
-            print('[INFO ] file_result', file_result)
+            print("[INFO ] file_result", file_result)
 
 
 if __name__ == "__main__":

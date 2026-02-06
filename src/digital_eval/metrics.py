@@ -7,16 +7,12 @@ import collections
 import typing
 
 from nltk.metrics import precision as nltk_precision
-from nltk.metrics import (
-     recall,
-     f_measure
- )
+from nltk.metrics import recall, f_measure
 import rapidfuzz.distance.Levenshtein as rfls
 
 import digital_eval.preprocessing as dipre
 from digital_eval.dictionary_metrics.common import LANGUAGE_KEY_DEFAULT
 from digital_eval.dictionary_metrics.language_tool.LanguageTool import LanguageTool
-
 
 
 class DigitalEvalMetricException(Exception):
@@ -80,8 +76,7 @@ class SimilarityMetric(OCRMetric):
     @property
     def n_ref(self) -> int:
         """Number of current reference data"""
-        if not hasattr(
-                self, 'data_reference') or self.data_reference is None:
+        if not hasattr(self, "data_reference") or self.data_reference is None:
             raise DigitalEvalMetricException("invalid reference data!")
         return len(self.data_reference)
 
@@ -89,7 +84,7 @@ class SimilarityMetric(OCRMetric):
     def n_ref(self, value):
         """Only for testing purposes"""
 
-        self.data_reference = 't' * value
+        self.data_reference = "t" * value
 
     @property
     def value(self):
@@ -121,7 +116,7 @@ class MetricChars(SimilarityMetric):
 
     def __init__(self, precision=2):
         super().__init__(precision)
-        self._label = 'Cs'
+        self._label = "Cs"
 
 
 class MetricLetters(SimilarityMetric):
@@ -130,7 +125,7 @@ class MetricLetters(SimilarityMetric):
 
     def __init__(self, precision=2):
         super().__init__(precision)
-        self._label = 'Ls'
+        self._label = "Ls"
         self.preprocessor: dipre.Preprocessor = dipre.LetterPreprocessor
 
 
@@ -139,7 +134,7 @@ class MetricWords(SimilarityMetric):
 
     def __init__(self, precision=2):
         super().__init__(precision)
-        self._label = 'Ws'
+        self._label = "Ws"
         self.preprocessor: dipre.Preprocessor = dipre.SimpleTokenizer
 
 
@@ -148,7 +143,7 @@ class MetricBoW(SimilarityMetric):
 
     def __init__(self, precision=2):
         super().__init__(precision)
-        self._label = 'BoWs'
+        self._label = "BoWs"
         self.preprocessor: dipre.Preprocessor = dipre.SimpleTokenizer
 
     def _forward(self):
@@ -169,7 +164,7 @@ class MetricIRPre(MetricIR):
 
     def __init__(self, precision=2, languages=None):
         super().__init__(precision, languages)
-        self._label = 'Pre'
+        self._label = "Pre"
 
     def _forward(self):
         self._value = ir_precision(self.data_reference, self.data_candidate)
@@ -178,9 +173,9 @@ class MetricIRPre(MetricIR):
 class MetricIRRec(MetricIR):
     "Calculate recall"
 
-    def __init__(self, precision=2,languages=None):
+    def __init__(self, precision=2, languages=None):
         super().__init__(precision, languages)
-        self._label = 'Rec'
+        self._label = "Rec"
 
     def _forward(self):
         self._value = ir_recall(self.data_reference, self.data_candidate)
@@ -197,21 +192,25 @@ class MetricDictionaryLangTool(MetricDictionary):
 
     def __init__(self, precision=2):
         super().__init__(precision=precision)
-        self._label = 'DictLT'
+        self._label = "DictLT"
         self.diff = 0
 
     def _forward(self):
         text: str = self.data_candidate
         text_list: typing.List[str] = self.data_candidate.split()
         n_tokens: int = len(text_list)
-        lt_response_data: typing.Dict = LanguageTool.check(text, MetricDictionary.LANGUAGE)
-        total_matches = lt_response_data['matches'] if 'matches' in lt_response_data else 0
+        lt_response_data: typing.Dict = LanguageTool.check(
+            text, MetricDictionary.LANGUAGE
+        )
+        total_matches = (
+            lt_response_data["matches"] if "matches" in lt_response_data else 0
+        )
         typo_errors = len(total_matches)
         self.diff = typo_errors if typo_errors <= n_tokens else n_tokens
 
 
 def levenshtein_norm(reference_data, candidate_data, inverse=False) -> int:
-    """Calculate levenshtein metric as ration of sum of edit operations 
+    """Calculate levenshtein metric as ration of sum of edit operations
     normalized to sum of edit and equal operations.
 
     Works with characters and word-like tokens, where
@@ -225,10 +224,10 @@ def levenshtein_norm(reference_data, candidate_data, inverse=False) -> int:
     return rfls.normalized_similarity(reference_data, candidate_data)
 
 
-def bag_of_tokens(reference_tokens: typing.List[str],
-                  candidate_tokens: typing.List[str]) -> int:
-    """Calculate difference between reference and candidate token list
-    """
+def bag_of_tokens(
+    reference_tokens: typing.List[str], candidate_tokens: typing.List[str]
+) -> int:
+    """Calculate difference between reference and candidate token list"""
     false_negatives: typing.List[str] = _diff(reference_tokens, candidate_tokens)
     false_positives: typing.List[str] = _diff(candidate_tokens, reference_tokens)
     delta = len(false_negatives) + len(false_positives)
@@ -239,7 +238,9 @@ def bag_of_tokens(reference_tokens: typing.List[str],
 
 
 def _diff(gt_tokens, cd_tokens) -> typing.List[str]:
-    return list((collections.Counter(gt_tokens) - collections.Counter(cd_tokens)).elements())
+    return list(
+        (collections.Counter(gt_tokens) - collections.Counter(cd_tokens)).elements()
+    )
 
 
 def ir_precision(reference_data, candidate_data) -> float:

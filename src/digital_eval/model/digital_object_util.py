@@ -19,7 +19,9 @@ class DigitalObjectUtil:
         return DigitalObjectUtil.read_data(path_in)
 
     @staticmethod
-    def from_digital_objects(root_digo: DigitalObjectTree, path_out: PurePath = None) -> PurePath:
+    def from_digital_objects(
+        root_digo: DigitalObjectTree, path_out: PurePath = None
+    ) -> PurePath:
         """Convert DigitalObject structure into a xml file"""
         if path_out is None:
             orig_file_path: PurePath = root_digo.file_path
@@ -28,7 +30,7 @@ class DigitalObjectUtil:
             suffix: str = orig_file_path.suffix
             new_name: str = basename.replace(f"{suffix}", f".gt{suffix}")
             path_out: PurePath = parent_dir.joinpath(new_name)
-        with open(path_out, 'w', encoding=TEXT_ENCODING) as file:
+        with open(path_out, "w", encoding=TEXT_ENCODING) as file:
             file.write(DigitalObjectUtil.to_xml_str(root_digo.document))
         return path_out
 
@@ -47,21 +49,25 @@ class DigitalObjectUtil:
         except Exception as _exc:
             raise RuntimeError(f"corrupt XML '{path_in}!") from _exc
         if doc_root is None:
-            raise RuntimeError('invalid document root')
-        name_space = doc_root.getAttribute('xmlns')
+            raise RuntimeError("invalid document root")
+        name_space = doc_root.getAttribute("xmlns")
         piece: Optional[DigitalObjectTree]
-        if doc_root.localName == 'alto':
+        if doc_root.localName == "alto":
             piece = FormatAltoV3Util.extract_data(path_in)
         elif name_space == PAGE_2013:
             piece = FormatPageUtil.extract_data(path_in)
-        elif doc_root.localName == 'PcGts':
+        elif doc_root.localName == "PcGts":
             piece = FormatPageUtil.extract_data(path_in)
         else:
-            raise RuntimeError(f'Unknown Data-Format "{doc_root.localName}" in "{path_in}"')
+            raise RuntimeError(
+                f'Unknown Data-Format "{doc_root.localName}" in "{path_in}"'
+            )
         return piece
 
     @staticmethod
-    def calulate_dimensions_by_children(digo: DigitalObjectTree) -> DigitalObjectDimensions:
+    def calulate_dimensions_by_children(
+        digo: DigitalObjectTree,
+    ) -> DigitalObjectDimensions:
         """recursively calculate bounds by involving bounds of all children"""
         if len(digo.children) > 0:
             dims: DigitalObjectDimensions = []
@@ -75,7 +81,9 @@ class DigitalObjectUtil:
     def flatten(digo: DigitalObjectTree) -> List[DigitalObjectTree]:
         """flattens a DigitalObject structure"""
 
-        def flatten_recursive(pc: DigitalObjectTree, digos: List[DigitalObjectTree] = None) -> List[DigitalObjectTree]:
+        def flatten_recursive(
+            pc: DigitalObjectTree, digos: List[DigitalObjectTree] = None
+        ) -> List[DigitalObjectTree]:
             if digos is None:
                 digos = []
             digos.append(pc)
@@ -86,7 +94,9 @@ class DigitalObjectUtil:
         return flatten_recursive(digo)
 
     @staticmethod
-    def __calculate_dimensions_rect_bounds(dimensions: DigitalObjectDimensions) -> DigitalObjectDimensions:
+    def __calculate_dimensions_rect_bounds(
+        dimensions: DigitalObjectDimensions,
+    ) -> DigitalObjectDimensions:
         min_x: Optional[float] = None
         min_y: Optional[float] = None
         max_x: Optional[float] = None

@@ -12,7 +12,6 @@ import digital_eval.dictionary_metrics.common as digev_cm
 import digital_eval.metrics as digem
 from digital_eval.dictionary_metrics.language_tool.LanguageTool import LanguageTool
 
-
 # script constants
 DEFAULT_VERBOSITY = 0
 VERBOSITY = DEFAULT_VERBOSITY
@@ -20,30 +19,30 @@ EVAL_VERBOSITY = DEFAULT_VERBOSITY
 DEFAULT_UTF8_NORM = digev.UC_NORMALIZATION_DEFAULT
 
 # metrics
-DEFAULT_OCR_METRICS = 'Cs,Ls'
-DEFAULT_OCR_METRIC_PREPROCESSINGS = ''
-DEFAULT_OCR_METRIC_POSTPROCESSINGS = ''
+DEFAULT_OCR_METRICS = "Cs,Ls"
+DEFAULT_OCR_METRIC_PREPROCESSINGS = ""
+DEFAULT_OCR_METRIC_POSTPROCESSINGS = ""
 METRIC_DICT = {
-    'Cs': digev.MetricChars,
-    'Characters': digev.MetricChars,
-    'Ls': digev.MetricLetters,
-    'Letters': digev.MetricLetters,
-    'Ws': digev.MetricWords,
-    'Words': digev.MetricWords,
-    'BoWs': digev.MetricBoW,
-    'BagOfWords': digev.MetricBoW,
-    'IRPre': digev.MetricIRPre,
-    'Pre': digev.MetricIRPre,
-    'Precision': digev.MetricIRPre,
-    'IRRec': digev.MetricIRRec,
-    'Rec': digev.MetricIRRec,
-    'DictLT': digem.MetricDictionaryLangTool,
-    'DictionaryLangTool': digem.MetricDictionaryLangTool,
+    "Cs": digev.MetricChars,
+    "Characters": digev.MetricChars,
+    "Ls": digev.MetricLetters,
+    "Letters": digev.MetricLetters,
+    "Ws": digev.MetricWords,
+    "Words": digev.MetricWords,
+    "BoWs": digev.MetricBoW,
+    "BagOfWords": digev.MetricBoW,
+    "IRPre": digev.MetricIRPre,
+    "Pre": digev.MetricIRPre,
+    "Precision": digev.MetricIRPre,
+    "IRRec": digev.MetricIRRec,
+    "Rec": digev.MetricIRRec,
+    "DictLT": digem.MetricDictionaryLangTool,
+    "DictionaryLangTool": digem.MetricDictionaryLangTool,
 }
 
 
 def _initialize_metrics(the_metrics, norm) -> typing.List[digem.OCRMetric]:
-    _tokens = the_metrics.split(',')
+    _tokens = the_metrics.split(",")
     try:
         metric_objects: typing.List[digem.OCRMetric] = []
         for m in _tokens:
@@ -54,7 +53,7 @@ def _initialize_metrics(the_metrics, norm) -> typing.List[digem.OCRMetric]:
             metric_objects.append(metric_inst)
         return metric_objects
     except KeyError as _err:
-        _keys = ','.join(METRIC_DICT.keys())
+        _keys = ",".join(METRIC_DICT.keys())
         _msg = f"Unknown: '{_err.args[0]}'.\nPlease use one of the following keys: '{_keys}'."
         print(_msg)
         sys.exit(1)
@@ -76,9 +75,13 @@ def start_evaluation(parse_args: typing.Dict):
 
     if "language" in parse_args:
         digem.MetricDictionary.LANGUAGE = parse_args["language"]
-    uses_lang_tool: bool = 'DictLT' in metrics or "DictionaryLangTool" in metrics
+    uses_lang_tool: bool = "DictLT" in metrics or "DictionaryLangTool" in metrics
     if uses_lang_tool:
-        lt_url: str = parse_args["lt_api_url"] if "lp_api_url" in parse_args else LanguageTool.DEFAULT_URL
+        lt_url: str = (
+            parse_args["lt_api_url"]
+            if "lp_api_url" in parse_args
+            else LanguageTool.DEFAULT_URL
+        )
         LanguageTool.initialize(lt_url)
 
     # go on with basic validation
@@ -93,25 +96,37 @@ def start_evaluation(parse_args: typing.Dict):
             sys.exit(1)
 
     if path_candidates and path_reference:
-        base_can = path_candidates.name if path_candidates.is_dir() else path_candidates.parent.name
-        base_ref = path_reference.name if path_reference.is_dir() else path_reference.parent.name
+        base_can = (
+            path_candidates.name
+            if path_candidates.is_dir()
+            else path_candidates.parent.name
+        )
+        base_ref = (
+            path_reference.name
+            if path_reference.is_dir()
+            else path_reference.parent.name
+        )
         if base_can != base_ref:
-            print(f"[WARN ] base '{base_can}' and '{base_ref}' mismatch, aggregation might be inaccurate!")
+            print(
+                f"[WARN ] base '{base_can}' and '{base_ref}' mismatch, aggregation might be inaccurate!"
+            )
 
     # some diagnostics
     if verbosity >= 2:
         args = f"{path_candidates}, {path_reference}, {verbosity}, {xtra}"
-        print(f'[DEBUG] called with {args}')
+        print(f"[DEBUG] called with {args}")
 
     # create basic evaluator instance
     # If a single file is passed, use its parent directory as the root
-    evaluator_root = path_candidates if path_candidates.is_dir() else path_candidates.parent
+    evaluator_root = (
+        path_candidates if path_candidates.is_dir() else path_candidates.parent
+    )
     evaluator = digev.Evaluator(
         evaluator_root,
         verbosity=verbosity,
         extras=xtra,
     )
-    evaluator.metrics = _initialize_metrics(metrics, norm=utf8norm)#, calc=calc)
+    evaluator.metrics = _initialize_metrics(metrics, norm=utf8norm)  # , calc=calc)
     if verbosity >= 1:
         print(f"[DEBUG] text normalized using '{utf8norm}' code points for '{metrics}'")
 
@@ -121,7 +136,9 @@ def start_evaluation(parse_args: typing.Dict):
     # gather structure information
     candidates: typing.List[digev.EvalEntry] = digev.gather_candidates(path_candidates)
     if len(candidates) == 0:
-        print(f"[WARN ] no ocr data (.*xml) in dir starting from '{path_candidates}'! exit.")
+        print(
+            f"[WARN ] no ocr data (.*xml) in dir starting from '{path_candidates}'! exit."
+        )
         sys.exit(0)
 
     # match groundtruth
@@ -139,7 +156,9 @@ def start_evaluation(parse_args: typing.Dict):
     gt_missing = set(gt_entries) ^ set(candidates)
     rnd_str = f" ({gt_missing})" if gt_missing else ""
     if verbosity >= 1:
-        print(f'[DEBUG] from "{n_entries}" filtered "{n_diff}" candidates missing groundtruth{rnd_str}')
+        print(
+            f'[DEBUG] from "{n_entries}" filtered "{n_diff}" candidates missing groundtruth{rnd_str}'
+        )
 
     # trigger actual evaluation
     evaluator.eval_all(gt_entries)
@@ -155,7 +174,7 @@ def start_evaluation(parse_args: typing.Dict):
         digev.report_stdout(evaluator, verbosity)
 
     # for testing purposes
-    eval_results =  evaluator.get_results()
+    eval_results = evaluator.get_results()
 
     # final clean-up
     if uses_lang_tool:
@@ -166,50 +185,67 @@ def start_evaluation(parse_args: typing.Dict):
 
 def start():
     """Wrap argparsing"""
-    parser = argparse.ArgumentParser(description=f"Evaluate Mass Digitalization Data {digev.__version__}")
-    parser.add_argument("candidates",
-                        help="Root Directory for evaluation candidates / Path to single candidate file"
-                        )
-    parser.add_argument("-ref", "--reference",
-                        required=False,
-                        help="Root directory for Reference/Groundtruth data (optional, but necessary for most metrics)"
-                        )
-    parser.add_argument("-v", "--verbosity",
-                        action='count',
-                        default=DEFAULT_VERBOSITY,
-                        required=False,
-                        help=f"Verbosity flag. To increase, append multiple 'v's (optional; default: '{DEFAULT_VERBOSITY}')"
-                        )
-    parser.add_argument("--metrics",
-                        default=DEFAULT_OCR_METRICS,
-                        required=False,
-                        help=f"List of metrics to use (optional, default: '{DEFAULT_OCR_METRICS}'; available: '{','.join(METRIC_DICT.keys())}')"
-                        )
-    parser.add_argument("--utf8",
-                        default=DEFAULT_UTF8_NORM,
-                        required=False,
-                        help=f"UTF-8 Unicode Python Normalization (optional; default: '{DEFAULT_UTF8_NORM}'; available: 'NFC','NFKC','NFD','NFKD')",
-                        )
-    parser.add_argument("-s", "--sequential",
-                        action='store_true',
-                        required=False,
-                        help="Execute calculations sequentially (optional; default: 'False')",
-                        )
-    parser.add_argument("-x", "--extra",
-                        required=False,
-                        help="pass additional information to evaluation, like 'ignore_geometry' (compare only text, ignore coords)"
-                        )
-    parser.add_argument('-l', "--language",
-                        default=digev_cm.LANGUAGE_KEY_DEFAULT,
-                        choices=digev_cm.LANGUAGE_KEYS,
-                        required=False,
-                        help=f"Language code for LanguagTool according to ISO 639-2 (optional; default: '{digev_cm.LANGUAGE_KEY_DEFAULT}')",
-                        )
-    parser.add_argument('-u', "--lt-api-url",
-                        default=LanguageTool.DEFAULT_URL,
-                        required=False,
-                        help=f"Language Tool Api URL (optional; default: '{LanguageTool.DEFAULT_URL}')",
-                        )
+    parser = argparse.ArgumentParser(
+        description=f"Evaluate Mass Digitalization Data {digev.__version__}"
+    )
+    parser.add_argument(
+        "candidates",
+        help="Root Directory for evaluation candidates / Path to single candidate file",
+    )
+    parser.add_argument(
+        "-ref",
+        "--reference",
+        required=False,
+        help="Root directory for Reference/Groundtruth data (optional, but necessary for most metrics)",
+    )
+    parser.add_argument(
+        "-v",
+        "--verbosity",
+        action="count",
+        default=DEFAULT_VERBOSITY,
+        required=False,
+        help=f"Verbosity flag. To increase, append multiple 'v's (optional; default: '{DEFAULT_VERBOSITY}')",
+    )
+    parser.add_argument(
+        "--metrics",
+        default=DEFAULT_OCR_METRICS,
+        required=False,
+        help=f"List of metrics to use (optional, default: '{DEFAULT_OCR_METRICS}'; available: '{','.join(METRIC_DICT.keys())}')",
+    )
+    parser.add_argument(
+        "--utf8",
+        default=DEFAULT_UTF8_NORM,
+        required=False,
+        help=f"UTF-8 Unicode Python Normalization (optional; default: '{DEFAULT_UTF8_NORM}'; available: 'NFC','NFKC','NFD','NFKD')",
+    )
+    parser.add_argument(
+        "-s",
+        "--sequential",
+        action="store_true",
+        required=False,
+        help="Execute calculations sequentially (optional; default: 'False')",
+    )
+    parser.add_argument(
+        "-x",
+        "--extra",
+        required=False,
+        help="pass additional information to evaluation, like 'ignore_geometry' (compare only text, ignore coords)",
+    )
+    parser.add_argument(
+        "-l",
+        "--language",
+        default=digev_cm.LANGUAGE_KEY_DEFAULT,
+        choices=digev_cm.LANGUAGE_KEYS,
+        required=False,
+        help=f"Language code for LanguagTool according to ISO 639-2 (optional; default: '{digev_cm.LANGUAGE_KEY_DEFAULT}')",
+    )
+    parser.add_argument(
+        "-u",
+        "--lt-api-url",
+        default=LanguageTool.DEFAULT_URL,
+        required=False,
+        help=f"Language Tool Api URL (optional; default: '{LanguageTool.DEFAULT_URL}')",
+    )
     main_args = vars(parser.parse_args())
     start_evaluation(main_args)
 

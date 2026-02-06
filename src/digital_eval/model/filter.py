@@ -21,20 +21,24 @@ from digital_eval.model.digital_object_util import (
 
 class PolygonFrameFilterReport(NamedTuple):
     """report container for structual manipulations"""
+
     removed_elements: Dict[str, int] = {}
     resized_elements: Dict[str, int] = {}
 
 
 class PolygonFrameFilterUtil:
     """helper methods for the PolygonFameFlter"""
-    POINT_LIST_PATTERN: str = r'^(?:(?:-?\d+(?:\.\d+)?),(?:-?\d+(?:\.\d+)?)\ ?)+$'
+
+    POINT_LIST_PATTERN: str = r"^(?:(?:-?\d+(?:\.\d+)?),(?:-?\d+(?:\.\d+)?)\ ?)+$"
 
     @staticmethod
     def str_to_polygon(points_list: str) -> Polygon:
         match: Match = re.match(PolygonFrameFilterUtil.POINT_LIST_PATTERN, points_list)
         points_str: str = match.string
-        point_strs_arr: List[str] = points_str.split(' ')
-        points_arr: List[Point] = list(map(PolygonFrameFilterUtil.__str_to_point, point_strs_arr))
+        point_strs_arr: List[str] = points_str.split(" ")
+        points_arr: List[Point] = list(
+            map(PolygonFrameFilterUtil.__str_to_point, point_strs_arr)
+        )
         if len(points_arr) == 2:
             topleft: Point = points_arr[0]
             bottomright: Point = points_arr[1]
@@ -50,7 +54,7 @@ class PolygonFrameFilterUtil:
     def __str_to_point(point_str: str) -> Point:
         x_str: str
         y_str: str
-        x_str, y_str = point_str.split(',')
+        x_str, y_str = point_str.split(",")
         x = float(x_str)
         y = float(y_str)
         return Point(x, y)
@@ -65,8 +69,8 @@ class PolygonFrameFilter:
         self.__polygon: Polygon = PolygonFrameFilterUtil.str_to_polygon(points_list)
         self.__report: PolygonFrameFilterReport = PolygonFrameFilterReport()
         if self.__verbosity > 0:
-            start_msg: str = f'filter strs from {ocr_path_in} between {points_list}'
-            print('[INFO ] ' + start_msg)
+            start_msg: str = f"filter strs from {ocr_path_in} between {points_list}"
+            print("[INFO ] " + start_msg)
 
     @property
     def ocr_file_path(self) -> Path:
@@ -97,7 +101,7 @@ class PolygonFrameFilter:
             return True
         # Word
         if digo.level != DigitalObjectLevel.WORD:
-            raise RuntimeError(f'Unknown Level: {digo.level}')
+            raise RuntimeError(f"Unknown Level: {digo.level}")
         return digo.is_in_polygon(self.polygon)
 
     def __create_report(self):
@@ -119,8 +123,8 @@ class PolygonFrameFilter:
 
         for k, v in self.__report.removed_elements.items():
             if self.__verbosity > 1:
-                print(f'[DEBUG] removed {v} {k} Elements')
+                print(f"[DEBUG] removed {v} {k} Elements")
 
         for k, v in self.__report.resized_elements.items():
             if self.__verbosity > 1:
-                print(f'[DEBUG] resized {v} {k} Elements')
+                print(f"[DEBUG] resized {v} {k} Elements")

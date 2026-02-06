@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 """OCR Evaluation Module"""
+
 from __future__ import annotations
 
 import concurrent.futures
@@ -24,12 +25,12 @@ from digital_eval.geometry import get_bounding_box
 
 # just use textual information for evaluation
 # do *not* respect any geometrics
-EVAL_EXTRA_IGNORE_GEOMETRY = 'ignore_geometry'
+EVAL_EXTRA_IGNORE_GEOMETRY = "ignore_geometry"
 
 # mark unset values as 'not available'
-_NOT_SET = 'n.a.'
+_NOT_SET = "n.a."
 
-_IGNORE_DIRS = ['GT-PAGE']
+_IGNORE_DIRS = ["GT-PAGE"]
 
 # how long evaluation shall take maximal
 # where "None" means "no timeout"
@@ -37,7 +38,7 @@ EVAL_TIMEOUT = None
 
 
 class EvaluationResult:
-    '''
+    """
     Wrap statistical information
     for groundtruth Evaluation
     regarding a specific set
@@ -45,7 +46,7 @@ class EvaluationResult:
 
     optional:
         enclose EvaluationResult with outliers removed
-    '''
+    """
 
     def __init__(self, eval_key: str, n_total: int = 1, n_chars=0, n_lines=0):
         self.eval_key = eval_key
@@ -72,7 +73,7 @@ class EvalEntry:
     """Container to transform evaluation inputs
     and results into string representation"""
 
-    def __init__(self, path, candidate_root = None):
+    def __init__(self, path, candidate_root=None):
         self.path_candidate: Path = path
         self.candidate_root_domain = candidate_root
         self.domain_directories = []
@@ -101,8 +102,8 @@ class EvalEntry:
             self.domain_directories = dirs
 
     def __str__(self) -> str:
-        """Dependency between metrics 
-        * 0=CA => 1=LA 
+        """Dependency between metrics
+        * 0=CA => 1=LA
         * 2=WA => 3=BOT
         """
         _pres = [0, 2]
@@ -113,21 +114,21 @@ class EvalEntry:
             _val = m.value
             _ref = m.n_ref
             if _ref > 10000:
-                _ref_fmt = f'{(math.floor(float(m.n_ref) / 1000)):>2}K+'
+                _ref_fmt = f"{(math.floor(float(m.n_ref) / 1000)):>2}K+"
             else:
-                _ref_fmt = f'{m.n_ref:>4}'
-            _raw = f'{m.label}:{_val:>5.2f}({_ref_fmt})'
+                _ref_fmt = f"{m.n_ref:>4}"
+            _raw = f"{m.label}:{_val:>5.2f}({_ref_fmt})"
             if i in _pres:
                 _pre_v = _val
             if i in _accs and _pre_v is not None:
                 diff = round(_val, 3) - round(_pre_v, 3)
-                _raw += f'(+{diff:>5.2f})' if diff > 0 else f'(-{abs(diff):>5.2f})'
+                _raw += f"(+{diff:>5.2f})" if diff > 0 else f"(-{abs(diff):>5.2f})"
                 _pre_v = None
             _raws.append(_raw)
-        return ', '.join(_raws)
+        return ", ".join(_raws)
 
     def __repr__(self) -> str:
-        return f'{self.gt_type} {self.path_candidate}'
+        return f"{self.gt_type} {self.path_candidate}"
 
 
 class Evaluator:
@@ -167,13 +168,22 @@ class Evaluator:
             cpus = multiprocessing.cpu_count()
             n_executors = cpus // 2 if cpus > 3 else 1
             if self.verbosity == 1:
-                print(f"[DEBUG] use {n_executors} executors ({cpus}) to create evaluation data")
-            with concurrent.futures.ProcessPoolExecutor(max_workers=n_executors) as executor:
+                print(
+                    f"[DEBUG] use {n_executors} executors ({cpus}) to create evaluation data"
+                )
+            with concurrent.futures.ProcessPoolExecutor(
+                max_workers=n_executors
+            ) as executor:
                 try:
                     _entries = list(
-                        executor.map(self._wrap_eval_entry, entries, timeout=EVAL_TIMEOUT))
+                        executor.map(
+                            self._wrap_eval_entry, entries, timeout=EVAL_TIMEOUT
+                        )
+                    )
                 except concurrent.futures.TimeoutError:
-                    print(f"[ERROR] takes longer than {EVAL_TIMEOUT}s to evaluate {len(entries)} entries!")
+                    print(
+                        f"[ERROR] takes longer than {EVAL_TIMEOUT}s to evaluate {len(entries)} entries!"
+                    )
                     sys.exit(1)
                 except Exception as err:
                     print(f"[ERROR] '{err}' creating evaluation data!")
@@ -183,13 +193,18 @@ class Evaluator:
         if _entries:
             _not_nones = [e for e in _entries if e is not None]
             if self.verbosity == 1:
-                print(f"[DEBUG] processed {len(_entries)}, omitted {len(_entries) - len(_not_nones)} empty results")
+                print(
+                    f"[DEBUG] processed {len(_entries)}, omitted {len(_entries) - len(_not_nones)} empty results"
+                )
             self.evaluation_entries = _not_nones
 
-        self.evaluation_entries = sorted(self.evaluation_entries, key=lambda e: e.path_candidate)
+        self.evaluation_entries = sorted(
+            self.evaluation_entries, key=lambda e: e.path_candidate
+        )
         # detail report
-        self.evaluation_report['candidates'] = [self._generate_report_candidate(e)
-                                                for e in self.evaluation_entries]
+        self.evaluation_report["candidates"] = [
+            self._generate_report_candidate(e) for e in self.evaluation_entries
+        ]
 
     def _wrap_eval_entry(self, entry: EvalEntry):
         """Wrapper for creation of evaluation data
@@ -204,7 +219,7 @@ class Evaluator:
                 print(f"[WARN ][{entry.path_groundtruth}] {exc}")
 
     def eval_entry(self, entry: EvalEntry) -> EvalEntry:
-        """Create evaluation entry for matching pair of 
+        """Create evaluation entry for matching pair of
         groundtruth and candidate data
         rather clumsy copy construct due parallelization
         """
@@ -221,7 +236,7 @@ class Evaluator:
             # reset in text mode
             coords = None if self.text_mode else coords
 
-            current:digem.OCRMetric = copy.copy(metric)
+            current: digem.OCRMetric = copy.copy(metric)
             current.reference = Path(entry.path_groundtruth).absolute()
             current.candidate = Path(entry.path_candidate).absolute()
             current.candidate_frame = coords
@@ -232,12 +247,18 @@ class Evaluator:
             if self.verbosity >= 2:
                 _label_ref = os.path.basename(entry.path_groundtruth)
                 _label_can = os.path.basename(entry.path_candidate)
-                print(f'[TRACE][{_label_ref}][{current.label}] REFERENCE :: "{current.data_reference}"')
-                print(f'[TRACE][{_label_can}][{current.label}] CANDIDATE :: "{current.data_candidate}"')
+                print(
+                    f'[TRACE][{_label_ref}][{current.label}] REFERENCE :: "{current.data_reference}"'
+                )
+                print(
+                    f'[TRACE][{_label_can}][{current.label}] CANDIDATE :: "{current.data_candidate}"'
+                )
 
         # enrich entry with metrics and
         # normalize data type (i.e., art or ann or ...)
-        _normed_gt_type = _normalize_gt_type(_get_groundtruth_from_filename(entry.path_groundtruth))
+        _normed_gt_type = _normalize_gt_type(
+            _get_groundtruth_from_filename(entry.path_groundtruth)
+        )
         entry.gt_type = _normed_gt_type
         entry.metrics = _current_metrics
         return entry
@@ -246,15 +267,15 @@ class Evaluator:
         try:
             image_name = os.path.basename(the_entry.path_candidate)
             _type = the_entry.gt_type
-            if '+' in image_name and '_' in image_name:
-                _tkns = image_name.split('_')
-                image_name = _tkns[0].replace('+', ':') + '_' + _tkns[1]
-            if '.xml' in image_name:
-                image_name = image_name.replace('.xml', '')
-            gt_label = f"({_type[:3]})" if _type and _type != _NOT_SET else ''
-            return f'[{image_name}]{gt_label} [{the_entry}]'
+            if "+" in image_name and "_" in image_name:
+                _tkns = image_name.split("_")
+                image_name = _tkns[0].replace("+", ":") + "_" + _tkns[1]
+            if ".xml" in image_name:
+                image_name = image_name.replace(".xml", "")
+            gt_label = f"({_type[:3]})" if _type and _type != _NOT_SET else ""
+            return f"[{image_name}]{gt_label} [{the_entry}]"
         except Exception as exc:
-            print(f'[WARN ] {exc}')
+            print(f"[WARN ] {exc}")
 
     def _add(self, evaluation_result: EvaluationResult):
         self.evaluation_results.append(evaluation_result)
@@ -276,16 +297,16 @@ class Evaluator:
             # take CA and number of GT into account
             # also calculate statistics (mean, std)
             if len(data_points) > 1:
-                (mean, std, median) = get_statistics(data_points)
+                mean, std, median = get_statistics(data_points)
                 evaluation_result.mean = mean
                 evaluation_result.median = median
                 evaluation_result.std = std
                 if std >= 1.0:
-                    (stripped, _, _) = strip_outliers_from(data_tuples)
+                    stripped, _, _ = strip_outliers_from(data_tuples)
                     if len(stripped) < len(data_tuples):
                         regulars_data_points = [e[1] for e in stripped]
                         clear_result = EvaluationResult(k, len(stripped))
-                        (mean2, std2, med2) = get_statistics(regulars_data_points)
+                        mean2, std2, med2 = get_statistics(regulars_data_points)
                         clear_result.mean = mean2
                         clear_result.std = std2
                         clear_result.median = med2
@@ -294,7 +315,9 @@ class Evaluator:
                         evaluation_result.cleared_result = clear_result
             self._add(evaluation_result)
             # re-order
-            self.evaluation_results = sorted(self.evaluation_results, key=lambda e: e.eval_key)
+            self.evaluation_results = sorted(
+                self.evaluation_results, key=lambda e: e.eval_key
+            )
 
     def aggregate(self, by_type=False, by_metrics=None):
         """Aggregate item's metrics for domain/directory
@@ -323,15 +346,19 @@ class Evaluator:
                     current_domain = f"{entry.metrics[_metrics_index].label}@{domain}"
                     if current_domain not in self.evaluation_map:
                         self.evaluation_map[current_domain] = []
-                    self.evaluation_map[current_domain].append((entry.path_candidate, metric_value, metric_gt_refs))
+                    self.evaluation_map[current_domain].append(
+                        (entry.path_candidate, metric_value, metric_gt_refs)
+                    )
                 # if by_type, aggregate type at top level
                 if by_type and entry.gt_type and entry.gt_type != _NOT_SET:
                     root_base = entry.candidate_root_domain.name
                     path_key = f"{entry.metrics[_metrics_index].label}@{root_base}"
-                    type_key = path_key + '@' + entry.gt_type
+                    type_key = path_key + "@" + entry.gt_type
                     if type_key not in self.evaluation_map:
                         self.evaluation_map[type_key] = []
-                    self.evaluation_map[type_key].append((entry.path_candidate, metric_value, metric_gt_refs))
+                    self.evaluation_map[type_key].append(
+                        (entry.path_candidate, metric_value, metric_gt_refs)
+                    )
 
     def _check_aggregate_preconditions(self):
         if not self.evaluation_entries:
@@ -354,8 +381,8 @@ def get_statistics(data_points):
 
 def strip_outliers_from(data_tuples, fence_ratio=1.5):
     """Determine a data set's outliers by interquartile range (IQR)
-    
-    calculate data points 
+
+    calculate data points
      * below median of quartile 1 (lower fence), and
      * above median of quartile 3 (upper fence)
     """
@@ -364,19 +391,22 @@ def strip_outliers_from(data_tuples, fence_ratio=1.5):
     median = np.median(data_points)
     quart_one = np.median([v for v in data_points if v < median])
     quart_thr = np.median([v for v in data_points if v > median])
-    regulars = [data
-                for data in data_tuples
-                if data[1] >= (quart_one - fence_ratio * (quart_thr - quart_one)) and data[1] <= (quart_one + fence_ratio * (quart_thr - quart_one))]
+    regulars = [
+        data
+        for data in data_tuples
+        if data[1] >= (quart_one - fence_ratio * (quart_thr - quart_one))
+        and data[1] <= (quart_one + fence_ratio * (quart_thr - quart_one))
+    ]
     return (regulars, quart_one, quart_thr)
 
 
 def _get_groundtruth_from_filename(file_path) -> str:
     _file_name = os.path.basename(file_path)
-    result = re.match(r'.*gt.(\w{3,}).xml$', _file_name)
+    result = re.match(r".*gt.(\w{3,}).xml$", _file_name)
     if result:
         return result[1]
     else:
-        alternative = re.match(r'.*\.(\w{3,})\.gt\.xml$', _file_name)
+        alternative = re.match(r".*\.(\w{3,})\.gt\.xml$", _file_name)
         if alternative:
             return alternative[1]
         else:
@@ -384,10 +414,10 @@ def _get_groundtruth_from_filename(file_path) -> str:
 
 
 def _normalize_gt_type(label) -> str:
-    if label.startswith('art'):
-        return 'article'
-    elif label.startswith('ann'):
-        return 'announcement'
+    if label.startswith("art"):
+        return "article"
+    elif label.startswith("ann"):
+        return "announcement"
     else:
         return _NOT_SET
 
@@ -396,22 +426,27 @@ def report_stdout(evaluator: Evaluator, verbosity):
     """Generate report data on stdout"""
 
     if verbosity >= 1:
-        if 'candidates' in evaluator.evaluation_report:
-            for _c in evaluator.evaluation_report['candidates']:
-                print(f'[DEBUG] {_c}')
+        if "candidates" in evaluator.evaluation_report:
+            for _c in evaluator.evaluation_report["candidates"]:
+                print(f"[DEBUG] {_c}")
     results = evaluator.get_results()
     _path_can = evaluator.domain_candidate
     _path_ref = evaluator.domain_reference
     evaluation_date = datetime.date.today().isoformat()
-    print(f'[INFO ] Evaluation Summary (candidates: "{_path_can}" vs. reference: "{_path_ref}" ({evaluation_date})')
+    print(
+        f'[INFO ] Evaluation Summary (candidates: "{_path_can}" vs. reference: "{_path_ref}" ({evaluation_date})'
+    )
     for result in results:
-        (gt_type, n_total, mean_total, med, _n_refs) = result.get_defaults()
-        add_stats = f' M:{med:5.2f} σ:{result.std:5.2f}' if n_total > 1 else ''
-        print(f'[INFO ] {gt_type}\t{n_total: 3d} items {_n_refs:_} refs\t∅:{mean_total:5.2f}{add_stats}')
+        gt_type, n_total, mean_total, med, _n_refs = result.get_defaults()
+        add_stats = f" M:{med:5.2f} σ:{result.std:5.2f}" if n_total > 1 else ""
+        print(
+            f"[INFO ] {gt_type}\t{n_total: 3d} items {_n_refs:_} refs\t∅:{mean_total:5.2f}{add_stats}"
+        )
         if result.cleared_result:
-            (_, n_t2, mean2, med2, n_c2) = result.cleared_result.get_defaults()
+            _, n_t2, mean2, med2, n_c2 = result.cleared_result.get_defaults()
             ccr_std = result.cleared_result.std
             drops = n_total - n_t2
             if drops > 0:
                 print(
-                    f'[INFO ] {gt_type}(-{drops})\t{n_t2: 3d} items {n_c2:_} refs\t∅:{mean2:5.2f} M:{med2:5.2f} σ:{ccr_std:5.2f}')
+                    f"[INFO ] {gt_type}(-{drops})\t{n_t2: 3d} items {n_c2:_} refs\t∅:{mean2:5.2f} M:{med2:5.2f} σ:{ccr_std:5.2f}"
+                )
