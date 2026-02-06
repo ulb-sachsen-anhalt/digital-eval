@@ -113,23 +113,94 @@ class FormatAltoV3Util:
 
     @staticmethod
     def __read_words(text_strings, parent):
-        _words = []
-        for _text_string in text_strings:
-            _id = _text_string.getAttribute('ID')
-            word = DigitalObjectTree(
-                _id,
-                _text_string,
-                file_format=DigitalObjectTreeOCRFileFormat.ALTO_V3
-            )
-            word.level = DigitalObjectLevel.WORD
-            _content = _text_string.getAttribute('CONTENT')
-            if not _content.strip():
-                continue
-            word.transcription = _content
-            word.dimensions = FormatAltoV3Util.__extract_dimensions(_text_string)
-            word.parent = parent
-            _words.append(word)
-        return _words
+        """Read String elements from TextLine, with SP-controlled or fallback spacing.
+        
+        In ALTO format:
+        - If SP elements are present: String elements are concatenated WITHOUT space 
+          unless there is an SP (spatium) element between them.
+        - If NO SP elements are present: String elements are separated with spaces
+          (fallback for ALTO files that don't use SP elements).
+        """
+        word_tokens = []
+        line_element = parent.xml_element
+        
+        # Get all child nodes (includes String and SP elements)
+        child_nodes = line_element.childNodes
+        
+        # Check if any SP elements are present in this line
+        has_sp_elements = any(
+            node.nodeType == node.ELEMENT_NODE and node.tagName == 'SP' 
+            for node in child_nodes
+        )
+        
+        if not has_sp_elements:
+            # Fallback: No SP elements present, treat each String as a separate word
+            for _text_string in text_strings:
+                _id = _text_string.getAttribute('ID')
+                word = DigitalObjectTree(
+                    _id,
+                    _text_string,
+                    file_format=DigitalObjectTreeOCRFileFormat.ALTO_V3
+                )
+                word.level = DigitalObjectLevel.WORD
+                _content = _text_string.getAttribute('CONTENT')
+                if not _content.strip():
+                    continue
+                word.transcription = _content
+                word.dimensions = FormatAltoV3Util.__extract_dimensions(_text_string)
+                word.parent = parent
+                word_tokens.append(word)
+        else:
+            # SP elements present: use them to control word boundaries
+            accumulated_content = ""
+            accumulated_element = None
+            
+            for node in child_nodes:
+                if node.nodeType != node.ELEMENT_NODE:
+                    continue
+                    
+                if node.tagName == 'String':
+                    _content = node.getAttribute('CONTENT')
+                    if not _content.strip():
+                        continue
+                        
+                    # Accumulate content
+                    if not accumulated_content:
+                        accumulated_element = node
+                    accumulated_content += _content
+                    
+                elif node.tagName == 'SP':
+                    # SP element signals end of current word group
+                    if accumulated_content:
+                        word = DigitalObjectTree(
+                            accumulated_element.getAttribute('ID'),
+                            accumulated_element,
+                            file_format=DigitalObjectTreeOCRFileFormat.ALTO_V3
+                        )
+                        word.level = DigitalObjectLevel.WORD
+                        word.transcription = accumulated_content
+                        word.dimensions = FormatAltoV3Util.__extract_dimensions(accumulated_element)
+                        word.parent = parent
+                        word_tokens.append(word)
+                        
+                        # Reset accumulation
+                        accumulated_content = ""
+                        accumulated_element = None
+            
+            # Add final accumulated word if any
+            if accumulated_content:
+                word = DigitalObjectTree(
+                    accumulated_element.getAttribute('ID'),
+                    accumulated_element,
+                    file_format=DigitalObjectTreeOCRFileFormat.ALTO_V3
+                )
+                word.level = DigitalObjectLevel.WORD
+                word.transcription = accumulated_content
+                word.dimensions = FormatAltoV3Util.__extract_dimensions(accumulated_element)
+                word.parent = parent
+                word_tokens.append(word)
+        
+        return word_tokens
 
     # does not repspect ALTO shapes
     @staticmethod

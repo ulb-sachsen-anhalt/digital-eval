@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<alto xmlns="http://www.loc.gov/standards/alto/ns-v3#" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.loc.gov/standards/alto/ns-v3# http://www.loc.gov/standards/alto/v3/alto-3-1.xsd">
+  <Description>
+    <MeasurementUnit>pixel</MeasurementUnit>
+    <sourceImageInformation>
+      <fileIdentifier>MAX/00000404.jpg</fileIdentifier>
+    </sourceImageInformation>
+  </Description>
+  <Layout>
+    <Page WIDTH="1910" PHYSICAL_IMG_NR="1" ID="p00000404" HEIGHT="2841">
+      <PrintSpace WIDTH="1910" HPOS="0" VPOS="0" ID="ps203008" HEIGHT="2841">
+        <TextBlock WIDTH="1910" HPOS="0" VPOS="0" ID="tb203008" HEIGHT="2841">
+          <TextLine HPOS="463" VPOS="492" ID="tl2" WIDTH="1120" HEIGHT="40">
+            <String HEIGHT="34" CONTENT="themselves" WIDTH="209" HPOS="463" VPOS="492" ID="st16"/>
+            <SP/>
+            <String HEIGHT="32" CONTENT="in" WIDTH="37" HPOS="692" VPOS="494" ID="st17"/>
+            <SP/>
+            <String HEIGHT="32" CONTENT="the" WIDTH="61" HPOS="747" VPOS="494" ID="st18"/>
+            <SP/>
+            <String HEIGHT="33" CONTENT="Kum" WIDTH="96" HPOS="829" VPOS="495" ID="st19"/>
+            <SP/>
+            <String HEIGHT="43" CONTENT="Kapu" WIDTH="106" HPOS="945" VPOS="496" ID="st20"/>
+            <SP/>
+            <String HEIGHT="39" CONTENT="(" WIDTH="9" HPOS="1074" VPOS="498" ID="st21"/>
+            <String HEIGHT="33" CONTENT="Sand" WIDTH="96" HPOS="1087" VPOS="497" ID="st22"/>
+            <SP/>
+            <String HEIGHT="34" CONTENT="Gate" WIDTH="89" HPOS="1202" VPOS="497" ID="st23"/>
+            <String HEIGHT="39" CONTENT=")" WIDTH="10" HPOS="1295" VPOS="500" ID="st24"/>
+            <String HEIGHT="13" CONTENT="," WIDTH="7" HPOS="1310" VPOS="524" ID="st25"/>
+            <SP/>
+            <String HEIGHT="22" CONTENT="a" WIDTH="21" HPOS="1339" VPOS="509" ID="st26"/>
+            <SP/>
+            <String HEIGHT="34" CONTENT="district" WIDTH="138" HPOS="1379" VPOS="499" ID="st27"/>
+            <SP/>
+            <String HEIGHT="22" CONTENT="on" WIDTH="46" HPOS="1537" VPOS="510" ID="st28"/>
+          </TextLine>
+        </TextBlock>
+      </PrintSpace>
+    </Page>
+  </Layout>
+</alto>

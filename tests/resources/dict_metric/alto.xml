@@ -17,32 +17,29 @@
             <PrintSpace HEIGHT="4092" WIDTH="2460" HPOS="101" VPOS="93">
                 <TextBlock ID="region0000" HEIGHT="113" WIDTH="1297" HPOS="143" VPOS="590">
                     <TextLine ID="region0000_line0001" HEIGHT="113" WIDTH="733" HPOS="707" VPOS="590">
-                        <SP/>
                         <String ID="region0000_line0001_word0001" HEIGHT="69" WIDTH="224" HPOS="1213" VPOS="634"
                                 CONTENT="Dieſe"/>
-                        <String ID="region0000_line0001_word0001" HEIGHT="69" WIDTH="224" HPOS="1213" VPOS="634"
+                        <String ID="region0000_line0001_word0002" HEIGHT="69" WIDTH="224" HPOS="1213" VPOS="634"
                                 CONTENT="uͤberfruͤhte"/>
-                        <String ID="region0000_line0001_word0001" HEIGHT="69" WIDTH="224" HPOS="1213" VPOS="634"
+                        <String ID="region0000_line0001_word0003" HEIGHT="69" WIDTH="224" HPOS="1213" VPOS="634"
                                 CONTENT="An⸗"/>
                     </TextLine>
-                    <TextLine ID="region0000_line0001" HEIGHT="113" WIDTH="733" HPOS="707" VPOS="590">
-                        <SP/>
-                        <String ID="region0000_line0001_word0001" HEIGHT="69" WIDTH="224" HPOS="1213" VPOS="634"
+                    <TextLine ID="region0000_line0002" HEIGHT="113" WIDTH="733" HPOS="707" VPOS="590">
+                        <String ID="region0000_line0002_word0001" HEIGHT="69" WIDTH="224" HPOS="1213" VPOS="634"
                                 CONTENT="kunft"/>
-                        <String ID="region0000_line0001_word0001" HEIGHT="69" WIDTH="224" HPOS="1213" VPOS="634"
+                        <String ID="region0000_line0002_word0002" HEIGHT="69" WIDTH="224" HPOS="1213" VPOS="634"
                                 CONTENT="des"/>
-                        <String ID="region0000_line0001_word0001" HEIGHT="69" WIDTH="224" HPOS="1213" VPOS="634"
+                        <String ID="region0000_line0002_word0003" HEIGHT="69" WIDTH="224" HPOS="1213" VPOS="634"
                                 CONTENT="hailigen"/>
-                        <String ID="region0000_line0001_word0001" HEIGHT="69" WIDTH="224" HPOS="1213" VPOS="634"
+                        <String ID="region0000_line0002_word0004" HEIGHT="69" WIDTH="224" HPOS="1213" VPOS="634"
                                 CONTENT="Raimarſ."/>
-                        <String ID="region0000_line0001_word0001" HEIGHT="69" WIDTH="224" HPOS="1213" VPOS="634"
+                        <String ID="region0000_line0002_word0005" HEIGHT="69" WIDTH="224" HPOS="1213" VPOS="634"
                                 CONTENT="ſachſen-"/>
                     </TextLine>
-                    <TextLine ID="region0000_line0001" HEIGHT="113" WIDTH="733" HPOS="707" VPOS="590">
-                        <SP/>
-                        <String ID="region0000_line0001_word0001" HEIGHT="69" WIDTH="224" HPOS="1213" VPOS="634"
+                    <TextLine ID="region0000_line0003" HEIGHT="113" WIDTH="733" HPOS="707" VPOS="590">
+                        <String ID="region0000_line0003_word0001" HEIGHT="69" WIDTH="224" HPOS="1213" VPOS="634"
                                 CONTENT="ſtolz,"/>
-                        <String ID="region0000_line0001_word0001" HEIGHT="69" WIDTH="224" HPOS="1213" VPOS="634"
+                        <String ID="region0000_line0003_word0002" HEIGHT="69" WIDTH="224" HPOS="1213" VPOS="634"
                                 CONTENT="aͤhnlich"/>
                     </TextLine>
                 </TextBlock>
