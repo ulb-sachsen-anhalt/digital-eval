@@ -12,6 +12,7 @@ import os
 import re
 import sys
 import typing
+import warnings
 
 from pathlib import Path
 
@@ -35,6 +36,185 @@ _IGNORE_DIRS = ["GT-PAGE"]
 # how long evaluation shall take maximal
 # where "None" means "no timeout"
 EVAL_TIMEOUT = None
+
+
+class AggregationDimension:
+    """Represents a dimension along which evaluation results can be aggregated
+    
+    An aggregation dimension defines a property or attribute that can be extracted
+    from evaluation entries to group and aggregate results. For example, directory
+    level, document type, date, or custom metadata.
+    
+    Args:
+        name: Human-readable name for this dimension (e.g., "directory", "type")
+        extractor: Callable that extracts the dimension value from an EvalEntry
+    """
+
+    def __init__(self, name: str, extractor: typing.Callable[[typing.Any], typing.Any]):
+        self.name = name
+        self.extractor = extractor
+
+
+class DirectoryHierarchyExtractor:
+    """Extract directory names from filesystem hierarchy
+    
+    Extracts directory names at specific levels relative to the candidate root.
+    Maintains backward compatibility with the original directory-based aggregation.
+    
+    Args:
+        level: Directory level to extract (-1 for immediate parent, 0 for root+1, etc.)
+               If None, extracts all intermediate directories
+    """
+
+    def __init__(self, level: typing.Optional[int] = None):
+        self.level = level
+
+    def __call__(self, entry: typing.Any) -> typing.Union[str, typing.List[str], None]:
+        """Extract directory name(s) from entry"""
+        if not hasattr(entry, 'domain_directories'):
+            return None
+        
+        dirs = entry.domain_directories
+        if not dirs:
+            return None
+        
+        if self.level is None:
+            # Return all directories
+            return dirs
+        elif self.level == -1:
+            # Return immediate parent
+            return dirs[0] if dirs else None
+        elif 0 <= self.level < len(dirs):
+            # Return specific level (reversed, since dirs are bottom-up)
+            return dirs[-(self.level + 1)]
+        return None
+
+
+class TypeExtractor:
+    """Extract groundtruth type from evaluation entry
+    
+    Extracts document type annotations (e.g., "article", "announcement")
+    from groundtruth filenames.
+    """
+
+    def __call__(self, entry: typing.Any) -> typing.Optional[str]:
+        """Extract GT type from entry"""
+        if hasattr(entry, 'gt_type') and entry.gt_type != _NOT_SET:
+            return entry.gt_type
+        return None
+
+
+class CustomMetadataExtractor:
+    """Extract custom metadata from entry tags
+    
+    Allows aggregation by arbitrary metadata attached to evaluation entries.
+    
+    Args:
+        key: Metadata key to extract from entry.tags dictionary
+        default: Default value if key not found
+    """
+
+    def __init__(self, key: str, default: typing.Any = None):
+        self.key = key
+        self.default = default
+
+    def __call__(self, entry: typing.Any) -> typing.Any:
+        """Extract metadata value from entry"""
+        if hasattr(entry, 'tags'):
+            return entry.tags.get(self.key, self.default)
+        return self.default
+
+
+class FilenamePatternExtractor:
+    """Extract values from filename using regex pattern
+    
+    Useful for extracting dates, identifiers, or other structured information
+    from standardized filename patterns.
+    
+    Args:
+        pattern: Regular expression pattern with one capturing group
+        group: Which capturing group to extract (default: 1)
+    """
+
+    def __init__(self, pattern: str, group: int = 1):
+        self.pattern = re.compile(pattern)
+        self.group = group
+
+    def __call__(self, entry: typing.Any) -> typing.Optional[str]:
+        """Extract pattern match from filename"""
+        if hasattr(entry, 'path_candidate'):
+            filename = entry.path_candidate.name
+            match = self.pattern.search(filename)
+            if match and len(match.groups()) >= self.group:
+                return match.group(self.group)
+        return None
+
+
+class AggregationStrategy:
+    """Defines how to aggregate evaluation results across dimensions
+    
+    An aggregation strategy specifies one or more dimensions along which
+    evaluation results should be grouped and aggregated. Each dimension
+    can extract different properties from evaluation entries.
+    
+    Args:
+        dimensions: List of aggregation dimensions to apply
+        hierarchical: If True, creates hierarchical keys combining all dimensions
+    """
+
+    def __init__(
+        self,
+        dimensions: typing.List[AggregationDimension],
+        hierarchical: bool = False
+    ):
+        self.dimensions = dimensions
+        self.hierarchical = hierarchical
+
+    def generate_keys(
+        self,
+        entry: typing.Any,
+        metric: digem.OCRMetric
+    ) -> typing.List[str]:
+        """Generate aggregation keys for an evaluation entry
+        
+        Args:
+            entry: EvalEntry to extract dimensions from
+            metric: OCRMetric being aggregated
+            
+        Returns:
+            List of aggregation key strings (e.g., ["Cs@directory:ger_frk"])
+        """
+        keys = []
+        
+        # Single dimension keys: metric@dimension:value
+        for dim in self.dimensions:
+            value = dim.extractor(entry)
+            if value is not None:
+                # Handle both single values and lists
+                if isinstance(value, list):
+                    # For lists (like directory hierarchy), create keys for each
+                    for v in value:
+                        keys.append(f"{metric.label}@{dim.name}:{v}")
+                else:
+                    keys.append(f"{metric.label}@{dim.name}:{value}")
+        
+        # Hierarchical keys: metric@dim1:val1/dim2:val2/...
+        if self.hierarchical and len(self.dimensions) > 1:
+            values = []
+            for dim in self.dimensions:
+                value = dim.extractor(entry)
+                if value is not None:
+                    if isinstance(value, list):
+                        # For lists, use the first element
+                        values.append((dim.name, value[0]))
+                    else:
+                        values.append((dim.name, value))
+            
+            if len(values) == len(self.dimensions):
+                dim_path = "/".join(f"{name}:{val}" for name, val in values)
+                keys.append(f"{metric.label}@{dim_path}")
+        
+        return keys
 
 
 class EvaluationResult:
@@ -80,6 +260,7 @@ class EvalEntry:
         self.path_groundtruth: typing.Optional[Path] = None
         self.gt_type = _NOT_SET
         self.metrics = []
+        self.tags: typing.Dict[str, typing.Any] = {}  # Generic metadata for aggregation
 
     def align_domains(self):
         """If reference data found, fix domain
@@ -319,9 +500,104 @@ class Evaluator:
                 self.evaluation_results, key=lambda e: e.eval_key
             )
 
+    def aggregate_generic(
+        self,
+        strategy: typing.Optional[AggregationStrategy] = None,
+        by_metrics: typing.Optional[typing.List[int]] = None
+    ) -> None:
+        """Generic aggregation using pluggable strategy
+        
+        This is the new, flexible aggregation method that supports arbitrary
+        aggregation dimensions through the AggregationStrategy pattern.
+        
+        Args:
+            strategy: AggregationStrategy defining how to aggregate results.
+                     If None, uses default strategy (backward compatible)
+            by_metrics: List of metric indices to aggregate (e.g., [0, 1, 2, 3]).
+                       If None, aggregates all metrics.
+        
+        Example:
+            # Aggregate by document type only
+            type_strategy = AggregationStrategy([
+                AggregationDimension("type", TypeExtractor())
+            ])
+            evaluator.aggregate_generic(type_strategy)
+            
+            # Aggregate by custom metadata
+            engine_strategy = AggregationStrategy([
+                AggregationDimension("engine", CustomMetadataExtractor("ocr_engine"))
+            ])
+            evaluator.aggregate_generic(engine_strategy)
+        """
+        
+        # Preconditions
+        self._check_aggregate_preconditions()
+        
+        # Default strategy: backward compatible (directory hierarchy + type)
+        if strategy is None:
+            strategy = self._get_default_aggregation_strategy()
+        
+        # Default metrics: all metrics
+        if by_metrics is None:
+            by_metrics = list(range(len(self.metrics)))
+        
+        # Clear existing evaluation map
+        self.evaluation_map = {}
+        
+        # Aggregate using strategy
+        for entry in self.evaluation_entries:
+            for metrics_index in by_metrics:
+                # Skip if this metric index doesn't exist
+                if metrics_index >= len(entry.metrics):
+                    continue
+                
+                metric = entry.metrics[metrics_index]
+                metric_value = metric.value
+                metric_refs = metric.n_ref
+                
+                # Generate all applicable aggregation keys
+                agg_keys = strategy.generate_keys(entry, metric)
+                
+                # Add to evaluation map
+                for key in agg_keys:
+                    if key not in self.evaluation_map:
+                        self.evaluation_map[key] = []
+                    self.evaluation_map[key].append(
+                        (entry.path_candidate, metric_value, metric_refs)
+                    )
+
+    def _get_default_aggregation_strategy(self) -> AggregationStrategy:
+        """Get default aggregation strategy for backward compatibility
+        
+        The default strategy aggregates by:
+        1. Directory hierarchy (all levels)
+        2. Document type (if present)
+        3. Combination of root directory + type
+        
+        This mimics the behavior of the original aggregate() method.
+        """
+        dimensions = [AggregationDimension("", DirectoryHierarchyExtractor())]
+        
+        # Also aggregate by type at root level for backward compatibility
+        # This is handled by generating composite keys
+        strategy = AggregationStrategy(dimensions, hierarchical=False)
+        
+        return strategy
+
     def aggregate(self, by_type=False, by_metrics=None):
-        """Aggregate item's metrics for domain/directory
-        and/or annotated type (if present)"""
+        """Aggregate item's metrics for domain/directory and/or annotated type
+        
+        [LEGACY METHOD] This method uses a fixed aggregation strategy based on
+        filesystem directory structure. For more flexible aggregation, consider
+        using aggregate_generic() which supports custom aggregation dimensions.
+        
+        Args:
+            by_type: If True, also aggregate by document type at root level
+            by_metrics: List of metric indices to aggregate (default: [0,1,2,3])
+        
+        See also:
+            aggregate_generic(): More flexible aggregation with custom strategies
+        """
 
         # precheck - having root dir
         self._check_aggregate_preconditions()

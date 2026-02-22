@@ -14,6 +14,7 @@ Python3 Tool evaluation for the masses - evaluate outcomes from mass digitalizat
 * use geometric information to consider specific areas (i.e. certain region) of reference / candidate
   Please note: requires both reference and ground truth to include geometrical information (ALTO / PAGE XML format)
 * includes descriptive statistics for different aggregation levels
+* **generic result aggregation**: flexible aggregation by any property (document type, OCR engine, date, custom metadata) - see [Aggregation Documentation](docs/AGGREGATION.md)
 * formats: ALTO, PAGE or plain text for both groundtruth and candidates
 * speedup with parallel execution
 * additional OCR util:

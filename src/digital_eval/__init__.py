@@ -6,6 +6,12 @@ from .evaluation import (
     Evaluator,
     EvalEntry,
     report_stdout,
+    AggregationDimension,
+    AggregationStrategy,
+    DirectoryHierarchyExtractor,
+    TypeExtractor,
+    CustomMetadataExtractor,
+    FilenamePatternExtractor,
 )
 from .resolve import (
     find_groundtruth,
