@@ -12,6 +12,7 @@ from .evaluation import (
     TypeExtractor,
     CustomMetadataExtractor,
     FilenamePatternExtractor,
+    METSModsExtractor,
 )
 from .resolve import (
     find_groundtruth,

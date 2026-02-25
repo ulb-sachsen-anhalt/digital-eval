@@ -5,6 +5,8 @@ import os
 import shutil
 from pathlib import Path
 
+import lxml.etree as ET
+
 import pytest
 
 import digital_eval as digev_main
@@ -406,3 +408,245 @@ def test_backward_compatibility_aggregate_vs_aggregate_generic(tmp_path):
     # The keys should overlap (at least contain directory name)
     assert any("ger_frk" in key for key in keys1)
     assert any("ger_frk" in key for key in keys2)
+
+
+def test_mets_mods_extractor_language():
+    """Test METSModsExtractor extracts language from METS/MODS"""
+    
+    # arrange
+    mets_path = TEST_RES_DIR / 'test_mets.xml'
+    entry = digev.EvalEntry(Path("/test/1667522809_J_0001_0002.xml"))
+    entry.path_groundtruth = Path("/test/1667522809_J_0001_0002.art.gt.xml")
+    
+    extractor = digev.METSModsExtractor(
+        mets_file_path=mets_path,
+        xpath_expression=".//mods:language/mods:languageTerm[@type='code']"
+    )
+    
+    # act
+    result = extractor(entry)
+    
+    # assert
+    assert result == "ger"
+
+
+def test_mets_mods_extractor_genre():
+    """Test METSModsExtractor extracts genre from METS/MODS"""
+    
+    # arrange
+    mets_path = TEST_RES_DIR / 'test_mets.xml'
+    entry = digev.EvalEntry(Path("/test/1667522809_J_0001_0002.xml"))
+    entry.path_groundtruth = Path("/test/1667522809_J_0001_0002.art.gt.xml")
+    
+    extractor = digev.METSModsExtractor(
+        mets_file_path=mets_path,
+        xpath_expression=".//mods:genre"
+    )
+    
+    # act
+    result = extractor(entry)
+    
+    # assert
+    assert result == "article"
+
+
+def test_mets_mods_extractor_date():
+    """Test METSModsExtractor extracts date from METS/MODS"""
+    
+    # arrange
+    mets_path = TEST_RES_DIR / 'test_mets.xml'
+    entry = digev.EvalEntry(Path("/test/1667522809_J_0001_0002.xml"))
+    entry.path_groundtruth = Path("/test/1667522809_J_0001_0002.art.gt.xml")
+    
+    extractor = digev.METSModsExtractor(
+        mets_file_path=mets_path,
+        xpath_expression=".//mods:originInfo/mods:dateIssued"
+    )
+    
+    # act
+    result = extractor(entry)
+    
+    # assert
+    assert result == "1867"
+
+
+def test_mets_mods_extractor_publisher():
+    """Test METSModsExtractor extracts publisher from METS/MODS"""
+    
+    # arrange
+    mets_path = TEST_RES_DIR / 'test_mets.xml'
+    entry = digev.EvalEntry(Path("/test/test_announcement.xml"))
+    entry.path_groundtruth = Path("/test/test_announcement.ann.gt.xml")
+    
+    extractor = digev.METSModsExtractor(
+        mets_file_path=mets_path,
+        xpath_expression=".//mods:originInfo/mods:publisher"
+    )
+    
+    # act
+    result = extractor(entry)
+    
+    # assert
+    assert result == "Test Publisher 2"
+
+
+def test_mets_mods_extractor_no_groundtruth():
+    """Test METSModsExtractor returns None when no groundtruth path"""
+    
+    # arrange
+    mets_path = TEST_RES_DIR / 'test_mets.xml'
+    entry = digev.EvalEntry(Path("/test/1667522809_J_0001_0002.xml"))
+    # No groundtruth path set
+    
+    extractor = digev.METSModsExtractor(
+        mets_file_path=mets_path,
+        xpath_expression=".//mods:language/mods:languageTerm[@type='code']"
+    )
+    
+    # act
+    result = extractor(entry)
+    
+    # assert
+    assert result is None
+
+
+def test_mets_mods_extractor_file_not_in_mets():
+    """Test METSModsExtractor returns None for file not in METS"""
+    
+    # arrange
+    mets_path = TEST_RES_DIR / 'test_mets.xml'
+    entry = digev.EvalEntry(Path("/test/nonexistent_file.xml"))
+    entry.path_groundtruth = Path("/test/nonexistent_file.gt.xml")
+    
+    extractor = digev.METSModsExtractor(
+        mets_file_path=mets_path,
+        xpath_expression=".//mods:language/mods:languageTerm[@type='code']"
+    )
+    
+    # act
+    result = extractor(entry)
+    
+    # assert
+    assert result is None
+
+
+def test_mets_mods_extractor_caching():
+    """Test METSModsExtractor caches parsed METS file"""
+    
+    # arrange
+    mets_path = TEST_RES_DIR / 'test_mets.xml'
+    extractor = digev.METSModsExtractor(
+        mets_file_path=mets_path,
+        xpath_expression=".//mods:language/mods:languageTerm[@type='code']",
+        cache_parsed=True
+    )
+    
+    entry = digev.EvalEntry(Path("/test/1667522809_J_0001_0002.xml"))
+    entry.path_groundtruth = Path("/test/1667522809_J_0001_0002.art.gt.xml")
+    
+    # act - first call parses file
+    result1 = extractor(entry)
+    assert extractor._parsed_tree is not None
+    assert extractor._file_to_mods_map is not None
+    
+    # act - second call should use cache
+    result2 = extractor(entry)
+    
+    # assert - both calls return same result
+    assert result1 == result2 == "ger"
+
+
+def test_aggregate_generic_with_mets_mods_language(tmp_path):
+    """Test aggregate_generic with METS/MODS language strategy"""
+    
+    # arrange
+    eval_domain = tmp_path / 'candidate' / 'ger_frk'
+    eval_domain.mkdir(parents=True)
+    gt_domain = tmp_path / 'groundtruth' / 'ger_frk'
+    gt_domain.mkdir(parents=True)
+    
+    # Copy METS file to groundtruth root
+    mets_src = TEST_RES_DIR / 'test_mets.xml'
+    mets_dst = tmp_path / 'groundtruth' / 'test_mets.xml'
+    shutil.copy(mets_src, mets_dst)
+    
+    evaluator = digev.Evaluator(eval_domain)
+    evaluator.metrics = [digem.MetricChars()]
+    evaluator.domain_reference = gt_domain
+    
+    # Copy test files
+    _candidate_src = TEST_RES_DIR / 'candidate' / 'frk_alto' / '1667522809_J_0001_0002.xml'
+    _candidate_dst = eval_domain / '1667522809_J_0001_0002.xml'
+    shutil.copy(_candidate_src, _candidate_dst)
+    
+    _gt_src = TEST_RES_DIR / 'groundtruth' / 'page' / '1667522809_J_0001_0002.art.gt.xml'
+    _gt_dst = gt_domain / '1667522809_J_0001_0002.art.gt.xml'
+    shutil.copy(_gt_src, _gt_dst)
+    
+    # Gather and evaluate
+    candidates = digev_main.gather_candidates(eval_domain)
+    for entry in candidates:
+        gt = digev_main.find_groundtruth(entry, gt_domain)
+        if gt:
+            entry.path_groundtruth = gt
+            entry.align_domains()
+    
+    gt_entries = [c for c in candidates if c.path_groundtruth]
+    evaluator.eval_all(gt_entries, sequential=True)
+    
+    # Create METS/MODS language strategy
+    language_strategy = digev.AggregationStrategy([
+        digev.AggregationDimension(
+            "language",
+            digev.METSModsExtractor(
+                mets_file_path=mets_dst,
+                xpath_expression=".//mods:language/mods:languageTerm[@type='code']"
+            )
+        )
+    ])
+    
+    # act
+    evaluator.aggregate_generic(language_strategy)
+    
+    # assert
+    assert len(evaluator.evaluation_map) > 0
+    # Should have key like "Cs@language:ger"
+    keys = list(evaluator.evaluation_map.keys())
+    assert any("language:ger" in key for key in keys)
+
+
+def test_mets_mods_extractor_multiple_files():
+    """Test METSModsExtractor correctly distinguishes between multiple files"""
+    
+    # arrange
+    mets_path = TEST_RES_DIR / 'test_mets.xml'
+    
+    # First file - article in German
+    entry1 = digev.EvalEntry(Path("/test/1667522809_J_0001_0002.xml"))
+    entry1.path_groundtruth = Path("/test/1667522809_J_0001_0002.art.gt.xml")
+    
+    # Second file - announcement in English
+    entry2 = digev.EvalEntry(Path("/test/test_announcement.xml"))
+    entry2.path_groundtruth = Path("/test/test_announcement.ann.gt.xml")
+    
+    language_extractor = digev.METSModsExtractor(
+        mets_file_path=mets_path,
+        xpath_expression=".//mods:language/mods:languageTerm[@type='code']"
+    )
+    
+    genre_extractor = digev.METSModsExtractor(
+        mets_file_path=mets_path,
+        xpath_expression=".//mods:genre"
+    )
+    
+    # act
+    lang1 = language_extractor(entry1)
+    lang2 = language_extractor(entry2)
+    genre1 = genre_extractor(entry1)
+    genre2 = genre_extractor(entry2)
+    
+    # assert
+    assert lang1 == "ger"
+    assert lang2 == "eng"
+    assert genre1 == "article"
+    assert genre2 == "announcement"

@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mets:mets xmlns:mets="http://www.loc.gov/METS/" 
+           xmlns:mods="http://www.loc.gov/mods/v3"
+           xmlns:xlink="http://www.w3.org/1999/xlink"
+           OBJID="test_object">
+  
+  <!-- Metadata sections -->
+  <mets:dmdSec ID="DMDLOG_0001">
+    <mets:mdWrap MDTYPE="MODS">
+      <mets:xmlData>
+        <mods:mods>
+          <mods:language>
+            <mods:languageTerm type="code" authority="iso639-2b">ger</mods:languageTerm>
+          </mods:language>
+          <mods:genre>article</mods:genre>
+          <mods:originInfo>
+            <mods:dateIssued>1867</mods:dateIssued>
+            <mods:publisher>Test Publisher 1</mods:publisher>
+          </mods:originInfo>
+          <mods:titleInfo>
+            <mods:title>Test Article 1</mods:title>
+          </mods:titleInfo>
+        </mods:mods>
+      </mets:xmlData>
+    </mets:mdWrap>
+  </mets:dmdSec>
+  
+  <mets:dmdSec ID="DMDLOG_0002">
+    <mets:mdWrap MDTYPE="MODS">
+      <mets:xmlData>
+        <mods:mods>
+          <mods:language>
+            <mods:languageTerm type="code" authority="iso639-2b">eng</mods:languageTerm>
+          </mods:language>
+          <mods:genre>announcement</mods:genre>
+          <mods:originInfo>
+            <mods:dateIssued>1868</mods:dateIssued>
+            <mods:publisher>Test Publisher 2</mods:publisher>
+          </mods:originInfo>
+          <mods:titleInfo>
+            <mods:title>Test Announcement</mods:title>
+          </mods:titleInfo>
+        </mods:mods>
+      </mets:xmlData>
+    </mets:mdWrap>
+  </mets:dmdSec>
+  
+  <!-- File sections -->
+  <mets:fileSec>
+    <mets:fileGrp USE="FULLTEXT" DMDID="DMDLOG_0001">
+      <mets:file ID="FILE_0001" MIMETYPE="application/xml">
+        <mets:FLocat xlink:href="1667522809_J_0001_0002.art.gt.xml" LOCTYPE="URL"/>
+      </mets:file>
+    </mets:fileGrp>
+    
+    <mets:fileGrp USE="FULLTEXT" DMDID="DMDLOG_0002">
+      <mets:file ID="FILE_0002" MIMETYPE="application/xml">
+        <mets:FLocat xlink:href="test_announcement.ann.gt.xml" LOCTYPE="URL"/>
+      </mets:file>
+    </mets:fileGrp>
+  </mets:fileSec>
+  
+</mets:mets>

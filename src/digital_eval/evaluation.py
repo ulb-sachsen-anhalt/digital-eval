@@ -150,6 +150,188 @@ class FilenamePatternExtractor:
         return None
 
 
+class METSModsExtractor:
+    """Extract MODS metadata from METS/MODS files
+    
+    Extracts metadata values from MODS sections embedded in METS files.
+    This extractor assumes groundtruth files are referenced as filePointers
+    in a METS file with corresponding MODS metadata sections.
+    
+    The METS file should structure like:
+    - mets:fileSec contains mets:file elements with file pointers
+    - mets:dmdSec contains mods:mods elements with metadata
+    - Files are linked to metadata via DMDID references
+    
+    Args:
+        mets_file_path: Path to the METS/MODS file
+        xpath_expression: XPath expression to extract MODS element value
+                         (e.g., ".//mods:language/mods:languageTerm[@type='code']")
+        namespaces: Optional custom namespace mapping (default: standard METS/MODS)
+        cache_parsed: If True, caches parsed METS document (default: True)
+    
+    Example:
+        # Extract language code from MODS
+        extractor = METSModsExtractor(
+            mets_file_path=Path("path/to/mets.xml"),
+            xpath_expression=".//mods:language/mods:languageTerm[@type='code']"
+        )
+        
+        # Extract genre
+        extractor = METSModsExtractor(
+            mets_file_path=Path("path/to/mets.xml"),
+            xpath_expression=".//mods:genre"
+        )
+    """
+
+    # Standard METS/MODS namespaces
+    DEFAULT_NAMESPACES = {
+        'mets': 'http://www.loc.gov/METS/',
+        'mods': 'http://www.loc.gov/mods/v3',
+        'xlink': 'http://www.w3.org/1999/xlink'
+    }
+
+    def __init__(
+        self,
+        mets_file_path: Path,
+        xpath_expression: str,
+        namespaces: typing.Optional[typing.Dict[str, str]] = None,
+        cache_parsed: bool = True
+    ):
+        self.mets_file_path = mets_file_path
+        self.xpath_expression = xpath_expression
+        self.namespaces = namespaces or self.DEFAULT_NAMESPACES
+        self.cache_parsed = cache_parsed
+        self._parsed_tree = None
+        self._file_to_mods_map = None
+
+    def _parse_mets_file(self):
+        """Parse METS file and build file-to-MODS mapping
+        
+        Returns parsed lxml tree and mapping dict
+        """
+        if self.cache_parsed and self._parsed_tree is not None:
+            return self._parsed_tree, self._file_to_mods_map
+        
+        try:
+            from lxml import etree
+        except ImportError:
+            raise ImportError(
+                "lxml is required for METS/MODS extraction. "
+                "Install it with: pip install lxml"
+            )
+        
+        if not self.mets_file_path.exists():
+            raise FileNotFoundError(f"METS file not found: {self.mets_file_path}")
+        
+        # Parse METS file
+        tree = etree.parse(str(self.mets_file_path))
+        
+        # Build file-to-MODS mapping
+        file_map = {}
+        
+        # Find all file elements with their DMDID references
+        files = tree.xpath('//mets:file', namespaces=self.namespaces)
+        for file_elem in files:
+            # Get file location (FLocat/@xlink:href)
+            flocat = file_elem.xpath('./mets:FLocat/@xlink:href', namespaces=self.namespaces)
+            if flocat:
+                file_href = flocat[0]
+                
+                # Get DMDID from parent fileGrp or file element
+                dmdid = file_elem.get('DMDID')
+                if not dmdid:
+                    # Try parent fileGrp
+                    parent = file_elem.getparent()
+                    if parent is not None:
+                        dmdid = parent.get('DMDID')
+                
+                if dmdid:
+                    # Handle multiple DMDIDs (space-separated)
+                    dmdids = dmdid.split()
+                    file_map[file_href] = dmdids
+        
+        if self.cache_parsed:
+            self._parsed_tree = tree
+            self._file_to_mods_map = file_map
+        
+        return tree, file_map
+
+    def _extract_mods_value(self, tree, dmdid: str) -> typing.Optional[str]:
+        """Extract MODS metadata value for given DMDID
+        
+        Args:
+            tree: Parsed lxml tree
+            dmdid: DMD section ID
+            
+        Returns:
+            Extracted metadata value or None
+        """
+        # Find dmdSec with matching ID
+        dmd_xpath = f'//mets:dmdSec[@ID="{dmdid}"]//mods:mods'
+        mods_sections = tree.xpath(dmd_xpath, namespaces=self.namespaces)
+        
+        if not mods_sections:
+            return None
+        
+        # Apply user's XPath expression to MODS section
+        for mods_section in mods_sections:
+            try:
+                results = mods_section.xpath(self.xpath_expression, namespaces=self.namespaces)
+                if results:
+                    # Return text content of first matching element
+                    if hasattr(results[0], 'text'):
+                        return results[0].text
+                    elif isinstance(results[0], str):
+                        return results[0]
+            except Exception:
+                continue
+        
+        return None
+
+    def __call__(self, entry: typing.Any) -> typing.Optional[str]:
+        """Extract MODS metadata value for entry's groundtruth file
+        
+        Args:
+            entry: EvalEntry with path_groundtruth attribute
+            
+        Returns:
+            Extracted MODS metadata value or None if not found
+        """
+        if not hasattr(entry, 'path_groundtruth') or entry.path_groundtruth is None:
+            return None
+        
+        try:
+            # Parse METS file and get mapping
+            tree, file_map = self._parse_mets_file()
+            
+            # Get groundtruth filename (may need to match various href formats)
+            gt_filename = entry.path_groundtruth.name
+            gt_path_str = str(entry.path_groundtruth)
+            
+            # Try to find matching file entry in METS
+            matched_dmdids = None
+            for file_href, dmdids in file_map.items():
+                # Match by filename or relative path
+                if gt_filename in file_href or file_href in gt_path_str:
+                    matched_dmdids = dmdids
+                    break
+            
+            if not matched_dmdids:
+                return None
+            
+            # Extract metadata from first matching DMDID
+            for dmdid in matched_dmdids:
+                value = self._extract_mods_value(tree, dmdid)
+                if value:
+                    return value
+            
+            return None
+            
+        except Exception as e:
+            # Silently return None on errors (could add logging here)
+            return None
+
+
 class AggregationStrategy:
     """Defines how to aggregate evaluation results across dimensions
     

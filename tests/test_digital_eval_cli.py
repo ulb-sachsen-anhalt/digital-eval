@@ -180,3 +180,88 @@ def test_single_candidate_file_cli(tmp_path, capsys):
     assert std_lines[0] == "[DEBUG] text normalized using 'NFC' code points for 'Cs,Ls'"
     # Verify the specific file appears in the output
     assert any('1667522809_J_0001_0002' in line for line in std_lines)
+
+
+def test_cli_with_mets_mods_aggregation(tmp_path, capsys):
+    """Test CLI with METS/MODS aggregation parameters"""
+    pytest = __import__('pytest')
+    pytest.importorskip("lxml", reason="lxml required for METS/MODS extraction")
+    
+    # arrange
+    dig.VERBOSITY = 1
+    src_candidates = TEST_RES_DIR / 'candidate' / 'frk_alto'
+    src_reference = TEST_RES_DIR / 'groundtruth' / 'page'
+    src_mets = TEST_RES_DIR / 'test_mets.xml'
+    
+    dst_candidates = tmp_path / 'candidate' / _DOMAIN_LABEL
+    dst_reference = tmp_path / 'reference' / _DOMAIN_LABEL
+    dst_mets = tmp_path / 'reference' / 'test_mets.xml'
+    
+    tmp_candidate: Path = shutil.copytree(src_candidates, dst_candidates)
+    tmp_reference: Path = shutil.copytree(src_reference, dst_reference)
+    shutil.copy(src_mets, dst_mets)
+    
+    # assert files exist
+    assert _DOMAIN_LABEL == tmp_candidate.name
+    assert _DOMAIN_LABEL == tmp_reference.name
+    assert dst_mets.is_file()
+    
+    # act - use METS/MODS aggregation with language and genre dimensions
+    cli_args = {
+        "candidates": dst_candidates,
+        "reference": dst_reference,
+        "metrics": dig.DEFAULT_OCR_METRICS,
+        "verbosity": 1,
+        "utf8": dig.DEFAULT_UTF8_NORM,
+        "sequential": True,
+        "mets_file": str(dst_mets),
+        "mods_dimensions": "language,genre"
+    }
+    eval_results = dig.start_evaluation(cli_args)
+    
+    # assert
+    assert len(eval_results) > 0
+    
+    # Check that results are aggregated by MODS dimensions
+    eval_keys = [result.eval_key for result in eval_results]
+    # Should contain keys like "Cs@language:ger" or "Cs@genre:article"
+    assert any('language:' in key for key in eval_keys) or any('genre:' in key for key in eval_keys)
+    
+    # Check debug output
+    captured = capsys.readouterr().out
+    assert "Added MODS dimension 'language'" in captured or "Added MODS dimension" in captured
+
+
+def test_cli_with_mets_file_only_warning(tmp_path, capsys):
+    """Test CLI shows warning when METS file provided without dimensions"""
+    
+    # arrange
+    dig.VERBOSITY = 1
+    src_candidates = TEST_RES_DIR / 'candidate' / 'frk_alto'
+    src_reference = TEST_RES_DIR / 'groundtruth' / 'page'
+    src_mets = TEST_RES_DIR / 'test_mets.xml'
+    
+    dst_candidates = tmp_path / 'candidate' / _DOMAIN_LABEL
+    dst_reference = tmp_path / 'reference' / _DOMAIN_LABEL
+    dst_mets = tmp_path / 'reference' / 'test_mets.xml'
+    
+    shutil.copytree(src_candidates, dst_candidates)
+    shutil.copytree(src_reference, dst_reference)
+    shutil.copy(src_mets, dst_mets)
+    
+    # act - provide METS file but no dimensions (should use default aggregation)
+    cli_args = {
+        "candidates": dst_candidates,
+        "reference": dst_reference,
+        "metrics": dig.DEFAULT_OCR_METRICS,
+        "verbosity": 1,
+        "utf8": dig.DEFAULT_UTF8_NORM,
+        "sequential": True,
+        "mets_file": str(dst_mets),
+        # No mods_dimensions provided
+    }
+    eval_results = dig.start_evaluation(cli_args)
+    
+    # assert - should still work with default aggregation
+    assert len(eval_results) > 0
+

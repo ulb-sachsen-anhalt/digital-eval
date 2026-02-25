@@ -40,6 +40,21 @@ METRIC_DICT = {
     "DictionaryLangTool": digem.MetricDictionaryLangTool,
 }
 
+# MODS dimension XPath mappings
+MODS_DIMENSION_XPATHS = {
+    "language": ".//mods:language/mods:languageTerm[@type='code']",
+    "languageTerm": ".//mods:language/mods:languageTerm",
+    "genre": ".//mods:genre",
+    "dateIssued": ".//mods:originInfo/mods:dateIssued",
+    "dateCreated": ".//mods:originInfo/mods:dateCreated",
+    "publisher": ".//mods:originInfo/mods:publisher",
+    "place": ".//mods:originInfo/mods:place/mods:placeTerm",
+    "title": ".//mods:titleInfo/mods:title",
+    "author": ".//mods:name/mods:namePart",
+    "subject": ".//mods:subject/mods:topic",
+    "classification": ".//mods:classification",
+}
+
 
 def _initialize_metrics(the_metrics, norm) -> typing.List[digem.OCRMetric]:
     _tokens = the_metrics.split(",")
@@ -163,8 +178,56 @@ def start_evaluation(parse_args: typing.Dict):
     # trigger actual evaluation
     evaluator.eval_all(gt_entries)
 
-    # aggregate
-    evaluator.aggregate(by_type=True)
+    # aggregate - use METS/MODS if configured, otherwise use default
+    mets_file = parse_args.get("mets_file")
+    mods_dimensions = parse_args.get("mods_dimensions")
+    
+    if mets_file and mods_dimensions:
+        # Use METS/MODS aggregation
+        mets_path = Path(mets_file)
+        if not mets_path.exists():
+            print(f"[ERROR] METS file '{mets_file}' not found! exit!")
+            sys.exit(1)
+        
+        # Parse dimension list
+        dimension_names = [d.strip() for d in mods_dimensions.split(",")]
+        dimensions = []
+        
+        for dim_name in dimension_names:
+            # Check if it's a known dimension or custom XPath
+            if dim_name in MODS_DIMENSION_XPATHS:
+                xpath = MODS_DIMENSION_XPATHS[dim_name]
+            elif dim_name.startswith(".//"):
+                # Custom XPath expression
+                xpath = dim_name
+            else:
+                print(f"[WARN ] Unknown MODS dimension '{dim_name}'. Available: {', '.join(MODS_DIMENSION_XPATHS.keys())}")
+                print(f"[WARN ] Or provide a custom XPath expression starting with './/'. Skipping this dimension.")
+                continue
+            
+            try:
+                extractor = digev.METSModsExtractor(
+                    mets_file_path=mets_path,
+                    xpath_expression=xpath
+                )
+                dimensions.append(digev.AggregationDimension(dim_name, extractor))
+                if verbosity >= 1:
+                    print(f"[DEBUG] Added MODS dimension '{dim_name}' with XPath: {xpath}")
+            except Exception as e:
+                print(f"[ERROR] Failed to create MODS extractor for '{dim_name}': {e}")
+                sys.exit(1)
+        
+        if dimensions:
+            strategy = digev.AggregationStrategy(dimensions)
+            evaluator.aggregate_generic(strategy)
+            if verbosity >= 1:
+                print(f"[DEBUG] Aggregated by MODS dimensions: {', '.join(dimension_names)}")
+        else:
+            print("[WARN ] No valid MODS dimensions provided. Using default aggregation.")
+            evaluator.aggregate(by_type=True)
+    else:
+        # Use default aggregation
+        evaluator.aggregate(by_type=True)
 
     # evaluator.evaluate()
     evaluator.eval_map()
@@ -245,6 +308,18 @@ def start():
         default=LanguageTool.DEFAULT_URL,
         required=False,
         help=f"Language Tool Api URL (optional; default: '{LanguageTool.DEFAULT_URL}')",
+    )
+    parser.add_argument(
+        "--mets-file",
+        required=False,
+        help="Path to METS/MODS file for metadata-based aggregation (optional)",
+    )
+    parser.add_argument(
+        "--mods-dimensions",
+        required=False,
+        help=f"Comma-separated list of MODS dimensions for aggregation (optional; requires --mets-file). "
+             f"Available: {', '.join(MODS_DIMENSION_XPATHS.keys())}. "
+             f"Or provide custom XPath expressions starting with './/'",
     )
     main_args = vars(parser.parse_args())
     start_evaluation(main_args)
