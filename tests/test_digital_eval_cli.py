@@ -229,7 +229,8 @@ def test_cli_with_mets_mods_aggregation(tmp_path, capsys):
     
     # Check debug output
     captured = capsys.readouterr().out
-    assert "Added MODS dimension 'language'" in captured or "Added MODS dimension" in captured
+    # New unified aggregation system uses different debug message format
+    assert "Added aggregation dimension" in captured or "Converting legacy --mods-dimensions" in captured
 
 
 def test_cli_with_mets_file_only_warning(tmp_path, capsys):

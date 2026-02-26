@@ -56,6 +56,156 @@ MODS_DIMENSION_XPATHS = {
 }
 
 
+def _parse_extractor_spec(
+    spec: str,
+    mets_path: typing.Optional[Path] = None,
+    verbosity: int = 0
+) -> typing.Optional[typing.Tuple[str, typing.Callable]]:
+    """Parse extractor specification string and return (name, extractor) tuple
+    
+    Supported formats:
+        - 'directory' or 'directory:all' - all directory levels
+        - 'directory:N' - specific directory level (0=root+1, -1=parent)
+        - 'type' - groundtruth type
+        - 'metadata:KEY' - custom metadata with key
+        - 'pattern:REGEX' - filename pattern (first capture group)
+        - 'pattern:REGEX:N' - filename pattern (Nth capture group)
+        - 'mods:DIMENSION' - METS/MODS dimension (requires mets_path)
+    
+    Args:
+        spec: Extractor specification string
+        mets_path: Path to METS file (required for 'mods:' extractors)
+        verbosity: Verbosity level for diagnostic output
+    
+    Returns:
+        Tuple of (dimension_name, extractor_callable) or None if invalid
+    """
+    parts = spec.split(':', 1)
+    extractor_type = parts[0].strip()
+    
+    # Directory extractor
+    if extractor_type == 'directory':
+        if len(parts) == 1 or parts[1].strip() == 'all':
+            # All directory levels
+            return ('directory', digev.DirectoryHierarchyExtractor())
+        else:
+            try:
+                level = int(parts[1].strip())
+                return (f'directory_{level}', digev.DirectoryHierarchyExtractor(level=level))
+            except ValueError:
+                print(f"[ERROR] Invalid directory level specification: '{spec}'")
+                return None
+    
+    # Type extractor
+    elif extractor_type == 'type':
+        return ('type', digev.TypeExtractor())
+    
+    # Metadata extractor
+    elif extractor_type == 'metadata':
+        if len(parts) < 2:
+            print(f"[ERROR] Metadata extractor requires key: 'metadata:KEY'")
+            return None
+        key = parts[1].strip()
+        return (f'metadata_{key}', digev.CustomMetadataExtractor(key=key))
+    
+    # Pattern extractor
+    elif extractor_type == 'pattern':
+        if len(parts) < 2:
+            print(f"[ERROR] Pattern extractor requires regex: 'pattern:REGEX'")
+            return None
+        
+        # Check if group number is specified
+        pattern_parts = parts[1].split(':', 1)
+        pattern = pattern_parts[0].strip()
+        group = 1
+        if len(pattern_parts) > 1:
+            try:
+                group = int(pattern_parts[1].strip())
+            except ValueError:
+                print(f"[ERROR] Invalid pattern group number: '{pattern_parts[1]}'")
+                return None
+        
+        try:
+            return (f'pattern', digev.FilenamePatternExtractor(pattern=pattern, group=group))
+        except Exception as e:
+            print(f"[ERROR] Invalid regex pattern '{pattern}': {e}")
+            return None
+    
+    # MODS extractor
+    elif extractor_type == 'mods':
+        if not mets_path:
+            print(f"[ERROR] MODS extractor requires --mets-file parameter")
+            return None
+        
+        if len(parts) < 2:
+            print(f"[ERROR] MODS extractor requires dimension: 'mods:DIMENSION'")
+            return None
+        
+        dimension = parts[1].strip()
+        
+        # Check if it's a predefined dimension or custom XPath
+        if dimension in MODS_DIMENSION_XPATHS:
+            xpath = MODS_DIMENSION_XPATHS[dimension]
+            dim_name = f'mods_{dimension}'
+        elif dimension.startswith('.//'):  # Custom XPath
+            xpath = dimension
+            dim_name = 'mods_custom'
+        else:
+            print(f"[WARN ] Unknown MODS dimension '{dimension}'. Available: {', '.join(MODS_DIMENSION_XPATHS.keys())}")
+            print(f"[WARN ] Or provide a custom XPath expression starting with './/'")
+            return None
+        
+        try:
+            extractor = digev.METSModsExtractor(
+                mets_file_path=mets_path,
+                xpath_expression=xpath
+            )
+            return (dim_name, extractor)
+        except Exception as e:
+            print(f"[ERROR] Failed to create MODS extractor for '{dimension}': {e}")
+            return None
+    
+    else:
+        print(f"[ERROR] Unknown extractor type '{extractor_type}'. Available: directory, type, metadata, pattern, mods")
+        return None
+
+
+def _build_aggregation_strategy(
+    aggregate_by: typing.Optional[str],
+    mets_path: typing.Optional[Path],
+    verbosity: int = 0
+) -> typing.Optional[digev.AggregationStrategy]:
+    """Build aggregation strategy from CLI specification
+    
+    Args:
+        aggregate_by: Comma-separated list of extractor specifications
+        mets_path: Path to METS file (for MODS extractors)
+        verbosity: Verbosity level
+    
+    Returns:
+        AggregationStrategy or None if no valid dimensions
+    """
+    if not aggregate_by:
+        return None
+    
+    # Parse extractor specifications
+    specs = [s.strip() for s in aggregate_by.split(',')]
+    dimensions = []
+    
+    for spec in specs:
+        result = _parse_extractor_spec(spec, mets_path, verbosity)
+        if result:
+            dim_name, extractor = result
+            dimensions.append(digev.AggregationDimension(dim_name, extractor))
+            if verbosity >= 1:
+                print(f"[DEBUG] Added aggregation dimension '{dim_name}' from spec '{spec}'")
+    
+    if not dimensions:
+        return None
+    
+    return digev.AggregationStrategy(dimensions)
+
+
 def _initialize_metrics(the_metrics, norm) -> typing.List[digem.OCRMetric]:
     _tokens = the_metrics.split(",")
     try:
@@ -178,55 +328,54 @@ def start_evaluation(parse_args: typing.Dict):
     # trigger actual evaluation
     evaluator.eval_all(gt_entries)
 
-    # aggregate - use METS/MODS if configured, otherwise use default
+    # aggregate - use unified approach
+    aggregate_by = parse_args.get("aggregate_by")
     mets_file = parse_args.get("mets_file")
     mods_dimensions = parse_args.get("mods_dimensions")
     
-    if mets_file and mods_dimensions:
-        # Use METS/MODS aggregation
+    # Prepare METS path if provided
+    mets_path = None
+    if mets_file:
         mets_path = Path(mets_file)
         if not mets_path.exists():
             print(f"[ERROR] METS file '{mets_file}' not found! exit!")
             sys.exit(1)
+    
+    # Build aggregation strategy
+    strategy = None
+    
+    # Priority 1: --aggregate-by (unified approach)
+    if aggregate_by:
+        strategy = _build_aggregation_strategy(aggregate_by, mets_path, verbosity)
+        if not strategy:
+            print("[WARN ] No valid aggregation dimensions provided. Using default aggregation.")
+    
+    # Priority 2: --mods-dimensions (legacy METS/MODS approach, backward compatible)
+    elif mods_dimensions:
+        if not mets_path:
+            print("[ERROR] --mods-dimensions requires --mets-file! exit!")
+            sys.exit(1)
         
-        # Parse dimension list
+        # Convert legacy MODS dimensions to unified format
         dimension_names = [d.strip() for d in mods_dimensions.split(",")]
-        dimensions = []
+        unified_specs = [f"mods:{dim}" for dim in dimension_names]
+        aggregate_by_converted = ",".join(unified_specs)
         
-        for dim_name in dimension_names:
-            # Check if it's a known dimension or custom XPath
-            if dim_name in MODS_DIMENSION_XPATHS:
-                xpath = MODS_DIMENSION_XPATHS[dim_name]
-            elif dim_name.startswith(".//"):
-                # Custom XPath expression
-                xpath = dim_name
-            else:
-                print(f"[WARN ] Unknown MODS dimension '{dim_name}'. Available: {', '.join(MODS_DIMENSION_XPATHS.keys())}")
-                print(f"[WARN ] Or provide a custom XPath expression starting with './/'. Skipping this dimension.")
-                continue
-            
-            try:
-                extractor = digev.METSModsExtractor(
-                    mets_file_path=mets_path,
-                    xpath_expression=xpath
-                )
-                dimensions.append(digev.AggregationDimension(dim_name, extractor))
-                if verbosity >= 1:
-                    print(f"[DEBUG] Added MODS dimension '{dim_name}' with XPath: {xpath}")
-            except Exception as e:
-                print(f"[ERROR] Failed to create MODS extractor for '{dim_name}': {e}")
-                sys.exit(1)
+        if verbosity >= 1:
+            print(f"[DEBUG] Converting legacy --mods-dimensions to unified format: {aggregate_by_converted}")
         
-        if dimensions:
-            strategy = digev.AggregationStrategy(dimensions)
-            evaluator.aggregate_generic(strategy)
-            if verbosity >= 1:
-                print(f"[DEBUG] Aggregated by MODS dimensions: {', '.join(dimension_names)}")
-        else:
+        strategy = _build_aggregation_strategy(aggregate_by_converted, mets_path, verbosity)
+        if not strategy:
             print("[WARN ] No valid MODS dimensions provided. Using default aggregation.")
-            evaluator.aggregate(by_type=True)
+    
+    # Apply aggregation strategy
+    if strategy:
+        evaluator.aggregate_generic(strategy)
+        if verbosity >= 1:
+            dim_names = [dim.name for dim in strategy.dimensions]
+            print(f"[DEBUG] Aggregated by dimensions: {', '.join(dim_names)}")
     else:
-        # Use default aggregation
+        # Use default aggregation (backward compatible)
         evaluator.aggregate(by_type=True)
 
     # evaluator.evaluate()
@@ -310,14 +459,23 @@ def start():
         help=f"Language Tool Api URL (optional; default: '{LanguageTool.DEFAULT_URL}')",
     )
     parser.add_argument(
+        "--aggregate-by",
+        required=False,
+        help="Comma-separated list of aggregation dimensions (optional). "
+             "Formats: 'directory' (all levels), 'directory:N' (level N), 'type', "
+             "'metadata:KEY', 'pattern:REGEX', 'mods:DIMENSION' (requires --mets-file). "
+             f"Available MODS dimensions: {', '.join(MODS_DIMENSION_XPATHS.keys())}",
+    )
+    parser.add_argument(
         "--mets-file",
         required=False,
-        help="Path to METS/MODS file for metadata-based aggregation (optional)",
+        help="Path to METS/MODS file for MODS-based aggregation (optional, required for 'mods:' dimensions)",
     )
     parser.add_argument(
         "--mods-dimensions",
         required=False,
-        help=f"Comma-separated list of MODS dimensions for aggregation (optional; requires --mets-file). "
+        help=f"[LEGACY] Comma-separated list of MODS dimensions for aggregation (optional; requires --mets-file). "
+             f"Use --aggregate-by instead for unified approach. "
              f"Available: {', '.join(MODS_DIMENSION_XPATHS.keys())}. "
              f"Or provide custom XPath expressions starting with './/'",
     )

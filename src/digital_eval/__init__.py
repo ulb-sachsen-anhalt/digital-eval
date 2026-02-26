@@ -1,11 +1,13 @@
 """digital eval main API"""
 
-__version__ = "1.10.1"
+__version__ = "1.11.1"
 
 from .evaluation import (
     Evaluator,
     EvalEntry,
     report_stdout,
+)
+from .aggregation import (
     AggregationDimension,
     AggregationStrategy,
     DirectoryHierarchyExtractor,
