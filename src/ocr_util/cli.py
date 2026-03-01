@@ -2,15 +2,19 @@
 """OCR Utils"""
 
 import argparse
+import os
 import re
-from pathlib import PurePath
+from pathlib import Path, PurePath
 
 import digital_eval.model as do
 import digital_eval.model.filter as dofi
+from ocr_util.corpora.Gt2Mets import Gt2Mets
+from ocr_util.corpora.common import Args
 
 # script constants
 DEFAULT_VERBOSITY = 0
 SUB_CMD_FRAME = "frame"
+SUB_CMD_GROUNDTRUTH_CORPUS = "groundtruth-corpus"
 
 
 def points_type(points: str) -> str:
@@ -62,9 +66,62 @@ def start() -> None:
         f.e.: --frame "2892,2480 5072,2480 5072,5148 2892,5148"
         """,
     )
+    
+    # groundtruth-corpus subcommand
+    groundtruth_corpus_arg_parser = sub_arg_parsers.add_parser(
+        SUB_CMD_GROUNDTRUTH_CORPUS,
+        help="Create METS files from ground truth PAGE-XML files with URN identifiers",
+    )
+    groundtruth_corpus_arg_parser.add_argument(
+        "-i",
+        "--input",
+        dest="input_dir",
+        help="Path to the input directory containing GT PAGE-XML files",
+        required=True,
+    )
+    groundtruth_corpus_arg_parser.add_argument(
+        "-o",
+        "--output",
+        dest="output_dir",
+        help="Path to the output directory for generated METS files",
+        required=True,
+    )
+    groundtruth_corpus_arg_parser.add_argument(
+        "-l",
+        "--limit",
+        type=int,
+        default=0,
+        help="Number of files to process (default: 0 = unlimited)",
+        required=False,
+    )
+    groundtruth_corpus_arg_parser.add_argument(
+        "-t",
+        "--temp-dir",
+        dest="temp_dir",
+        default=os.path.join(os.path.expanduser("~"), '.cache', 'odem_gt_2_mets'),
+        help="Path to temporary directory for caching METS files (default: ~/.cache/odem_gt_2_mets)",
+        required=False,
+    )
+    groundtruth_corpus_arg_parser.add_argument(
+        "-v",
+        "--verbosity",
+        action="count",
+        default=DEFAULT_VERBOSITY,
+        required=False,
+        help=f"Verbosity flag. To increase, append multiple 'v's (optional; default: '{DEFAULT_VERBOSITY}')",
+    )
+    groundtruth_corpus_arg_parser.add_argument(
+        "--corpus-label",
+        dest="corpus_label",
+        default="Ground Truth Corpus",
+        help="Label for the corpus in the METS logical structure (default: 'Ground Truth Corpus')",
+        required=False,
+    )
+    
     args = arg_parser.parse_args()
 
-    verbosity: int = args.verbosity
+    verbosity: int = getattr(args, 'verbosity', DEFAULT_VERBOSITY)
+    
     if args.subcommand == SUB_CMD_FRAME:
         input_ocr_file: str = args.input_ocr_file
         output_ocr_file: str = args.output_ocr_file
@@ -80,6 +137,31 @@ def start() -> None:
         file_result: PurePath = do.from_digital_object(piece_result, output_ocr_file)
         if verbosity > 0:
             print("[INFO ] file_result", file_result)
+    
+    elif args.subcommand == SUB_CMD_GROUNDTRUTH_CORPUS:
+        # Create Args object for Gt2Mets
+        gt2mets_args = Args(
+            input_dir=Path(args.input_dir).absolute(),
+            output_dir=Path(args.output_dir).absolute(),
+            temp_dir=Path(args.temp_dir).absolute(),
+            limit=int(args.limit),
+            corpus_label=args.corpus_label
+        )
+        
+        if verbosity > 0:
+            print(f"[INFO ] Input directory: {gt2mets_args.input_dir}")
+            print(f"[INFO ] Output directory: {gt2mets_args.output_dir}")
+            print(f"[INFO ] Temp directory: {gt2mets_args.temp_dir}")
+            print(f"[INFO ] Limit: {gt2mets_args.limit if gt2mets_args.limit > 0 else 'unlimited'}")
+        
+        try:
+            gt2mets = Gt2Mets(gt2mets_args)
+            gt2mets.run()
+            if verbosity > 0:
+                print("[INFO ] GT-METS generation completed successfully")
+        except Exception as e:
+            print(f"[ERROR] Failed to generate METS files: {e}")
+            raise
 
 
 if __name__ == "__main__":

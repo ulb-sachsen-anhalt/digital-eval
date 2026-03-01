@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mets:mets xmlns:xlink="http://www.w3.org/1999/xlink"
+           xmlns:mets="http://www.loc.gov/METS/"
+           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+           xmlns:mods="http://www.loc.gov/mods/v3"
+           xmlns:dv="http://dfg-viewer.de/"
+           xmlns:vlz="http://visuallibrary.net/vlz/1.0/"
+           xmlns:zvdd="http://zvdd.gdz-cms.de/"
+           xsi:schemaLocation="http://www.loc.gov/METS/ http://www.loc.gov/standards/mets/version112/mets.xsd">
+    <mets:fileSec>
+        <mets:fileGrp USE="OCR-D-IMG">
+        </mets:fileGrp>
+        <mets:fileGrp USE="FULLTEXT">
+        </mets:fileGrp>
+    </mets:fileSec>
+    <mets:structMap TYPE="PHYSICAL">
+        <mets:div TYPE="physSequence" ID="physroot">
+        </mets:div>
+    </mets:structMap>
+    <mets:structMap TYPE="LOGICAL">
+        <mets:div ID="logroot" LABEL="Ground Truth Corpus" TYPE="document">
+        </mets:div>
+    </mets:structMap>
+</mets:mets>

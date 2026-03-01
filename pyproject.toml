@@ -8,6 +8,9 @@ version = {attr = "digital_eval.__version__"}
 [tool.setuptools.packages.find]
 where = ["src"]
 
+[tool.setuptools.package-data]
+ocr_util = ["corpora/*.xml"]
+
 [project]
 name = "digital-eval"
 dynamic = ["version"]
@@ -26,6 +29,7 @@ dependencies = [
     "docker",
     "numpy",
     "shapely",
+    "lxml",
 ]
 
 [project.optional-dependencies]
@@ -36,7 +40,6 @@ dev = [
 ]
 test = [
     "pytest-cov",
-    "lxml",
 ]
 
 [project.urls]
