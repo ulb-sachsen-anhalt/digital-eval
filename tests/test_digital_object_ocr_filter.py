@@ -4,37 +4,26 @@ certain parts/frames of ALTO OCR assets
 
 import os
 import shutil
-from pathlib import (
-	Path, 
-	PurePath,
-)
-from typing import (
-    Dict, 
-	List,
-)
+import typing
+
+from pathlib import Path
 
 import xml.dom.minidom as md
-from shapely import (
-	Polygon,
-)
 
+import shapely
 import pytest
 
-from digital_eval.model import (
-    DigitalObjectTree,
-    from_digital_object
-)
-from digital_eval.model.filter import (
-    PolygonFrameFilter,
-    PolygonFrameFilterUtil,
-)
+import digital_eval.model.main as mmain
+import digital_eval.model.digital_object_model as mdom
+import digital_eval.model.filter as mfil
 
 RES_ROOT = os.path.join('tests', 'resources', 'filter')
 RES_ALTO = os.path.join(RES_ROOT, 'alto')
 
 
+
 @pytest.fixture(name='ocr_fixtures', scope='module')
-def _create_filter_fixture(tmp_path_factory) -> Dict[str, str]:
+def _create_filter_fixture(tmp_path_factory) -> typing.Dict[str, str]:
     tmp_sub = tmp_path_factory.mktemp('xml')
     path_0768 = tmp_sub / '1667522809_J_0001_0768.xml'
     shutil.copyfile(os.path.join(RES_ALTO, '1667522809_J_0001_0768.xml'), path_0768)
@@ -57,54 +46,18 @@ POINTS_0768 = '550,700 2700,700 2700,4350 550,4350'
 @pytest.fixture(name='piece_result', scope='module')
 def _fixture_0768(ocr_fixtures):
     alto_in_path: str = ocr_fixtures['0260']
-    _filter = PolygonFrameFilter(alto_in_path, POINTS_0768, 0)
-    assert isinstance(_filter.polygon, Polygon)
+    _filter = mfil.PolygonFrameFilter(alto_in_path, POINTS_0768, 0)
+    assert isinstance(_filter.polygon, shapely.geometry.Polygon)
     assert isinstance(_filter.ocr_file_path, Path)
-    piece_result: DigitalObjectTree = _filter.process()
+    piece_result: mdom.DigitalObjectTree = _filter.process()
     yield piece_result
-
-
-# def test_poly(piece_result):
-#     # assert
-#     assert piece_result
-#     assert isinstance(piece_result, DigitalObjectTree)
-
-#     # assert
-#     poly: Polygon = PolygonFrameFilterUtil.str_to_polygon(POINTS_0768)
-#     pieces: List[DigitalObjectTree] = DigitalObjectUtil.flatten(piece_result)
-#     pieces.remove(piece_result)
-#     for piece in pieces:
-#         assert piece.is_in_polygon(poly)
-
-
-# def test_poly_legacy(ocr_fixtures):
-#     # arrange
-#     points: str = '550,700 2700,4350'
-#     alto_in_path: str = ocr_fixtures['0768']
-#     filter_ocr = PolygonFrameFilter(alto_in_path, points, 0)
-
-#     # act
-#     piece_result: DigitalObjectTree = filter_ocr.process()
-
-#     # assert
-#     assert piece_result
-#     assert isinstance(piece_result, DigitalObjectTree)
-#     assert isinstance(filter_ocr.polygon, Polygon)
-#     assert isinstance(filter_ocr.ocr_file_path, Path)
-
-#     # assert
-#     poly: Polygon = PolygonFrameFilterUtil.str_to_polygon(points)
-#     pieces: List[DigitalObjectTree] = DigitalObjectUtil.flatten(piece_result)
-#     pieces.remove(piece_result)
-#     for piece in pieces:
-#         assert piece.is_in_polygon(poly)
 
 
 def test_filter_0001_0768_2020(piece_result):
     """Check result file exists and contains CONTENT"""
 
     # act
-    file_out_path: PurePath = from_digital_object(piece_result)
+    file_out_path: Path = mmain.from_digital_object(piece_result)
 
     # assert
     assert os.path.exists(file_out_path)
@@ -124,11 +77,11 @@ def test_filter_0001_0768_2022(ocr_fixtures):
     # arrange
     points: str = '525,825 2725,825 2725,7125 525,7125'
     alto_in_path: str = ocr_fixtures['0768_22']
-    filter_ocr = PolygonFrameFilter(alto_in_path, points, 0)
+    filter_ocr = mfil.PolygonFrameFilter(alto_in_path, points, 0)
 
     # act
-    piece_result: DigitalObjectTree = filter_ocr.process()
-    file_out_path: PurePath = from_digital_object(piece_result)
+    piece_result: mdom.DigitalObjectTree = filter_ocr.process()
+    file_out_path: Path = mmain.from_digital_object(piece_result)
 
     # assert
     assert os.path.exists(file_out_path)
@@ -153,11 +106,11 @@ def test_filter_0001_0260(ocr_fixtures):
     # arrange
     points: str = '550,700 2700,700 2700,4350 550,4350'
     alto_in_path: str = ocr_fixtures['0260']
-    filter_ocr = PolygonFrameFilter(alto_in_path, points, 0)
+    filter_ocr = mfil.PolygonFrameFilter(alto_in_path, points, 0)
 
     # act
-    piece_result: DigitalObjectTree = filter_ocr.process()
-    file_out_path: PurePath = from_digital_object(piece_result)
+    piece_result: mdom.DigitalObjectTree = filter_ocr.process()
+    file_out_path: Path = mmain.from_digital_object(piece_result)
 
     # assert
     assert os.path.exists(file_out_path)

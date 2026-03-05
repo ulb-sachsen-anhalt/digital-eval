@@ -1,8 +1,12 @@
 """digital_object_util module"""
 
-from pathlib import PurePath
+from pathlib import Path
 from typing import List, Optional
 from xml.dom.minidom import Document, Element, Node, parse
+
+import xml.parsers.expat
+
+import digital_eval.model.common as dmc
 
 from digital_eval.model.common import DigitalObjectDimensions, PAGE_2013, TEXT_ENCODING
 from digital_eval.model.digital_object_model import DigitalObjectTree
@@ -20,16 +24,16 @@ class DigitalObjectUtil:
 
     @staticmethod
     def from_digital_objects(
-        root_digo: DigitalObjectTree, path_out: PurePath = None
-    ) -> PurePath:
+        root_digo: DigitalObjectTree, path_out: Path = None
+    ) -> Path:
         """Convert DigitalObject structure into a xml file"""
         if path_out is None:
-            orig_file_path: PurePath = root_digo.file_path
-            parent_dir: PurePath = orig_file_path.parent
+            orig_file_path: Path = root_digo.file_path
+            parent_dir: Path = orig_file_path.parent
             basename: str = orig_file_path.name
             suffix: str = orig_file_path.suffix
             new_name: str = basename.replace(f"{suffix}", f".gt{suffix}")
-            path_out: PurePath = parent_dir.joinpath(new_name)
+            path_out: Path = parent_dir.joinpath(new_name)
         with open(path_out, "w", encoding=TEXT_ENCODING) as file:
             file.write(DigitalObjectUtil.to_xml_str(root_digo.document))
         return path_out
@@ -46,10 +50,11 @@ class DigitalObjectUtil:
             document: Document = parse(path_in)
             assert document.documentElement is not None
             doc_root: Element = document.documentElement
-        except Exception as _exc:
-            raise RuntimeError(f"corrupt XML '{path_in}!") from _exc
+        except xml.parsers.expat.ExpatError as _exc:
+            the_exc_info = f"XML parsing error in '{path_in}': {_exc}"
+            raise dmc.DigitalObjectException(the_exc_info) from _exc
         if doc_root is None:
-            raise RuntimeError("invalid document root")
+            raise dmc.DigitalObjectException("invalid document root")
         name_space = doc_root.getAttribute("xmlns")
         piece: Optional[DigitalObjectTree]
         if doc_root.localName == "alto":
@@ -59,7 +64,7 @@ class DigitalObjectUtil:
         elif doc_root.localName == "PcGts":
             piece = FormatPageUtil.extract_data(path_in)
         else:
-            raise RuntimeError(
+            raise dmc.DigitalObjectException(
                 f'Unknown Data-Format "{doc_root.localName}" in "{path_in}"'
             )
         return piece

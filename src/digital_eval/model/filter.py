@@ -8,15 +8,10 @@ from typing import NamedTuple, List
 from shapely import Polygon
 from shapely.geometry import Point
 
-from digital_eval.model import (
-    DigitalObjectTree,
-    DigitalObjectLevel,
-    DigitalObjectChanges,
-    to_digital_object,
-)
-from digital_eval.model.digital_object_util import (
-    DigitalObjectUtil,
-)
+import digital_eval.model.main as mmain
+import digital_eval.model.digital_object_model as mdom
+import digital_eval.model.digital_object_util as mdou
+
 
 
 class PolygonFrameFilterReport(NamedTuple):
@@ -80,32 +75,32 @@ class PolygonFrameFilter:
     def polygon(self) -> Polygon:
         return self.__polygon
 
-    def process(self) -> Optional[DigitalObjectTree]:
+    def process(self) -> Optional[mdom.DigitalObjectTree]:
         """apply the filter and return resulting structural data"""
-        digo_result: DigitalObjectTree = to_digital_object(str(self.__ocr_path_in))
+        digo_result: mdom.DigitalObjectTree = mmain.to_digital_object(str(self.__ocr_path_in))
         self.__process_digo(digo_result)
         self.__create_report()
         return digo_result
 
-    def __process_digo(self, digo: DigitalObjectTree) -> bool:
+    def __process_digo(self, digo: mdom.DigitalObjectTree) -> bool:
         for child_digo in digo.children:
             keep_piece: bool = self.__process_digo(child_digo)
             if not keep_piece:
                 digo.remove_children(child_digo)
-        if DigitalObjectLevel.WORD < digo.level < DigitalObjectLevel.PAGE:
+        if mdom.DigitalObjectLevel.WORD < digo.level < mdom.DigitalObjectLevel.PAGE:
             if len(digo.children) == 0:
                 return False
-            digo.dimensions = DigitalObjectUtil.calulate_dimensions_by_children(digo)
+            digo.dimensions = mdou.DigitalObjectUtil.calulate_dimensions_by_children(digo)
             return True
-        if digo.level >= DigitalObjectLevel.PAGE:
+        if digo.level >= mdom.DigitalObjectLevel.PAGE:
             return True
         # Word
-        if digo.level != DigitalObjectLevel.WORD:
+        if digo.level != mdom.DigitalObjectLevel.WORD:
             raise RuntimeError(f"Unknown Level: {digo.level}")
         return digo.is_in_polygon(self.polygon)
 
     def __create_report(self):
-        for removed_element in DigitalObjectChanges.removed_elements:
+        for removed_element in mdom.DigitalObjectChanges.removed_elements:
             name: str = removed_element.nodeName
             try:
                 value: int = self.__report.removed_elements[name]
@@ -113,7 +108,7 @@ class PolygonFrameFilter:
             except KeyError:
                 self.__report.removed_elements[name] = 1
 
-        for resized_element in DigitalObjectChanges.resized_elements:
+        for resized_element in mdom.DigitalObjectChanges.resized_elements:
             name: str = resized_element.nodeName
             try:
                 value: int = self.__report.resized_elements[name]

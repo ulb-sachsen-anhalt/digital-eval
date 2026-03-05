@@ -104,7 +104,8 @@ class SimilarityMetric(OCRMetric):
                 pre_ref.run()
                 self.data_reference = pre_ref.result
             self._forward()
-            self._value *= 100
+            if self._value is not None:
+                self._value *= 100
         return round(self._value, self.precision)
 
     def _forward(self):

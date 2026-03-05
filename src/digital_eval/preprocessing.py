@@ -3,14 +3,15 @@
 import unicodedata
 import string
 import typing
-import xml.parsers
 
 from pathlib import Path
 
 import nltk
 import nltk.corpus as nltk_corp
 
-import digital_eval.model as dimo
+import digital_eval.model.common as mcommon
+import digital_eval.model.main as mmain
+import digital_eval.model.digital_object_model as mdom
 
 # Python3 standard Unicode Normalization
 #
@@ -315,7 +316,7 @@ def file_to_text(file_path, frame=None, oneliner=True) -> typing.Tuple:
     """Convert file data into plain text"""
 
     try:
-        top_digo: dimo.DigitalObjectTree = dimo.to_digital_object(str(file_path))
+        top_digo: mdom.DigitalObjectTree = mmain.to_digital_object(str(file_path))
         # explicit filter frame?
         if not frame:
             frame = top_digo.dimensions
@@ -326,21 +327,21 @@ def file_to_text(file_path, frame=None, oneliner=True) -> typing.Tuple:
                 [frame[1][0], frame[1][1]],
                 [frame[0][0], frame[1][1]],
             ]
-        frame_digo = dimo.DigitalObjectTree()
+        frame_digo = mdom.DigitalObjectTree()
         frame_digo.dimensions = frame
         filter_word_pieces(frame_digo, top_digo)
         the_lines = _get_digos_from_digo(top_digo)
         if oneliner:
             return top_digo.transcription, len(the_lines)
         return [line.transcription for line in the_lines], len(the_lines)
-    except xml.parsers.expat.ExpatError as _:
+    except mcommon.DigitalObjectException as _:
         with open(file_path, mode="r", encoding="utf-8") as fhandle:
             text_lines = fhandle.readlines()
             if oneliner:
                 text_lines = " ".join([l.strip() for l in text_lines])
             return text_lines, len(text_lines)
-    except RuntimeError as exc:
-        raise RuntimeError(f"{file_path}: {exc}") from exc
+    except Exception as exc:
+        raise RuntimeError(f"Unexpected error for {file_path}: {exc}") from exc
 
 
 def filter_word_pieces(frame, current) -> int:
@@ -354,12 +355,12 @@ def filter_word_pieces(frame, current) -> int:
     _total_stack.append(current)
     _tmp_stack.append(current)
     while _tmp_stack:
-        _current: dimo.DigitalObjectTree = _tmp_stack.pop()
+        _current: mdom.DigitalObjectTree = _tmp_stack.pop()
         if _current.children:
             _tmp_stack += _current.children
             _total_stack += _current.children
     # now pick words
-    _words = [_p for _p in _total_stack if _p.level == dimo.DigitalObjectLevel.WORD]
+    _words = [_p for _p in _total_stack if _p.level == mdom.DigitalObjectLevel.WORD]
 
     # check for each word piece
     for _word in _words:
@@ -369,17 +370,17 @@ def filter_word_pieces(frame, current) -> int:
     return _filtered
 
 
-def _uplete(curr: dimo.DigitalObjectTree):
-    if len(curr.children) == 0 and curr.level < dimo.DigitalObjectLevel.PAGE:
-        _pa: dimo.DigitalObjectTree = curr.parent
+def _uplete(curr: mdom.DigitalObjectTree):
+    if len(curr.children) == 0 and curr.level < mdom.DigitalObjectLevel.PAGE:
+        _pa: mdom.DigitalObjectTree = curr.parent
         _pa.remove_children(curr)
         _uplete(_pa)
 
 
-def _get_digos_from_digo(digo: dimo.DigitalObjectTree, lines=None) -> typing.List:
+def _get_digos_from_digo(digo: mdom.DigitalObjectTree, lines=None) -> typing.List:
     if lines is None:
         lines = []
-    if digo.level == dimo.DigitalObjectLevel.LINE and digo.transcription:
+    if digo.level == mdom.DigitalObjectLevel.LINE and digo.transcription:
         lines.append(digo)
         return lines
     for child in digo.children:

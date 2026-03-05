@@ -14,7 +14,7 @@ _XML_NS = {
 _NOT_SET = "n.a."
 
 
-def get_bounding_box(file_path):
+def get_bounding_box(file_path) -> typing.Optional[typing.Tuple]:
     """Get Bounding Box Data from given resource, if any exists"""
 
     if not isinstance(file_path, str):

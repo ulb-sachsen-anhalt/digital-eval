@@ -54,13 +54,13 @@ def test_evaluate_single_alto_candidate_with_page_groundtruth(tmp_path):
     evaluator.domain_reference = gt_domain
     _candidate_src = os.path.join(f'{TEST_RES_DIR}/candidate/frk_alto/1667522809_J_0001_0002.xml')
     shutil.copy(_candidate_src, eval_domain)
-    _gt_src = os.path.join(f'{TEST_RES_DIR}/groundtruth/page/1667522809_J_0001_0002.art.gt.xml')
-    _gt_dst = str(gt_domain / '1667522809_J_0001_0002.art.gt.xml')
-    shutil.copy(_gt_src, _gt_dst)
+    gt_src = TEST_RES_DIR / 'groundtruth/page/1667522809_J_0001_0002.art.gt.xml'
+    gt_dst = gt_domain / '1667522809_J_0001_0002.art.gt.xml'
+    shutil.copy(gt_src, gt_dst)
 
     # act
     eval_entry = digev.EvalEntry(eval_domain / '1667522809_J_0001_0002.xml', eval_domain)
-    eval_entry.path_groundtruth = _gt_dst
+    eval_entry.path_groundtruth = gt_dst
     evaluator.eval_all([eval_entry], sequential=True)
     evaluator.aggregate(by_type=True)
     evaluator.eval_map()
@@ -96,16 +96,16 @@ def test_evaluate_page_groundtruth_with_itself(tmp_path):
     evaluator = digev.Evaluator(eval_domain)
     evaluator.metrics = [digem.MetricChars()]
     evaluator.domain_reference = gt_domain
-    _candidate_src = os.path.join(f'{TEST_RES_DIR}/groundtruth/page/1667522809_J_0001_0002.art.gt.xml')
-    _candidate_dst = str(eval_domain / '1667522809_J_0001_0002.xml')
-    shutil.copy(_candidate_src, _candidate_dst)
-    _gt_src = os.path.join(f'{TEST_RES_DIR}/groundtruth/page/1667522809_J_0001_0002.art.gt.xml')
-    _gt_dst = str(gt_domain / '1667522809_J_0001_0002.art.gt.xml')
-    shutil.copy(_gt_src, _gt_dst)
+    candidate_src = TEST_RES_DIR / 'groundtruth/page/1667522809_J_0001_0002.art.gt.xml'
+    candidate_dst = eval_domain / '1667522809_J_0001_0002.xml'
+    shutil.copy(candidate_src, candidate_dst)
+    gt_src = TEST_RES_DIR / 'groundtruth/page/1667522809_J_0001_0002.art.gt.xml'
+    gt_dst = gt_domain / '1667522809_J_0001_0002.art.gt.xml'
+    shutil.copy(gt_src, gt_dst)
 
     # act
     eval_entry = digev.EvalEntry(eval_domain / '1667522809_J_0001_0002.xml', eval_domain)
-    eval_entry.path_groundtruth = _gt_dst
+    eval_entry.path_groundtruth = gt_dst
     evaluator.eval_all([eval_entry], sequential=True)
     evaluator.aggregate(by_type=True)
     evaluator.eval_map()
@@ -169,32 +169,32 @@ def test_evaluate_set_with_5_entries(tmp_path):
 
     entry1 = digev.EvalEntry(path_dir_c / 'eng' / 'urn+nbn+de+gbv+3+1-135654-p0403-5_eng.xml',
                              path_dir_c / 'eng')
-    entry1.path_groundtruth = str(path_dir_gt / 'eng' / 'urn+nbn+de+gbv+3+1-135654-p0403-5_eng.gt.xml')
+    entry1.path_groundtruth = path_dir_gt / 'eng' / 'urn+nbn+de+gbv+3+1-135654-p0403-5_eng.gt.xml'
     entry1.align_domains()
     entry1.metrics = [_metric_ca1]
     entry2 = digev.EvalEntry(path_dir_c / 'ger' / 'urn+nbn+de+gbv+3+1-816198-p0493-2_ger.xml',
                              path_dir_c / 'ger')
-    entry2.path_groundtruth = str('/data/ocr/groundtruth/odem/ger/urn+nbn+de+gbv+3+1-816198-p0493-2_ger.gt.xml')
+    entry2.path_groundtruth = path_dir_gt / 'ger' / 'urn+nbn+de+gbv+3+1-816198-p0493-2_ger.gt.xml'
     entry2.align_domains()
     entry2.metrics = [_metric_ca2]
     entry3 = digev.EvalEntry(path_dir_c / 'ger' / 'urn+nbn+de+gbv+3+1-818383-p0034-5_ger.xml',
                              path_dir_c / 'ger')
-    entry3.path_groundtruth = '/data/ocr/groundtruth/odem/ger/urn+nbn+de+gbv+3+1-818383-p0034-5_ger.gt.xml'
+    entry3.path_groundtruth = path_dir_gt / 'ger' / 'urn+nbn+de+gbv+3+1-818383-p0034-5_ger.gt.xml'
     entry3.align_domains()
     entry3.metrics = [_metric_ca3]
     entry4 = digev.EvalEntry(path_dir_c / 'ger' / 'urn+nbn+de+gbv+3+1-822479-p1119-4_ger.xml',
                              path_dir_c / 'ger')
-    entry4.path_groundtruth = '/data/ocr/groundtruth/odem/ger/urn+nbn+de+gbv+3+1-822479-p1119-4_ger.gt.xml'
+    entry4.path_groundtruth = path_dir_gt / 'ger' / 'urn+nbn+de+gbv+3+1-822479-p1119-4_ger.gt.xml'
     entry4.align_domains()
     entry4.metrics = [_metric_ca4]
     entry5 = digev.EvalEntry(path_dir_c / 'ger' / 'urn+nbn+de+gbv+3+1-828020-p0173-6_ger.xml',
                              path_dir_c / 'ger')
-    entry5.path_groundtruth = '/data/ocr/groundtruth/odem/ger/urn+nbn+de+gbv+3+1-828020-p0173-6_ger.gt.xml'
+    entry5.path_groundtruth = path_dir_gt / 'ger' / 'urn+nbn+de+gbv+3+1-828020-p0173-6_ger.gt.xml'
     entry5.align_domains()
     entry5.metrics = [_metric_ca5]
     entry6 = digev.EvalEntry(path_dir_c / 'ger' / 'urn+nbn+de+gbv+3+1-125584-p0314-6_ger.xml',
                              path_dir_c / 'ger')
-    entry6.path_groundtruth = '/data/ocr/groundtruth/odem/ger/urn+nbn+de+gbv+3+1-125584-p0314-6_ger.gt.xml'
+    entry6.path_groundtruth = path_dir_gt / 'ger' / 'urn+nbn+de+gbv+3+1-125584-p0314-6_ger.gt.xml'
     entry6.align_domains()
     entry6.metrics = [_metric_ca6]
     evaluator.evaluation_entries = [entry1, entry2, entry3, entry4, entry5, entry6]
@@ -263,8 +263,8 @@ def test_handle_empty_candidate_information_retrival():
     """
 
     # arrange
-    path_gt = f'{TEST_RES_DIR}/groundtruth/page/urn+nbn+de+gbv+3+1-138193-p0904-0_ger.gt.xml'
-    path_cd = f'{TEST_RES_DIR}/candidate/frk_page/urn+nbn+de+gbv+3+1-138193-p0904-0_ger.xml'
+    path_gt = TEST_RES_DIR / 'groundtruth' / 'page' / 'urn+nbn+de+gbv+3+1-138193-p0904-0_ger.gt.xml'
+    path_cd = TEST_RES_DIR / 'candidate' / 'frk_page' / 'urn+nbn+de+gbv+3+1-138193-p0904-0_ger.xml'
     eval_entry = digev.EvalEntry(path_cd)
     eval_entry.path_groundtruth = Path(path_gt).absolute()
     evaluator = digev.Evaluator('/data')
@@ -289,8 +289,8 @@ def test_handle_table_text_groundtruth():
     """
 
     # arrange
-    path_gt = f'{TEST_RES_DIR}/groundtruth/page/urn+nbn+de+gbv+3+1-126343-p0285-7_ger.gt.xml'
-    path_cd = f'{TEST_RES_DIR}/candidate/frk_page/urn+nbn+de+gbv+3+1-126343-p0285-7_ger.xml'
+    path_gt = TEST_RES_DIR / 'groundtruth' / 'page' / 'urn+nbn+de+gbv+3+1-126343-p0285-7_ger.gt.xml'
+    path_cd = TEST_RES_DIR / 'candidate' / 'frk_page' / 'urn+nbn+de+gbv+3+1-126343-p0285-7_ger.xml'
     eval_entry = digev.EvalEntry(path_cd)
     eval_entry.path_groundtruth = path_gt
 
@@ -311,7 +311,9 @@ def test_get_box_from_empty_page():
     _path_gt = f'{TEST_RES_DIR}/groundtruth/page/urn+nbn+de+gbv+3+1-201080-p0034-8_ger.gt.xml'
 
     # act
-    _p1, _p2 = digev.get_bounding_box(_path_gt)
+    bbox = digev.get_bounding_box(_path_gt)
+    assert bbox is not None
+    _p1, _p2 = bbox
 
     # assert 
     assert _p1 == (77, 58)
@@ -327,7 +329,9 @@ def test_get_box_when_line_points_messy():
     _path_gt = f'{TEST_RES_DIR}/groundtruth/page/rahbar-1771946695-00000040.xml'
 
     # act
-    _p1, _p2 = digev.get_bounding_box(_path_gt)
+    bbox = digev.get_bounding_box(_path_gt)
+    assert bbox is not None
+    _p1, _p2 = bbox
 
     # assert
     assert _p1 == (368, 619)
@@ -342,7 +346,7 @@ def test_handle_exception_invalid_alto_xml():
     """
 
     # arrange
-    path_gt = f'{TEST_RES_DIR}/candidate/frk_alto/1667522809_J_0001_0256_corrupt.xml'
+    path_gt = TEST_RES_DIR / "candidate" / "frk_alto" / "1667522809_J_0001_0256_corrupt.xml"
     eval_entry = digev.EvalEntry('dummy_candidate')
     eval_entry.path_groundtruth = path_gt
 
@@ -354,3 +358,27 @@ def test_handle_exception_invalid_alto_xml():
 
     # assert
     assert 'no element found' in err.value.args[0]
+
+
+def test_handle_textual_input_data():
+    """Behavior if textual input data is given instead of XML
+    for both candidate and groundtruth
+    """
+
+    # arrange
+    path_cn_base = TEST_RES_DIR / "candidate" / "txt"
+    path_cn = path_cn_base / "OCR-Fraktur_1246734.txt"
+    path_gt = TEST_RES_DIR / "groundtruth" / "txt" / "1246734.gt.txt"
+    eval_entry = digev.EvalEntry(path_cn)
+    eval_entry.path_groundtruth = path_gt
+
+    # act
+    evaluator = digev.Evaluator(path_cn_base)
+    evaluator.metrics = [digem.MetricChars()]
+    evaluated = evaluator.eval_entry(eval_entry)
+
+    # assert
+    assert evaluated is not None
+    assert len(evaluated.metrics) == 1
+    assert evaluated.metrics[0].label == 'Cs'
+    assert 94.7 == pytest.approx(evaluated.metrics[0].value)

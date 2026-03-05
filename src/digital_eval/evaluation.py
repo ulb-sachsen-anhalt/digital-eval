@@ -251,9 +251,12 @@ class Evaluator:
             coords = get_bounding_box(entry.path_groundtruth)
             if coords is not None and self.verbosity >= 2:
                 print(f"[TRACE] token coordinates {coords[0]}, {coords[1]}")
-            # reset in text mode
-            coords = None if self.text_mode else coords
+            # check if text mode turned on
+            if self.text_mode and coords is None:
+                print(f"[WARN ] no coordinates for {entry.path_groundtruth} - apply extra '{EVAL_EXTRA_IGNORE_GEOMETRY}'!")
+                continue
 
+            coords = None if self.text_mode else coords
             current: digem.OCRMetric = copy.copy(metric)
             current.reference = Path(entry.path_groundtruth).absolute()
             current.candidate = Path(entry.path_candidate).absolute()
