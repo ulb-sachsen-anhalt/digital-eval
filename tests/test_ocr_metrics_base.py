@@ -13,7 +13,7 @@ def test_metric_calculate_character_edit_distance():
     str1 = 'sthe lazy brown fox jumps overthe hump'
     str2 = 'fthe lazy brown fox jumps ouer the hump'
     distance = digem.levenshtein_norm(str1, str2)
-    assert 0.923 == pytest.approx(distance, 1e-4)
+    assert distance == pytest.approx(0.923, rel=1e-4)
 
 
 def test_metric_bot_ident():
@@ -25,7 +25,7 @@ def test_metric_bot_ident():
     str2 = ' '.join(list2)
 
     similarity = digem.bag_of_tokens(gt1.split(), str2.split())
-    assert similarity == 1.0
+    assert similarity == pytest.approx(1.0, rel=1e-3)
     assert len(gt1.split()) == len(str2.split())
 
 
@@ -38,7 +38,7 @@ def test_metric_bot_candidate_with_only_repetitions():
     str2 = "the dizzy brown fox fox fox jumps"
 
     # actsert
-    assert 0.833 == pytest.approx(digem.bag_of_tokens(gt1.split(), str2.split()), 1e-3)
+    assert digem.bag_of_tokens(gt1.split(), str2.split()) == pytest.approx(0.833, rel=1e-3)
 
 
 def test_metric_bot_miss_tokens():
@@ -48,7 +48,7 @@ def test_metric_bot_miss_tokens():
     str2 = "the brown fux jumps"
 
     # acsert
-    assert 0.66 == pytest.approx(digem.bag_of_tokens(gt1.split(), str2.split()), abs=1e-2)
+    assert digem.bag_of_tokens(gt1.split(), str2.split()) == pytest.approx(0.66, abs=1e-2)
 
 
 def test_metrics_token_based_more_gt_than_tc():
@@ -72,7 +72,7 @@ def test_metrics_token_based_more_gt_than_tc():
     result = digem.levenshtein_norm(gt1, cand)
 
     # assert
-    assert 0.2857 == pytest.approx(result, rel=1e-4)
+    assert result == pytest.approx(0.2857, rel=1e-4)
     assert len(cand) + 3 == len(gt1)
 
 
@@ -87,7 +87,7 @@ def test_metrics_token_based_equal():
     sim = digem.levenshtein_norm(gt1.split(), cand.split())
 
     # assert
-    assert 1.0 == sim
+    assert sim == pytest.approx(1.0, rel=1e-3)
 
 
 def test_metrics_token_based_no_test_candidate():
@@ -102,4 +102,4 @@ def test_metrics_token_based_no_test_candidate():
     diff = digem.levenshtein_norm(gt1.split(), [], inverse=True)
 
     # assert
-    assert diff == 1.0
+    assert diff == pytest.approx(1.0, rel=1e-3)

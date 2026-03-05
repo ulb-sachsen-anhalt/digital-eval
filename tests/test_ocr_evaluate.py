@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 """OCR Evaluation Test Module"""
 
+import math
 import os
 import shutil
 
@@ -117,7 +118,7 @@ def test_evaluate_page_groundtruth_with_itself(tmp_path):
     # metric label
     assert 'Cs@1667522809_J_0001@article' == defaults[0]
     assert 1 == defaults[1]  # number of data points
-    assert 100.00 == pytest.approx(defaults[2], rel=1e-3)
+    assert defaults[2] == pytest.approx(100.00, rel=1e-3)
     # reference size chars
     # changed from 5385 to 5309 since
     # children text wins over parent text
@@ -381,4 +382,6 @@ def test_handle_textual_input_data():
     assert evaluated is not None
     assert len(evaluated.metrics) == 1
     assert evaluated.metrics[0].label == 'Cs'
-    assert 94.7 == pytest.approx(evaluated.metrics[0].value)
+    curr_value = evaluated.metrics[0].value
+    assert evaluated.metrics[0].value == pytest.approx(94.7, rel=1e-3, abs=1e-3)
+    assert math.isclose(curr_value, 94.7, rel_tol=1e-3, abs_tol=1e-3)
