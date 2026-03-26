@@ -185,6 +185,7 @@ class MetsGenerator:
         log_div: _Element = doc_root.find(f'.//mets:div[@ID="{log_id}"]', nsmap)
         dmd_id: str = MetsGenerator.__find_dmd_id(log_div)
         log_div.set('DMDID', dmd_id)
+        self.__file_group_fulltext.set('DMDID', dmd_id)
         try:
             del log_div.attrib['LABEL']
         except KeyError:

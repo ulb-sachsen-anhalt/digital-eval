@@ -21,4 +21,6 @@
         <mets:div ID="logroot" LABEL="Ground Truth Corpus" TYPE="document">
         </mets:div>
     </mets:structMap>
+    <mets:structLink>
+    </mets:structLink>
 </mets:mets>

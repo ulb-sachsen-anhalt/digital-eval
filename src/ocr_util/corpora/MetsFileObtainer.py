@@ -18,7 +18,7 @@ class MetsFileObtainer:
             self,
             urn: str,
             file_path: Path,
-            url_urn_resolver: str = "https://nbn-resolving.org/process-urn-form",
+            url_urn_resolver: str = "https://nbn-resolving.org/",
             url_oai_pmh_data: str = "https://opendata.uni-halle.de/oai/dd",
             url_oai_pmh_id_prefix: str = "oai:opendata.uni-halle.de"
     ):
@@ -44,21 +44,14 @@ class MetsFileObtainer:
 
     def __obtain_open_data_url_by_urn_resolver(self) -> str:
         response: Response = requests.get(
-            url=self.__url_urn_resolver,
-            params={
-                "identifier": self.__urn,
-                "verb": "FULL",
-                "xml": "on",
-            },
+            url="https://nbn-resolving.org/"+self.__urn,
             timeout=30
         )
         if not response.ok:
             raise RuntimeError(f"Request Error - {response.status_code} for {response.url}")
-        xml_root: Element = etree.fromstring(response.content)
-        url_open_data_ulb: str = xml_root.find(
-            "pidef:data/pidef:resolving_information/pidef:url_info/pidef:url",
-            namespaces=xml_root.nsmap
-        ).text
+        handlename = 'handle=[0-9]*\/[0-9]*'
+        handlefinder = re.compile(handlename)
+        url_open_data_ulb: str = "https://opendata.uni-halle.de/handle/"+handlefinder.search(response.url).group(0)[7:]
         url_parse_result: ParseResult = urlparse(url_open_data_ulb)
         url_open_data_ulb_without_params: str = urlunparse(
             (url_parse_result.scheme, url_parse_result.netloc, url_parse_result.path, "", "", "")
