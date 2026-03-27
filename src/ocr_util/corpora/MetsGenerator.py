@@ -76,11 +76,14 @@ class MetsGenerator:
                 gt_file_path=generator_resource.gt.file_path,
                 orig_mets_file_path=generator_resource.mets.file_path,
             )
-            self.__physroot.append(extract.phys_div)
-            self.__file_group_image.append(extract.file_image)
-            self.__file_group_fulltext.append(extract.file_fulltext)
-            self.__struct_link_root.append(extract.sm_link)
-            self.__logroot.append(extract.log_div)
+            try:
+                self.__physroot.append(extract.phys_div)
+                self.__file_group_image.append(extract.file_image)
+                self.__file_group_fulltext.append(extract.file_fulltext)
+                self.__struct_link_root.append(extract.sm_link)
+                self.__logroot.append(extract.log_div)
+            except Exception:
+                continue
             if extract.dmd_sec is not None:
                 idx: int = len(self.__doc_root.findall('.//mets:dmdSec', namespaces=self.__nsmap))
                 self.__doc_root.insert(idx, extract.dmd_sec)
@@ -125,7 +128,11 @@ class MetsGenerator:
             gt_file_path: Path,
             orig_mets_file_path: Path,
     ) -> MetsExtract:
-        doc: _ElementTree = etree.parse(orig_mets_file_path, XMLParser(remove_blank_text=True))
+        try:
+            doc: _ElementTree = etree.parse(orig_mets_file_path, XMLParser(remove_blank_text=True))
+        except Exception:
+            print(f"The xml file {gt_file_path} is damaged and will be ignored.")
+            return None
         doc_root = doc.getroot()
         # Extract namespaces directly using xpath
         nsmap: dict[str, str] = {
