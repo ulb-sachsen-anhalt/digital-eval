@@ -8,6 +8,9 @@ from pathlib import Path
 from re import Match
 from typing import Final
 
+from requests import Response
+import requests
+
 
 @dataclass
 class GtResource:
@@ -19,7 +22,8 @@ class GtResource:
 
 
 class GtResources:
-    __PATTERN_FILE_NAME: Final[str] = r'^((urn\+nbn\+de\+gbv\+\d+\+\d+-\d+-p\d+-\d+)_((?:\w{3}\+?)+))(?:\.gt)?.xml$'
+    __PATTERN_FILE_NAME: Final[str] = r'^((urn\+nbn\+de\+gbv\+\d+\+(\d-?)+-p\d+(-\d+)?)_((?:\w{3}\+?)+))(?:\.gt)?.xml$'
+    __ALTERNATIVE_PATTERN_FILE_NAME = r'.*(?:((urn\+nbn\+de\+gbv\+\d+\+\d+-)+)((?:(?:\d+)-?)+)-fp-?(\d+\d+))(?:_(((?:\w{3}\+?)+))(?:\.gt)?)?.xml'
 
     @classmethod
     def from_dir_copy(cls, in_dir: Path, out_dir: Path, limit: int = 0) -> list[GtResource]:
@@ -58,7 +62,25 @@ class GtResources:
                     ))
                     if 0 < limit <= len(resources):
                         break
-            else:
-                continue
+                else:
+                    match: Match[str] | None = re.match(GtResources.__ALTERNATIVE_PATTERN_FILE_NAME, file_path.name)
+                    if(match is not None):
+                        if(match.group(1).startswith("urn")):
+                            urn_enc = f"{match.group(1)}{match.group(3)}/fragment/page={match.group(4)}"
+                            urn_dec: str = urn_enc.replace('+', ':').replace('x','X')
+                        else:
+                            print(f"The xml file {file_path.name} is damaged and will be ignored.")
+                            continue
+                        resources.append(GtResource(
+                            identifier=urn_dec,
+                            file_base_name=file_path.name,
+                            file_path=file_path,
+                            relative_file_path=file_path.relative_to(gt_dir),
+                            languages="" #is never used anyway and we don't have it in the name in this scheme
+                        ))
+                        if 0 < limit <= len(resources):
+                            break
+                    else:
+                        continue
             break
         return sorted(resources, key=lambda r: r.file_path.name)
