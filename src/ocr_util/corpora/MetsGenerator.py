@@ -17,7 +17,8 @@ class MetsGenerator:
         parent: _Element = element.getparent()
         type_: str = parent.get("TYPE")
         dmd_id: str = parent.get("DMDID")
-        if dmd_id is not None and (type_ == 'monograph' or type_ == 'volume'):
+        print(f"{dmd_id}, {type_}")
+        if dmd_id is not None and (type_ == 'monograph' or type_ == 'volume' or type_ == 'issue' or type_ == 'additional'):
             return dmd_id
         return MetsGenerator.__find_dmd_id(parent)
 
@@ -138,8 +139,9 @@ class MetsGenerator:
         nsmap: dict[str, str] = {
             ns[0]: ns[1] for ns in doc_root.xpath('//namespace::*') if ns[0]
         }
-
+        
         # PHYS
+        #print(f"EXTRACTED\n{etree.tostring(doc)}\n\n")
         phys_div: _Element = doc_root.find(f'.//mets:div[@CONTENTIDS="{page_urn}"]', nsmap)
         try:
             del phys_div.attrib['ORDERLABEL']
