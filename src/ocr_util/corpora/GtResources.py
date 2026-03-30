@@ -45,10 +45,10 @@ class GtResources:
         current_dir: str
         child_dirs: list[str]
         files: list[str]
-        for (current_dir, current_child_dirs, files) in os.walk(gt_dir):
+        for (current_dir, current_child_dirs, files) in os.walk(gt_dir,topdown=False):
+            print(current_child_dirs)
             for file in files:
                 file_path: Path = Path(current_dir).joinpath(file)
-                print(file)
                 match: Match[str] | None = re.match(GtResources.__PATTERN_FILE_NAME, file_path.name)
                 if match is not None:
                     urn_enc: str = match.group(2)
