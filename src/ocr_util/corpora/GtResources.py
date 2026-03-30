@@ -22,7 +22,8 @@ class GtResource:
 
 
 class GtResources:
-    __PATTERN_FILE_NAME: Final[str] = r'^((urn\+nbn\+de\+gbv\+\d+\+(\d-?)+-p\d+(-\d+)?)_((?:\w{3}\+?)+))(?:\.gt)?.xml$'
+    __PATTERN_FILE_NAME: Final[str] = r'^((urn\+nbn\+de\+gbv\+\d+\+(?:\d-?)+-p\d+(?:-\d+)?)_((?:\w{3}\+?)+)(?:\.gt)?).xml$'
+                                        
     __ALTERNATIVE_PATTERN_FILE_NAME = r'.*(?:((urn\+nbn\+de\+gbv\+\d+\+\d+-)+)((?:(?:\d+)-?)+)-fp-?(\d+\d+))(?:_(((?:\w{3}\+?)+))(?:\.gt)?)?.xml'
 
     @classmethod
@@ -47,6 +48,7 @@ class GtResources:
         for (current_dir, current_child_dirs, files) in os.walk(gt_dir):
             for file in files:
                 file_path: Path = Path(current_dir).joinpath(file)
+                print(file)
                 match: Match[str] | None = re.match(GtResources.__PATTERN_FILE_NAME, file_path.name)
                 if match is not None:
                     urn_enc: str = match.group(2)
