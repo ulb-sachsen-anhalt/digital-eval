@@ -6,15 +6,17 @@ import os
 import re
 from pathlib import Path, PurePath
 
-import digital_eval.model as do
-import digital_eval.model.filter as dofi
-from ocr_util.corpora.Gt2Mets import Gt2Mets
-from ocr_util.corpora.common import Args
+import ocr_util.eval.model as do
+import ocr_util.eval.model.filter as dofi
+import ocr_util.eval.cli as eval_cli
+from ocr_util.corpus.Gt2Mets import Gt2Mets
+from ocr_util.corpus.common import Args
 
 # script constants
 DEFAULT_VERBOSITY = 0
 SUB_CMD_FRAME = "frame"
-SUB_CMD_GROUNDTRUTH_CORPUS = "groundtruth-corpus"
+SUB_CMD_GROUNDTRUTH_CORPUS = "corpus"
+SUB_CMD_EVALUATE = "eval"
 
 
 def points_type(points: str) -> str:
@@ -118,6 +120,77 @@ def start() -> None:
         required=False,
     )
     
+    # evaluate subcommand
+    evaluate_arg_parser = sub_arg_parsers.add_parser(
+        SUB_CMD_EVALUATE,
+        help="Evaluate OCR candidates against ground truth data",
+        add_help=True,
+    )
+    evaluate_arg_parser.add_argument(
+        "candidates",
+        help="Root directory for evaluation candidates / Path to single candidate file",
+    )
+    evaluate_arg_parser.add_argument(
+        "-ref", "--reference",
+        required=False,
+        help="Root directory for reference/groundtruth data",
+    )
+    evaluate_arg_parser.add_argument(
+        "-v", "--verbosity",
+        action="count",
+        default=DEFAULT_VERBOSITY,
+        required=False,
+        help=f"Verbosity flag (optional; default: '{DEFAULT_VERBOSITY}')",
+    )
+    evaluate_arg_parser.add_argument(
+        "--metrics",
+        default=eval_cli.DEFAULT_OCR_METRICS,
+        required=False,
+        help=f"Comma-separated list of metrics (default: '{eval_cli.DEFAULT_OCR_METRICS}')",
+    )
+    evaluate_arg_parser.add_argument(
+        "--utf8",
+        default=eval_cli.DEFAULT_UTF8_NORM,
+        required=False,
+        help=f"UTF-8 normalization form (default: '{eval_cli.DEFAULT_UTF8_NORM}')",
+    )
+    evaluate_arg_parser.add_argument(
+        "-s", "--sequential",
+        action="store_true",
+        required=False,
+        help="Execute calculations sequentially (default: False)",
+    )
+    evaluate_arg_parser.add_argument(
+        "-x", "--extra",
+        required=False,
+        help="Pass additional information to evaluation (e.g. 'ignore_geometry')",
+    )
+    evaluate_arg_parser.add_argument(
+        "-l", "--language",
+        required=False,
+        help="Language code for LanguageTool (ISO 639-2)",
+    )
+    evaluate_arg_parser.add_argument(
+        "-u", "--lt-api-url",
+        required=False,
+        help="LanguageTool API URL",
+    )
+    evaluate_arg_parser.add_argument(
+        "--aggregate-by",
+        required=False,
+        help="Comma-separated aggregation dimensions (e.g. 'directory', 'type', 'mods:DIMENSION')",
+    )
+    evaluate_arg_parser.add_argument(
+        "--mets-file",
+        required=False,
+        help="Path to METS/MODS file for MODS-based aggregation",
+    )
+    evaluate_arg_parser.add_argument(
+        "--mods-dimensions",
+        required=False,
+        help="[LEGACY] Comma-separated MODS dimensions; use --aggregate-by instead",
+    )
+
     args = arg_parser.parse_args()
 
     verbosity: int = getattr(args, 'verbosity', DEFAULT_VERBOSITY)
@@ -162,6 +235,11 @@ def start() -> None:
         except Exception as e:
             print(f"[ERROR] Failed to generate METS files: {e}")
             raise
+
+    elif args.subcommand == SUB_CMD_EVALUATE:
+        eval_args = vars(args)
+        eval_args.pop('subcommand', None)
+        eval_cli.start_evaluation(eval_args)
 
 
 if __name__ == "__main__":

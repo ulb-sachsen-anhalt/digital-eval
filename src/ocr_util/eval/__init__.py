@@ -1,6 +1,4 @@
-"""digital eval main API"""
-
-__version__ = "2.0.0-dev"
+"""evaluation API"""
 
 from .evaluation import (
     Evaluator,

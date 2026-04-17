@@ -18,14 +18,14 @@ from pathlib import Path
 
 import numpy as np
 
-import digital_eval.metrics as digem
+import ocr_util.eval.metrics as digem
 
-import digital_eval.model.common as dc
+import ocr_util.eval.model.common as dc
 
-from digital_eval.geometry import get_bounding_box
+from ocr_util.eval.geometry import get_bounding_box
 
 # Import aggregation classes from aggregation module
-from digital_eval.aggregation import (
+from ocr_util.eval.aggregation import (
     AggregationDimension,
     AggregationStrategy,
     DirectoryHierarchyExtractor,

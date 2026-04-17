@@ -4,9 +4,9 @@ from pathlib import PurePath
 from typing import Dict, List, Tuple
 from xml.dom.minidom import Document, Element, parse
 
-from digital_eval.model.digital_object_model import DigitalObjectTree
+from ocr_util.eval.model.digital_object_model import DigitalObjectTree
 
-import digital_eval.model.common as dc
+import ocr_util.eval.model.common as dc
 
 
 class FormatPageUtil:

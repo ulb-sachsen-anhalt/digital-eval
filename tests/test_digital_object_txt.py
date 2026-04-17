@@ -6,8 +6,8 @@ import os
 
 import pytest
 
-import digital_eval.model.main as model_main
-import digital_eval.model.common as mc
+import ocr_util.eval.model.main as model_main
+import ocr_util.eval.model.common as mc
 
 from .conftest import TEST_RES_DIR
 

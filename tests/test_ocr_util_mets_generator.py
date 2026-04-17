@@ -3,10 +3,10 @@ import xml.etree.ElementTree as ET
 
 import pytest
 
-import ocr_util.corpora.MetsGenerator as mets_generator_module
-from ocr_util.corpora.GtResources import GtResource
-from ocr_util.corpora.MetsGenerator import MetsGenerator
-from ocr_util.corpora.common import (
+import ocr_util.corpus.MetsGenerator as mets_generator_module
+from ocr_util.corpus.GtResources import GtResource
+from ocr_util.corpus.MetsGenerator import MetsGenerator
+from ocr_util.corpus.common import (
     GT_METS_FILEGROUP,
     MetsGeneratorResource,
     MetsResource,

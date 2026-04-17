@@ -3,13 +3,13 @@ requires = ["setuptools>=61.0"]
 build-backend = "setuptools.build_meta"
 
 [tool.setuptools.dynamic]
-version = {attr = "digital_eval.__version__"}
+version = {attr = "ocr_util.eval.__version__"}
 
 [tool.setuptools.packages.find]
 where = ["src"]
 
 [tool.setuptools.package-data]
-ocr_util = ["corpora/*.xml"]
+ocr_util = ["corpus/*.xml"]
 
 [project]
 name = "digital-eval"
@@ -46,5 +46,4 @@ test = [
 Homepage = "https://github.com/ulb-sachsen-anhalt/digital-eval"
 
 [project.scripts]
-digital-eval = "digital_eval.cli:start"
 ocr-util = "ocr_util.cli:start"

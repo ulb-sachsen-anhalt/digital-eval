@@ -4,7 +4,7 @@ from typing import List, Dict
 import requests
 from requests import Response
 
-from digital_eval.dictionary_metrics.language_tool.common import (
+from ocr_util.eval.dictionary_metrics.language_tool.common import (
     NoFreePortAvailableException,
     NoApiPortFoundException,
     ConnectionException,

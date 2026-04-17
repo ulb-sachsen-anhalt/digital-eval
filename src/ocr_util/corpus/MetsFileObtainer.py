@@ -10,7 +10,7 @@ from lxml import etree
 from lxml.etree import Element
 from requests import Response
 
-from ocr_util.corpora.common import MetsResource
+from ocr_util.corpus.common import MetsResource
 
 
 class MetsFileObtainer:

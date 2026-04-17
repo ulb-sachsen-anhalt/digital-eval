@@ -7,7 +7,7 @@ from typing import Final
 from lxml import etree
 from lxml.etree import XMLParser, _Element, _ElementTree
 
-from ocr_util.corpora.common import MetsExtract, MetsGeneratorResource, MetsResource, GT_METS_FILEGROUP
+from ocr_util.corpus.common import MetsExtract, MetsGeneratorResource, MetsResource, GT_METS_FILEGROUP
 
 
 class MetsGenerator:

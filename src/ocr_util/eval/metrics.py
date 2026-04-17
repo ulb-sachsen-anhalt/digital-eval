@@ -10,9 +10,9 @@ from nltk.metrics import precision as nltk_precision
 from nltk.metrics import recall, f_measure
 import rapidfuzz.distance.Levenshtein as rfls
 
-import digital_eval.preprocessing as dipre
-from digital_eval.dictionary_metrics.common import LANGUAGE_KEY_DEFAULT
-from digital_eval.dictionary_metrics.language_tool.LanguageTool import LanguageTool
+import ocr_util.eval.preprocessing as dipre
+from ocr_util.eval.dictionary_metrics.common import LANGUAGE_KEY_DEFAULT
+from ocr_util.eval.dictionary_metrics.language_tool.LanguageTool import LanguageTool
 
 
 class DigitalEvalMetricException(Exception):

@@ -7,10 +7,10 @@ import typing
 
 from pathlib import Path
 
-import digital_eval as digev
-import digital_eval.dictionary_metrics.common as digev_cm
-import digital_eval.metrics as digem
-from digital_eval.dictionary_metrics.language_tool.LanguageTool import LanguageTool
+import ocr_util.eval as digev
+import ocr_util.eval.dictionary_metrics.common as digev_cm
+import ocr_util.eval.metrics as digem
+from ocr_util.eval.dictionary_metrics.language_tool.LanguageTool import LanguageTool
 
 # script constants
 DEFAULT_VERBOSITY = 0

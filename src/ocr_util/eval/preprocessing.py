@@ -9,9 +9,9 @@ from pathlib import Path
 import nltk
 import nltk.corpus as nltk_corp
 
-import digital_eval.model.common as mcommon
-import digital_eval.model.main as mmain
-import digital_eval.model.digital_object_model as mdom
+import ocr_util.eval.model.common as mcommon
+import ocr_util.eval.model.main as mmain
+import ocr_util.eval.model.digital_object_model as mdom
 
 # Python3 standard Unicode Normalization
 #

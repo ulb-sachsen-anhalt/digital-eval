@@ -12,7 +12,7 @@ import re
 import typing
 from pathlib import Path
 
-import digital_eval.metrics as digem
+import ocr_util.eval.metrics as digem
 
 # mark unset values as 'not available'
 _NOT_SET = "n.a."

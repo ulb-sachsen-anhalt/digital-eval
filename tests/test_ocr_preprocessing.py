@@ -7,8 +7,8 @@ from pathlib import Path
 
 import pytest
 
-import digital_eval.metrics as digem
-import digital_eval.preprocessing as dipre
+import ocr_util.eval.metrics as digem
+import ocr_util.eval.preprocessing as dipre
 
 from .conftest import TEST_RES_DIR
 

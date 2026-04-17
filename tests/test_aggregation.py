@@ -9,9 +9,9 @@ import lxml.etree as ET
 
 import pytest
 
-import digital_eval as digev_main
-import digital_eval.evaluation as digev
-import digital_eval.metrics as digem
+import ocr_util.eval as digev_main
+import ocr_util.eval.evaluation as digev
+import ocr_util.eval.metrics as digem
 
 from .conftest import TEST_RES_DIR
 

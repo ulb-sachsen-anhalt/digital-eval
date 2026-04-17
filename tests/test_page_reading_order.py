@@ -1,7 +1,7 @@
 """Test specification for reading order in PAGE XML format"""
 
-from digital_eval.model.digital_object_model import DigitalObjectTree
-from digital_eval.model.main import to_digital_object
+from ocr_util.eval.model.digital_object_model import DigitalObjectTree
+from ocr_util.eval.model.main import to_digital_object
 from .conftest import TEST_RES_DIR
 
 

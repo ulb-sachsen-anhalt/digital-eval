@@ -9,9 +9,9 @@ from unittest.mock import MagicMock, Mock, patch
 import pytest
 
 from ocr_util.cli import start, SUB_CMD_GROUNDTRUTH_CORPUS
-from ocr_util.corpora.GtResources import GtResources, GtResource
-from ocr_util.corpora.Gt2Mets import Gt2Mets
-from ocr_util.corpora.common import Args
+from ocr_util.corpus.GtResources import GtResources, GtResource
+from ocr_util.corpus.Gt2Mets import Gt2Mets
+from ocr_util.corpus.common import Args
 
 from .conftest import TEST_RES_DIR
 
@@ -213,8 +213,8 @@ def test_gt2mets_initialization_without_args():
             Gt2Mets()
 
 
-@patch('ocr_util.corpora.Gt2Mets.MetsGenerator')
-@patch('ocr_util.corpora.Gt2Mets.GtResources')
+@patch('ocr_util.corpus.Gt2Mets.MetsGenerator')
+@patch('ocr_util.corpus.Gt2Mets.GtResources')
 def test_gt2mets_run_creates_directories(
     mock_gt_resources_class,
     mock_mets_generator,
@@ -256,7 +256,7 @@ def test_cli_groundtruth_corpus_help(capsys):
     """Test that groundtruth-corpus subcommand shows help"""
     # arrange & act & assert
     with pytest.raises(SystemExit) as exc_info:
-        with patch('sys.argv', ['ocr-util', 'groundtruth-corpus', '--help']):
+        with patch('sys.argv', ['ocr-util', 'corpus', '--help']):
             start()
     
     # Help should exit with code 0
@@ -264,14 +264,14 @@ def test_cli_groundtruth_corpus_help(capsys):
     
     # Check that help was displayed
     captured = capsys.readouterr()
-    assert 'groundtruth-corpus' in captured.out or 'groundtruth-corpus' in captured.err
+    assert 'corpus' in captured.out or 'corpus' in captured.err
 
 
 def test_cli_groundtruth_corpus_missing_required_args():
     """Test that CLI raises error when required arguments are missing"""
     # arrange & act & assert
     with pytest.raises(SystemExit) as exc_info:
-        with patch('sys.argv', ['ocr-util', 'groundtruth-corpus']):
+        with patch('sys.argv', ['ocr-util', 'corpus']):
             start()
     
     # Should exit with error code
@@ -287,7 +287,7 @@ def test_cli_groundtruth_corpus_invalid_input_dir():
     with pytest.raises(RuntimeError, match="does not exist"):
         with patch('sys.argv', [
             'ocr-util',
-            'groundtruth-corpus',
+            'corpus',
             '-i', nonexistent_path,
             '-o', '/tmp/output'
         ]):
@@ -309,7 +309,7 @@ def test_cli_groundtruth_corpus_with_verbosity(
     # act
     with patch('sys.argv', [
         'ocr-util',
-        'groundtruth-corpus',
+        'corpus',
         '-i', str(mock_gt_files),
         '-o', str(mock_output_dir),
         '-v'
@@ -337,7 +337,7 @@ def test_cli_groundtruth_corpus_with_limit(
     # act
     with patch('sys.argv', [
         'ocr-util',
-        'groundtruth-corpus',
+        'corpus',
         '-i', str(mock_gt_files),
         '-o', str(mock_output_dir),
         '-l', '5'
@@ -367,7 +367,7 @@ def test_cli_groundtruth_corpus_with_custom_temp_dir(
     # act
     with patch('sys.argv', [
         'ocr-util',
-        'groundtruth-corpus',
+        'corpus',
         '-i', str(mock_gt_files),
         '-o', str(mock_output_dir),
         '-t', str(custom_temp)
@@ -396,7 +396,7 @@ def test_cli_groundtruth_corpus_exception_handling(
     with pytest.raises(Exception, match="Test error message"):
         with patch('sys.argv', [
             'ocr-util',
-            'groundtruth-corpus',
+            'corpus',
             '-i', str(mock_gt_files),
             '-o', str(mock_output_dir)
         ]):
@@ -422,7 +422,7 @@ def test_cli_groundtruth_corpus_multiple_verbosity_flags(
     # act
     with patch('sys.argv', [
         'ocr-util',
-        'groundtruth-corpus',
+        'corpus',
         '-i', str(mock_gt_files),
         '-o', str(mock_output_dir),
         '-vv'
@@ -517,7 +517,7 @@ def test_cli_groundtruth_corpus_success_message(
     # act
     with patch('sys.argv', [
         'ocr-util',
-        'groundtruth-corpus',
+        'corpus',
         '-i', str(mock_gt_files),
         '-o', str(mock_output_dir),
         '-v'

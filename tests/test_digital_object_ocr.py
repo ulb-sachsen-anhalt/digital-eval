@@ -1,6 +1,6 @@
 """Test specification for common aspects of OCR assets"""
 
-from digital_eval.model.common import (
+from ocr_util.eval.model.common import (
 	DigitalObjectLevel,
 )
 

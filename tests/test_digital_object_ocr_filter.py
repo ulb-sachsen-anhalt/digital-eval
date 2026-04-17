@@ -13,9 +13,9 @@ import xml.dom.minidom as md
 import shapely
 import pytest
 
-import digital_eval.model.main as mmain
-import digital_eval.model.digital_object_model as mdom
-import digital_eval.model.filter as mfil
+import ocr_util.eval.model.main as mmain
+import ocr_util.eval.model.digital_object_model as mdom
+import ocr_util.eval.model.filter as mfil
 
 RES_ROOT = os.path.join('tests', 'resources', 'filter')
 RES_ALTO = os.path.join(RES_ROOT, 'alto')

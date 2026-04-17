@@ -7,10 +7,10 @@ from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 from typing import Final
 
-from ocr_util.corpora.GtResources import GtResources
-from ocr_util.corpora.MetsFileObtainer import MetsFileObtainer
-from ocr_util.corpora.MetsGenerator import MetsGenerator
-from ocr_util.corpora.common import Args, GtResource, MetsGeneratorResource, MetsResource, GT_TARGET_SUBDIR
+from ocr_util.corpus.GtResources import GtResources
+from ocr_util.corpus.MetsFileObtainer import MetsFileObtainer
+from ocr_util.corpus.MetsGenerator import MetsGenerator
+from ocr_util.corpus.common import Args, GtResource, MetsGeneratorResource, MetsResource, GT_TARGET_SUBDIR
 
 
 class Gt2Mets:

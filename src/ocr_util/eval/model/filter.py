@@ -8,9 +8,9 @@ from typing import NamedTuple, List
 from shapely import Polygon
 from shapely.geometry import Point
 
-import digital_eval.model.main as mmain
-import digital_eval.model.digital_object_model as mdom
-import digital_eval.model.digital_object_util as mdou
+import ocr_util.eval.model.main as mmain
+import ocr_util.eval.model.digital_object_model as mdom
+import ocr_util.eval.model.digital_object_util as mdou
 
 
 

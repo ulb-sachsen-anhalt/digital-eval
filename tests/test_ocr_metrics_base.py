@@ -5,7 +5,7 @@ import random
 
 import pytest
 
-import digital_eval.metrics as digem
+import ocr_util.eval.metrics as digem
 
 
 def test_metric_calculate_character_edit_distance():

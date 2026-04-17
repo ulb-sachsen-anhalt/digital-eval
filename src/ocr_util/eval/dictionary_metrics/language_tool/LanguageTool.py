@@ -10,9 +10,9 @@ from docker import DockerClient
 from docker.models.resource import Model
 from requests import Response
 
-from digital_eval.dictionary_metrics.common import LANGUAGE_MAP, LANGUAGE_KEY_DEFAULT
-from digital_eval.dictionary_metrics.language_tool.Util import Util
-from digital_eval.dictionary_metrics.language_tool.common import (
+from ocr_util.eval.dictionary_metrics.common import LANGUAGE_MAP, LANGUAGE_KEY_DEFAULT
+from ocr_util.eval.dictionary_metrics.language_tool.Util import Util
+from ocr_util.eval.dictionary_metrics.language_tool.common import (
     InvalidResponseException,
     NotInizializedException,
     Constant,

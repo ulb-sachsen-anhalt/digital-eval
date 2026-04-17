@@ -5,8 +5,8 @@ import shutil
 
 from pathlib import Path
 
-import digital_eval.cli as dig
-import digital_eval.preprocessing as dipre
+import ocr_util.eval.cli as dig
+import ocr_util.eval.preprocessing as dipre
 
 from .conftest import TEST_RES_DIR
 

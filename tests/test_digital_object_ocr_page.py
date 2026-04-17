@@ -4,9 +4,9 @@ of digital assets in OCR PAGE format
 
 import pytest
 
-import digital_eval.model.digital_object_model as dom
-import digital_eval.model.common as dc
-from digital_eval.model.main import (
+import ocr_util.eval.model.digital_object_model as dom
+import ocr_util.eval.model.common as dc
+from ocr_util.eval.model.main import (
     to_digital_object,
 )
 from tests.conftest import (

@@ -3,8 +3,8 @@
 from pathlib import PurePath
 from xml.dom.minidom import Document, Element, parse
 
-from digital_eval.model.digital_object_model import DigitalObjectTree
-from digital_eval.model.common import (
+from ocr_util.eval.model.digital_object_model import DigitalObjectTree
+from ocr_util.eval.model.common import (
     DigitalObjectLevel,
     DigitalObjectTreeOCRFileFormat,
     UNSET,

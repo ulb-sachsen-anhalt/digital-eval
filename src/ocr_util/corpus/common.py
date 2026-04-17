@@ -5,7 +5,7 @@ from pathlib import Path
 
 from lxml.etree import _Element
 
-from ocr_util.corpora.GtResources import GtResource
+from ocr_util.corpus.GtResources import GtResource
 
 GT_TARGET_SUBDIR = "GT-PAGE"
 GT_METS_FILEGROUP = "OCR-D-GT-FULLTEXT"

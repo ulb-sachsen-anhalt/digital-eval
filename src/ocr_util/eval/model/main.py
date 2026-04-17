@@ -2,8 +2,8 @@
 
 from pathlib import Path
 
-from digital_eval.model.digital_object_model import DigitalObjectTree
-from digital_eval.model.digital_object_util import DigitalObjectUtil
+from ocr_util.eval.model.digital_object_model import DigitalObjectTree
+from ocr_util.eval.model.digital_object_util import DigitalObjectUtil
 
 
 def to_digital_object(path_in: str) -> DigitalObjectTree:

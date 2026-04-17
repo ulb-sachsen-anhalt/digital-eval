@@ -12,13 +12,13 @@ from shapely import (
 	Polygon,
 )
 
-from digital_eval.model.digital_object_model import (
+from ocr_util.eval.model.digital_object_model import (
 	DigitalObjectTree,
 )
-from digital_eval.model.common import (
+from ocr_util.eval.model.common import (
 	DigitalObjectLevel,
 )
-from digital_eval.model.main import (
+from ocr_util.eval.model.main import (
 	to_digital_object,
 )
 from tests.conftest import (

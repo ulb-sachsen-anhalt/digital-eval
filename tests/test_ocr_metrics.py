@@ -7,10 +7,10 @@ import rapidfuzz.distance.Levenshtein as rfls
 
 import pytest
 
-import digital_eval.evaluation as digev
-import digital_eval.metrics as digem
-import digital_eval.preprocessing as dipre
-import digital_eval.geometry as digeo
+import ocr_util.eval.evaluation as digev
+import ocr_util.eval.metrics as digem
+import ocr_util.eval.preprocessing as dipre
+import ocr_util.eval.geometry as digeo
 
 from .conftest import TEST_RES_DIR
 

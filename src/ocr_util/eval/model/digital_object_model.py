@@ -10,7 +10,7 @@ from xml.dom.minidom import Document, Element
 
 import shapely.geometry
 
-from digital_eval.model.common import (
+from ocr_util.eval.model.common import (
     UNSET,
     DigitalObjectChanges,
     DigitalObjectContent,
@@ -20,7 +20,7 @@ from digital_eval.model.common import (
     DigitalObjectTreeOCRFileFormat,
     DigitalObjectTranscription,
 )
-from digital_eval.model.minidom_util import MinidomUtil
+from ocr_util.eval.model.minidom_util import MinidomUtil
 
 
 class DigitalObjectTree:

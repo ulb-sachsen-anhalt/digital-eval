@@ -6,12 +6,12 @@ from xml.dom.minidom import Document, Element, Node, parse
 
 import xml.parsers.expat
 
-import digital_eval.model.common as dmc
+import ocr_util.eval.model.common as dmc
 
-from digital_eval.model.common import DigitalObjectDimensions, PAGE_2013, TEXT_ENCODING
-from digital_eval.model.digital_object_model import DigitalObjectTree
-from digital_eval.model.format_alto_v3_util import FormatAltoV3Util
-from digital_eval.model.format_page_util import FormatPageUtil
+from ocr_util.eval.model.common import DigitalObjectDimensions, PAGE_2013, TEXT_ENCODING
+from ocr_util.eval.model.digital_object_model import DigitalObjectTree
+from ocr_util.eval.model.format_alto_v3_util import FormatAltoV3Util
+from ocr_util.eval.model.format_page_util import FormatPageUtil
 
 
 class DigitalObjectUtil:

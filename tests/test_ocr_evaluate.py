@@ -15,9 +15,9 @@ from pytest import (
     approx
 )
 
-import digital_eval.evaluation as digev
-import digital_eval.metrics as digem
-import digital_eval.preprocessing as dipre
+import ocr_util.eval.evaluation as digev
+import ocr_util.eval.metrics as digem
+import ocr_util.eval.preprocessing as dipre
 
 from .conftest import (
     TEST_RES_DIR
