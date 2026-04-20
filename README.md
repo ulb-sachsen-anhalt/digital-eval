@@ -114,6 +114,9 @@ python -m pip install -r tests/test_requirements.txt
 
 # run tests
 python -m pytest -v
+
+# run tests faster (parallel, auto worker count)
+python -m pytest -q -n auto
 ```
 
 ## Contribute
