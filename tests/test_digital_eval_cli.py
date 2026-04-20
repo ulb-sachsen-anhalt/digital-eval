@@ -5,6 +5,8 @@ import shutil
 
 from pathlib import Path
 
+import pytest
+
 import ocr_util.eval.cli as dig
 import ocr_util.eval.preprocessing as dipre
 
@@ -14,7 +16,67 @@ from .conftest import TEST_RES_DIR
 _DOMAIN_LABEL = 'ger_frk'
 
 
-def test_mwe_cli_defaults(tmp_path, capsys):
+@pytest.fixture(name='cli_paths', scope='module')
+def _create_cli_paths(tmp_path_factory):
+    """Prepare reusable candidate/reference fixtures for CLI tests."""
+
+    src_candidates = TEST_RES_DIR / 'candidate' / 'frk_alto'
+    src_reference = TEST_RES_DIR / 'groundtruth' / 'page'
+    src_mets = TEST_RES_DIR / 'test_mets.xml'
+    src_candidate_file = src_candidates / '1667522809_J_0001_0002.xml'
+
+    base_dir = tmp_path_factory.mktemp('cli_test_data')
+
+    candidate_dir = base_dir / 'candidate' / _DOMAIN_LABEL
+    reference_dir = base_dir / 'reference' / _DOMAIN_LABEL
+    reference_gt_page_dir = base_dir / 'reference' / _DOMAIN_LABEL / 'GT-PAGE'
+    single_candidate_dir = base_dir / 'single_candidate' / _DOMAIN_LABEL
+    single_candidate_file = single_candidate_dir / '1667522809_J_0001_0002.xml'
+    single_reference_dir = base_dir / 'single_reference' / _DOMAIN_LABEL
+    mets_file = base_dir / 'reference' / 'test_mets.xml'
+
+    shutil.copytree(src_candidates, candidate_dir)
+    shutil.copytree(src_reference, reference_dir)
+    shutil.copytree(src_reference, reference_gt_page_dir)
+
+    single_candidate_dir.mkdir(parents=True, exist_ok=True)
+    shutil.copy(src_candidate_file, single_candidate_file)
+    shutil.copytree(src_reference, single_reference_dir)
+
+    shutil.copy(src_mets, mets_file)
+
+    return {
+        'candidate_dir': candidate_dir,
+        'reference_dir': reference_dir,
+        'reference_gt_page_dir': reference_gt_page_dir,
+        'single_candidate_file': single_candidate_file,
+        'single_reference_dir': single_reference_dir,
+        'mets_file': mets_file,
+    }
+
+
+@pytest.mark.parametrize(
+    'utf8_norm, expected_norm_line, expected_metric_line',
+    [
+        (
+            dig.DEFAULT_UTF8_NORM,
+            "[DEBUG] text normalized using 'NFC' code points for 'Cs,Ls'",
+            "[DEBUG] [1667522809_J_0001_0002](art) [Cs:39.20(5309), Ls:38.54(4383)(- 0.66)]",
+        ),
+        (
+            dipre.UC_NORMALIZATION_NFKD,
+            "[DEBUG] text normalized using 'NFKD' code points for 'Cs,Ls'",
+            "[DEBUG] [1667522809_J_0001_0002](art) [Cs:39.10(5363), Ls:38.52(4437)(- 0.58)]",
+        ),
+    ],
+)
+def test_mwe_cli_norm_variants(
+    cli_paths,
+    capsys,
+    utf8_norm,
+    expected_norm_line,
+    expected_metric_line,
+):
     """Minimum working example CLI 
     to fix *real* outcomes when playing with
     metrics implementations
@@ -27,22 +89,18 @@ def test_mwe_cli_defaults(tmp_path, capsys):
 
     # arrange
     dig.VERBOSITY = 1
-    src_candidates = TEST_RES_DIR / 'candidate' / 'frk_alto'
-    src_reference = TEST_RES_DIR / 'groundtruth' / 'page'
-    dst_candidates = tmp_path / 'candidate' / _DOMAIN_LABEL
-    dst_reference = tmp_path / 'reference' / _DOMAIN_LABEL
-    tmp_candidate: Path = shutil.copytree(src_candidates, dst_candidates)
-    tmp_reference: Path = shutil.copytree(src_reference, dst_reference)
+    dst_candidates = cli_paths['candidate_dir']
+    dst_reference = cli_paths['reference_dir']
 
     # assert final path segments do match by name frk_alto == frk_alto
-    assert _DOMAIN_LABEL == tmp_candidate.name
-    assert _DOMAIN_LABEL == tmp_reference.name
+    assert _DOMAIN_LABEL == dst_candidates.name
+    assert _DOMAIN_LABEL == dst_reference.name
 
     # act
     cli_args = {"candidates": dst_candidates, "reference": dst_reference,
                 "metrics": dig.DEFAULT_OCR_METRICS,
                 "verbosity": 1,
-                "utf8": dig.DEFAULT_UTF8_NORM,
+                "utf8": utf8_norm,
                 "sequential": True}
     eval_results = dig.start_evaluation(cli_args)
 
@@ -51,54 +109,12 @@ def test_mwe_cli_defaults(tmp_path, capsys):
     captured = capsys.readouterr().out
     std_lines = captured.split('\n')
     assert len(std_lines) == 11
-    assert std_lines[0] == "[DEBUG] text normalized using 'NFC' code points for 'Cs,Ls'"
+    assert std_lines[0] == expected_norm_line
     assert str(std_lines[1]).startswith('[DEBUG] from "5" filtered "3" candidates')
-    assert std_lines[4] == "[DEBUG] [1667522809_J_0001_0002](art) [Cs:39.20(5309), Ls:38.54(4383)(- 0.66)]"
+    assert std_lines[4] == expected_metric_line
 
 
-def test_mwe_cli_utf8_nfkd(tmp_path, capsys):
-    """Minimum working example CLI 
-    to fix *real* outcomes when playing with
-    metrics implementations
-
-    Match five candidates from subdir 'ger_frk' with
-    total 13 references of according gt-subdir to 
-    creates 4 default evaluation results (Ls,Cs)
-    (no reference for candiate 1667522809_J_0001_0256_corrupt.xml)
-    """
-
-    # arrange
-    dig.VERBOSITY = 1
-    src_candidates = TEST_RES_DIR / 'candidate' / 'frk_alto'
-    src_reference = TEST_RES_DIR / 'groundtruth' / 'page'
-    dst_candidates = tmp_path / 'candidate' / _DOMAIN_LABEL
-    dst_reference = tmp_path / 'reference' / _DOMAIN_LABEL
-    tmp_candidate: Path = shutil.copytree(src_candidates, dst_candidates)
-    tmp_reference: Path = shutil.copytree(src_reference, dst_reference)
-
-    # assert final path segments do match by name frk_alto == frk_alto
-    assert _DOMAIN_LABEL == tmp_candidate.name
-    assert _DOMAIN_LABEL == tmp_reference.name
-
-    # act
-    cli_args = {"candidates": dst_candidates, "reference": dst_reference,
-                "metrics": dig.DEFAULT_OCR_METRICS,
-                "verbosity": 1,
-                "utf8": dipre.UC_NORMALIZATION_NFKD,
-                "sequential": True}
-    eval_results = dig.start_evaluation(cli_args)
-
-    # assert
-    assert len(eval_results) == 4
-    captured = capsys.readouterr().out
-    std_lines = captured.split('\n')
-    assert len(std_lines) == 11
-    assert std_lines[0] == "[DEBUG] text normalized using 'NFKD' code points for 'Cs,Ls'"
-    assert str(std_lines[1]).startswith('[DEBUG] from "5" filtered "3" candidates')
-    assert std_lines[4] == "[DEBUG] [1667522809_J_0001_0002](art) [Cs:39.10(5363), Ls:38.52(4437)(- 0.58)]"
-
-
-def test_mwe_cli_data_resolving(tmp_path, capsys):
+def test_mwe_cli_data_resolving(cli_paths, capsys):
     """Minimum working example CLI 
     to inspect behavior for intermediate missmatches
     => OCR-D GT-PAGE directory
@@ -106,15 +122,11 @@ def test_mwe_cli_data_resolving(tmp_path, capsys):
 
     # arrange
     dig.VERBOSITY = 1
-    src_candidates = TEST_RES_DIR / 'candidate' / 'frk_alto'
-    src_reference = TEST_RES_DIR / 'groundtruth' / 'page'
-    dst_candidates = tmp_path / 'candidate' / _DOMAIN_LABEL
-    dst_reference = tmp_path / 'reference' / _DOMAIN_LABEL /'GT-PAGE'
-    tmp_candidate: Path = shutil.copytree(src_candidates, dst_candidates)
-    tmp_reference: Path = shutil.copytree(src_reference, dst_reference)
+    dst_candidates = cli_paths['candidate_dir']
+    dst_reference = cli_paths['reference_gt_page_dir']
 
     # assert final path segments do match by name frk_alto == frk_alto
-    assert _DOMAIN_LABEL == tmp_candidate.name
+    assert _DOMAIN_LABEL == dst_candidates.name
 
     # act
     cli_args = {"candidates": dst_candidates, "reference": dst_reference,
@@ -134,7 +146,7 @@ def test_mwe_cli_data_resolving(tmp_path, capsys):
     assert std_lines[5] == "[DEBUG] [1667522809_J_0001_0002](art) [Cs:39.10(5363), Ls:38.52(4437)(- 0.58)]"
 
 
-def test_single_candidate_file_cli(tmp_path, capsys):
+def test_single_candidate_file_cli(cli_paths, capsys):
     """Test CLI with a single candidate file as argument
     
     Ensures that a single candidate file can be passed directly
@@ -143,25 +155,15 @@ def test_single_candidate_file_cli(tmp_path, capsys):
 
     # arrange
     dig.VERBOSITY = 1
-    src_candidate_file = TEST_RES_DIR / 'candidate' / 'frk_alto' / '1667522809_J_0001_0002.xml'
-    src_reference = TEST_RES_DIR / 'groundtruth' / 'page'
-    # Place the file in a subdirectory to simulate normal structure
-    dst_candidate_dir = tmp_path / 'candidate' / 'ger_frk'
-    dst_candidate_file = dst_candidate_dir / '1667522809_J_0001_0002.xml'
-    # Match the reference directory name to candidate directory name
-    dst_reference = tmp_path / 'reference' / 'ger_frk'
-    
-    # create directories and copy single file
-    dst_candidate_dir.mkdir(parents=True, exist_ok=True)
-    shutil.copy(src_candidate_file, dst_candidate_file)
-    tmp_reference: Path = shutil.copytree(src_reference, dst_reference)
+    dst_candidate_file = cli_paths['single_candidate_file']
+    dst_reference = cli_paths['single_reference_dir']
 
     # assert file exists
     assert dst_candidate_file.is_file()
-    assert tmp_reference.is_dir()
+    assert dst_reference.is_dir()
 
     # act - pass single file as candidates argument
-    cli_args = {"candidates": dst_candidate_file, "reference": tmp_reference,
+    cli_args = {"candidates": dst_candidate_file, "reference": dst_reference,
                 "metrics": dig.DEFAULT_OCR_METRICS,
                 "verbosity": 1,
                 "utf8": dig.DEFAULT_UTF8_NORM,
@@ -182,28 +184,20 @@ def test_single_candidate_file_cli(tmp_path, capsys):
     assert any('1667522809_J_0001_0002' in line for line in std_lines)
 
 
-def test_cli_with_mets_mods_aggregation(tmp_path, capsys):
+def test_cli_with_mets_mods_aggregation(cli_paths, capsys):
     """Test CLI with METS/MODS aggregation parameters"""
     pytest = __import__('pytest')
     pytest.importorskip("lxml", reason="lxml required for METS/MODS extraction")
     
     # arrange
     dig.VERBOSITY = 1
-    src_candidates = TEST_RES_DIR / 'candidate' / 'frk_alto'
-    src_reference = TEST_RES_DIR / 'groundtruth' / 'page'
-    src_mets = TEST_RES_DIR / 'test_mets.xml'
-    
-    dst_candidates = tmp_path / 'candidate' / _DOMAIN_LABEL
-    dst_reference = tmp_path / 'reference' / _DOMAIN_LABEL
-    dst_mets = tmp_path / 'reference' / 'test_mets.xml'
-    
-    tmp_candidate: Path = shutil.copytree(src_candidates, dst_candidates)
-    tmp_reference: Path = shutil.copytree(src_reference, dst_reference)
-    shutil.copy(src_mets, dst_mets)
+    dst_candidates = cli_paths['candidate_dir']
+    dst_reference = cli_paths['reference_dir']
+    dst_mets = cli_paths['mets_file']
     
     # assert files exist
-    assert _DOMAIN_LABEL == tmp_candidate.name
-    assert _DOMAIN_LABEL == tmp_reference.name
+    assert _DOMAIN_LABEL == dst_candidates.name
+    assert _DOMAIN_LABEL == dst_reference.name
     assert dst_mets.is_file()
     
     # act - use METS/MODS aggregation with language and genre dimensions
@@ -233,22 +227,14 @@ def test_cli_with_mets_mods_aggregation(tmp_path, capsys):
     assert "Added aggregation dimension" in captured or "Converting legacy --mods-dimensions" in captured
 
 
-def test_cli_with_mets_file_only_warning(tmp_path, capsys):
+def test_cli_with_mets_file_only_warning(cli_paths, capsys):
     """Test CLI shows warning when METS file provided without dimensions"""
     
     # arrange
     dig.VERBOSITY = 1
-    src_candidates = TEST_RES_DIR / 'candidate' / 'frk_alto'
-    src_reference = TEST_RES_DIR / 'groundtruth' / 'page'
-    src_mets = TEST_RES_DIR / 'test_mets.xml'
-    
-    dst_candidates = tmp_path / 'candidate' / _DOMAIN_LABEL
-    dst_reference = tmp_path / 'reference' / _DOMAIN_LABEL
-    dst_mets = tmp_path / 'reference' / 'test_mets.xml'
-    
-    shutil.copytree(src_candidates, dst_candidates)
-    shutil.copytree(src_reference, dst_reference)
-    shutil.copy(src_mets, dst_mets)
+    dst_candidates = cli_paths['candidate_dir']
+    dst_reference = cli_paths['reference_dir']
+    dst_mets = cli_paths['mets_file']
     
     # act - provide METS file but no dimensions (should use default aggregation)
     cli_args = {
