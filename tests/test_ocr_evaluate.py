@@ -24,6 +24,49 @@ from .conftest import (
 )
 
 
+_CANDIDATE_NAME = '1667522809_J_0001_0002.xml'
+_GT_NAME = '1667522809_J_0001_0002.art.gt.xml'
+_DOMAIN = '1667522809_J_0001'
+
+
+@pytest.fixture(name='eval_paths', scope='module')
+def _eval_paths(tmp_path_factory):
+    """One-time file setup for single-pair evaluation tests."""
+    base = tmp_path_factory.mktemp('eval_pairs')
+
+    # alto-candidate + page-groundtruth pair
+    alto_eval = base / 'alto_candidate' / _DOMAIN
+    alto_gt = base / 'alto_gt' / _DOMAIN
+    alto_eval.mkdir(parents=True)
+    alto_gt.mkdir(parents=True)
+    shutil.copy(
+        TEST_RES_DIR / 'candidate' / 'frk_alto' / _CANDIDATE_NAME,
+        alto_eval / _CANDIDATE_NAME,
+    )
+    gt_file = alto_gt / _GT_NAME
+    shutil.copy(TEST_RES_DIR / 'groundtruth' / 'page' / _GT_NAME, gt_file)
+
+    # gt-as-candidate pair (evaluate gt with itself)
+    self_eval = base / 'self_candidate' / _DOMAIN
+    self_gt = base / 'self_gt' / _DOMAIN
+    self_eval.mkdir(parents=True)
+    self_gt.mkdir(parents=True)
+    self_candidate_file = self_eval / _CANDIDATE_NAME
+    self_gt_file = self_gt / _GT_NAME
+    shutil.copy(TEST_RES_DIR / 'groundtruth' / 'page' / _GT_NAME, self_candidate_file)
+    shutil.copy(TEST_RES_DIR / 'groundtruth' / 'page' / _GT_NAME, self_gt_file)
+
+    return {
+        'alto_eval_domain': alto_eval,
+        'alto_gt_domain': alto_gt,
+        'alto_gt_dst': gt_file,
+        'self_eval_domain': self_eval,
+        'self_gt_domain': self_gt,
+        'self_candidate_file': self_candidate_file,
+        'self_gt_file': self_gt_file,
+    }
+
+
 def test_piece_to_text_alto_candidate_with_coords():
     """Check lines from ALTO candidate"""
 
@@ -40,27 +83,20 @@ def test_piece_to_text_alto_candidate_with_coords():
     assert 166 == len(_as_lines)
 
 
-def test_evaluate_single_alto_candidate_with_page_groundtruth(tmp_path):
+def test_evaluate_single_alto_candidate_with_page_groundtruth(eval_paths):
     """Illustrate evaluation of single candidate
     with proper organization of groundtruth data"""
 
-    # arrange
-    eval_domain = tmp_path / 'candidate' / '1667522809_J_0001'
-    eval_domain.mkdir(parents=True)
-    gt_domain = tmp_path / 'groundtruth' / '1667522809_J_0001'
-    gt_domain.mkdir(parents=True)
+    # arrange - reuse pre-copied files
+    eval_domain = eval_paths['alto_eval_domain']
+    gt_domain = eval_paths['alto_gt_domain']
+    gt_dst = eval_paths['alto_gt_dst']
     evaluator = digev.Evaluator(eval_domain)
     evaluator.metrics = [digem.MetricChars()]
-    # required for directory-like aggregation
     evaluator.domain_reference = gt_domain
-    _candidate_src = os.path.join(f'{TEST_RES_DIR}/candidate/frk_alto/1667522809_J_0001_0002.xml')
-    shutil.copy(_candidate_src, eval_domain)
-    gt_src = TEST_RES_DIR / 'groundtruth/page/1667522809_J_0001_0002.art.gt.xml'
-    gt_dst = gt_domain / '1667522809_J_0001_0002.art.gt.xml'
-    shutil.copy(gt_src, gt_dst)
 
     # act
-    eval_entry = digev.EvalEntry(eval_domain / '1667522809_J_0001_0002.xml', eval_domain)
+    eval_entry = digev.EvalEntry(eval_domain / _CANDIDATE_NAME, eval_domain)
     eval_entry.path_groundtruth = gt_dst
     evaluator.eval_all([eval_entry], sequential=True)
     evaluator.aggregate(by_type=True)
@@ -84,28 +120,22 @@ def test_evaluate_single_alto_candidate_with_page_groundtruth(tmp_path):
     assert 5309 == defaults[4]
 
 
-def test_evaluate_page_groundtruth_with_itself(tmp_path):
+def test_evaluate_page_groundtruth_with_itself(eval_paths):
     """Use Groundtruth as candidate and evaluate it
     with itself as reference data shall yield
     accuracy of nearly 100 percent"""
 
-    # arrange
-    eval_domain = tmp_path / 'candidate' / '1667522809_J_0001'
-    eval_domain.mkdir(parents=True)
-    gt_domain = tmp_path / 'groundtruth' / '1667522809_J_0001'
-    gt_domain.mkdir(parents=True)
+    # arrange - reuse pre-copied files
+    eval_domain = eval_paths['self_eval_domain']
+    gt_domain = eval_paths['self_gt_domain']
+    candidate_dst = eval_paths['self_candidate_file']
+    gt_dst = eval_paths['self_gt_file']
     evaluator = digev.Evaluator(eval_domain)
     evaluator.metrics = [digem.MetricChars()]
     evaluator.domain_reference = gt_domain
-    candidate_src = TEST_RES_DIR / 'groundtruth/page/1667522809_J_0001_0002.art.gt.xml'
-    candidate_dst = eval_domain / '1667522809_J_0001_0002.xml'
-    shutil.copy(candidate_src, candidate_dst)
-    gt_src = TEST_RES_DIR / 'groundtruth/page/1667522809_J_0001_0002.art.gt.xml'
-    gt_dst = gt_domain / '1667522809_J_0001_0002.art.gt.xml'
-    shutil.copy(gt_src, gt_dst)
 
     # act
-    eval_entry = digev.EvalEntry(eval_domain / '1667522809_J_0001_0002.xml', eval_domain)
+    eval_entry = digev.EvalEntry(candidate_dst, eval_domain)
     eval_entry.path_groundtruth = gt_dst
     evaluator.eval_all([eval_entry], sequential=True)
     evaluator.aggregate(by_type=True)
