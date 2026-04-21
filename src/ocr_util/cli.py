@@ -16,7 +16,11 @@ from ocr_util.corpus.common import Args
 DEFAULT_VERBOSITY = 0
 SUB_CMD_FRAME = "frame"
 SUB_CMD_GROUNDTRUTH_CORPUS = "corpus"
+CORPUS_CACHE_DIR_NAME = "ocr_util_corpus_mets_cache"
+CORPUS_CACHE_DIR = os.path.join(os.path.expanduser("~"), '.cache', CORPUS_CACHE_DIR_NAME)
+
 SUB_CMD_EVALUATE = "eval"
+
 
 
 def points_type(points: str) -> str:
@@ -85,7 +89,7 @@ def start() -> None:
         "-o",
         "--output",
         dest="output_dir",
-        help="Path to the output directory for generated METS files",
+        help="Path to the output directory for generated corpus",
         required=True,
     )
     groundtruth_corpus_arg_parser.add_argument(
@@ -100,8 +104,8 @@ def start() -> None:
         "-t",
         "--temp-dir",
         dest="temp_dir",
-        default=os.path.join(os.path.expanduser("~"), '.cache', 'odem_gt_2_mets'),
-        help="Path to temporary directory for caching METS files (default: ~/.cache/odem_gt_2_mets)",
+        default=CORPUS_CACHE_DIR,
+        help=f"Path to temporary directory for caching METS files (default: {CORPUS_CACHE_DIR})",
         required=False,
     )
     groundtruth_corpus_arg_parser.add_argument(

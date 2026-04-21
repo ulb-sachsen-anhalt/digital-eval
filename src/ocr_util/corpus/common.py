@@ -11,6 +11,10 @@ GT_TARGET_SUBDIR = "GT-PAGE"
 GT_METS_FILEGROUP = "OCR-D-GT-FULLTEXT"
 
 
+class CorpusException(Exception):
+    """Base exception for corpus-related errors."""
+
+
 @dataclass(frozen=True)
 class Args:
     input_dir: Path

@@ -3,7 +3,7 @@ requires = ["setuptools>=61.0"]
 build-backend = "setuptools.build_meta"
 
 [tool.setuptools.dynamic]
-version = {attr = "ocr_util.eval.__version__"}
+version = {attr = "ocr_util.__version__"}
 
 [tool.setuptools.packages.find]
 where = ["src"]

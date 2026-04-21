@@ -10,7 +10,7 @@ from lxml import etree
 from lxml.etree import Element
 from requests import Response
 
-from ocr_util.corpus.common import MetsResource
+from ocr_util.corpus.common import CorpusException, MetsResource
 
 
 class MetsFileObtainer:
@@ -48,7 +48,7 @@ class MetsFileObtainer:
             timeout=30
         )
         if not response.ok:
-            raise RuntimeError(f"Request Error - {response.status_code} for {response.url}")
+            raise CorpusException(f"Request Error - {response.status_code} for {response.url}")
         handlename = 'handle=[0-9]*\/[0-9]*'
         handlefinder = re.compile(handlename)
         url_open_data_ulb: str = "https://opendata.uni-halle.de/handle/"+handlefinder.search(response.url).group(0)[7:]
@@ -70,5 +70,5 @@ class MetsFileObtainer:
             timeout=30
         )
         if not response.ok:
-            raise RuntimeError(f"Request Error - {response.status_code} for {response.url}")
+            raise CorpusException(f"Request Error - {response.status_code} for {response.url}")
         return response.content

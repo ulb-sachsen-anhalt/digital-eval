@@ -1,7 +1,7 @@
-from __future__ import annotations
 
 import os
-import shutil
+import typing
+
 from argparse import ArgumentParser, Namespace
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
@@ -10,16 +10,24 @@ from typing import Final
 from ocr_util.corpus.GtResources import GtResources
 from ocr_util.corpus.MetsFileObtainer import MetsFileObtainer
 from ocr_util.corpus.MetsGenerator import MetsGenerator
-from ocr_util.corpus.common import Args, GtResource, MetsGeneratorResource, MetsResource, GT_TARGET_SUBDIR
+from ocr_util.corpus.common import (
+    Args,
+    CorpusException,
+    GtResource,
+    MetsGeneratorResource,
+    MetsResource,
+    GT_TARGET_SUBDIR,
+)
 
 
 class Gt2Mets:
-    __URL_URN_RESOLVER: Final[str] = "https://nbn-resolving.org/process-urn-form"
-    __URL_OAI_PMH_DATA: Final[str] = "https://opendata.uni-halle.de/oai/dd"
-    __URL_OAI_PMH_ID_PREFIX: Final[str] = "oai:opendata.uni-halle.de"
-    __NUM_TRHEADS: Final[int] = int(os.cpu_count() * 0.85)
-    __DEFAULT_TEMP_DIR: Final[str] = os.path.join(os.path.expanduser("~"), '.cache', 'odem_gt_2_mets')
-    __DEFAULT_LIMIT: Final[int] = 0
+    __URL_URN_RESOLVER: typing.Final[str] = "https://nbn-resolving.org/process-urn-form"
+    __URL_OAI_PMH_DATA: typing.Final[str] = "https://opendata.uni-halle.de/oai/dd"
+    __URL_OAI_PMH_ID_PREFIX: typing.Final[str] = "oai:opendata.uni-halle.de"
+    __CPUS: typing.Final[int] = os.cpu_count() if os.cpu_count() is not None else 1
+    __NUM_TRHEADS: typing.Final[int] = int(__CPUS * 0.85)
+    __DEFAULT_TEMP_DIR: typing.Final[str] = os.path.join(os.path.expanduser("~"), '.cache', 'odem_gt_2_mets')
+    __DEFAULT_LIMIT: typing.Final[int] = 0
 
     @staticmethod
     def __parse_args() -> Args:
@@ -54,13 +62,16 @@ class Gt2Mets:
         if args is None:
             args = Gt2Mets.__parse_args()
         if not args.input_dir.exists():
-            raise RuntimeError(f"The input directory '{args.input_dir}' does not exist")
+            raise CorpusException(f"The input directory '{args.input_dir}' does not exist")
+        if args.output_dir.exists():
+            raise CorpusException(
+                f"The output directory '{args.output_dir}' already exists. "
+                "Refusing to overwrite existing data."
+            )
         self.__args: Final[Args] = args
 
     def run(self) -> None:
         self.__args.temp_dir.mkdir(parents=True, exist_ok=True)
-        if os.path.exists(self.__args.output_dir):
-            shutil.rmtree(self.__args.output_dir)
         self.__args.output_dir.mkdir(parents=True, exist_ok=True)
         gt_resources: list[GtResource] = GtResources.from_dir_copy(
             in_dir=self.__args.input_dir,
