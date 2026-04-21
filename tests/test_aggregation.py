@@ -516,36 +516,139 @@ def test_aggregate_generic_with_mets_mods_language(evaluated_single_pair, tmp_pa
 
 def test_mets_mods_extractor_multiple_files():
     """Test METSModsExtractor correctly distinguishes between multiple files"""
-    
+
     # arrange
     mets_path = TEST_RES_DIR / 'test_mets.xml'
-    
+
     # First file - article in German
     entry1 = digev.EvalEntry(Path("/test/1667522809_J_0001_0002.xml"))
     entry1.path_groundtruth = Path("/test/1667522809_J_0001_0002.art.gt.xml")
-    
+
     # Second file - announcement in English
     entry2 = digev.EvalEntry(Path("/test/test_announcement.xml"))
     entry2.path_groundtruth = Path("/test/test_announcement.ann.gt.xml")
-    
+
     language_extractor = digev.METSModsExtractor(
         mets_file_path=mets_path,
         xpath_expression=".//mods:language/mods:languageTerm[@type='code']"
     )
-    
+
     genre_extractor = digev.METSModsExtractor(
         mets_file_path=mets_path,
         xpath_expression=".//mods:genre"
     )
-    
+
     # act
     lang1 = language_extractor(entry1)
     lang2 = language_extractor(entry2)
     genre1 = genre_extractor(entry1)
     genre2 = genre_extractor(entry2)
-    
+
     # assert
     assert lang1 == "ger"
     assert lang2 == "eng"
     assert genre1 == "article"
     assert genre2 == "announcement"
+
+
+def test_mets_mods_extractor_joins_multiple_xpath_results(tmp_path):
+    """Multiple XPath hits within one mods section are joined with '+'."""
+
+    mets_path = tmp_path / 'multi_lang_mets.xml'
+    mets_path.write_text(
+        """<?xml version="1.0" encoding="UTF-8"?>
+<mets:mets xmlns:mets="http://www.loc.gov/METS/"
+           xmlns:mods="http://www.loc.gov/mods/v3"
+           xmlns:xlink="http://www.w3.org/1999/xlink">
+  <mets:dmdSec ID="md_multi">
+    <mets:mdWrap MDTYPE="MODS"><mets:xmlData><mods:mods>
+      <mods:language><mods:languageTerm type="code">ara</mods:languageTerm></mods:language>
+      <mods:language><mods:languageTerm type="code">eng</mods:languageTerm></mods:language>
+    </mods:mods></mets:xmlData></mets:mdWrap>
+  </mets:dmdSec>
+  <mets:fileSec>
+    <mets:fileGrp USE="OCR-D-GT-FULLTEXT" DMDID="md_multi">
+      <mets:file ID="F1"><mets:FLocat xlink:href="GT-PAGE/page.xml"/></mets:file>
+    </mets:fileGrp>
+  </mets:fileSec>
+</mets:mets>
+""",
+        encoding='utf-8',
+    )
+
+    entry = digev.EvalEntry(Path('/test/page.xml'))
+    entry.path_groundtruth = Path('/test/page.xml')
+
+    extractor = digev.METSModsExtractor(
+        mets_file_path=mets_path,
+        xpath_expression=".//mods:language/mods:languageTerm[@type='code']",
+    )
+
+    result = extractor(entry)
+
+    assert result == 'ara+eng'
+
+
+def test_mets_mods_extractor_prefers_structlink_mapping(tmp_path):
+    """Use structLink logical mapping when fileGrp DMDID is overly broad."""
+
+    # arrange
+    mets_path = tmp_path / 'structlink_test_mets.xml'
+    mets_path.write_text(
+        """<?xml version="1.0" encoding="UTF-8"?>
+<mets:mets xmlns:mets="http://www.loc.gov/METS/"
+           xmlns:mods="http://www.loc.gov/mods/v3"
+           xmlns:xlink="http://www.w3.org/1999/xlink">
+  <mets:dmdSec ID="md_generic">
+    <mets:mdWrap MDTYPE="MODS"><mets:xmlData><mods:mods><mods:language><mods:languageTerm type="code">lat</mods:languageTerm></mods:language></mods:mods></mets:xmlData></mets:mdWrap>
+  </mets:dmdSec>
+  <mets:dmdSec ID="md_a">
+    <mets:mdWrap MDTYPE="MODS"><mets:xmlData><mods:mods><mods:language><mods:languageTerm type="code">ger</mods:languageTerm></mods:language></mods:mods></mets:xmlData></mets:mdWrap>
+  </mets:dmdSec>
+  <mets:dmdSec ID="md_b">
+    <mets:mdWrap MDTYPE="MODS"><mets:xmlData><mods:mods><mods:language><mods:languageTerm type="code">eng</mods:languageTerm></mods:language></mods:mods></mets:xmlData></mets:mdWrap>
+  </mets:dmdSec>
+  <mets:fileSec>
+    <mets:fileGrp USE="OCR-D-GT-FULLTEXT" DMDID="md_generic">
+      <mets:file ID="OCR-D-GT-FULLTEXT-1"><mets:FLocat xlink:href="GT-PAGE/file_a.xml"/></mets:file>
+      <mets:file ID="OCR-D-GT-FULLTEXT-2"><mets:FLocat xlink:href="GT-PAGE/file_b.xml"/></mets:file>
+    </mets:fileGrp>
+  </mets:fileSec>
+  <mets:structMap TYPE="PHYSICAL">
+    <mets:div ID="physroot">
+      <mets:div ID="phys1"><mets:fptr FILEID="OCR-D-GT-FULLTEXT-1"/></mets:div>
+      <mets:div ID="phys2"><mets:fptr FILEID="OCR-D-GT-FULLTEXT-2"/></mets:div>
+    </mets:div>
+  </mets:structMap>
+  <mets:structMap TYPE="LOGICAL">
+    <mets:div ID="logroot">
+      <mets:div ID="log1" DMDID="md_a"/>
+      <mets:div ID="log2" DMDID="md_b"/>
+    </mets:div>
+  </mets:structMap>
+  <mets:structLink>
+    <mets:smLink xlink:from="log1" xlink:to="phys1"/>
+    <mets:smLink xlink:from="log2" xlink:to="phys2"/>
+  </mets:structLink>
+</mets:mets>
+""",
+        encoding='utf-8',
+    )
+
+    entry_a = digev.EvalEntry(Path('/test/file_a.xml'))
+    entry_a.path_groundtruth = Path('/test/file_a.xml')
+    entry_b = digev.EvalEntry(Path('/test/file_b.xml'))
+    entry_b.path_groundtruth = Path('/test/file_b.xml')
+
+    extractor = digev.METSModsExtractor(
+        mets_file_path=mets_path,
+        xpath_expression=".//mods:language/mods:languageTerm[@type='code']",
+    )
+
+    # act
+    lang_a = extractor(entry_a)
+    lang_b = extractor(entry_b)
+
+    # assert
+    assert lang_a == 'ger'
+    assert lang_b == 'eng'

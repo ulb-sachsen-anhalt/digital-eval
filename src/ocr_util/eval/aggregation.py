@@ -12,6 +12,8 @@ import re
 import typing
 from pathlib import Path
 
+import lxml.etree as ET
+
 import ocr_util.eval.metrics as digem
 
 # mark unset values as 'not available'
@@ -20,11 +22,11 @@ _NOT_SET = "n.a."
 
 class AggregationDimension:
     """Represents a dimension along which evaluation results can be aggregated
-    
+
     An aggregation dimension defines a property or attribute that can be extracted
     from evaluation entries to group and aggregate results. For example, directory
     level, document type, date, or custom metadata.
-    
+
     Args:
         name: Human-readable name for this dimension (e.g., "directory", "type")
         extractor: Callable that extracts the dimension value from an EvalEntry
@@ -37,10 +39,10 @@ class AggregationDimension:
 
 class DirectoryHierarchyExtractor:
     """Extract directory names from filesystem hierarchy
-    
+
     Extracts directory names at specific levels relative to the candidate root.
     Maintains backward compatibility with the original directory-based aggregation.
-    
+
     Args:
         level: Directory level to extract (-1 for immediate parent, 0 for root+1, etc.)
                If None, extracts all intermediate directories
@@ -51,13 +53,13 @@ class DirectoryHierarchyExtractor:
 
     def __call__(self, entry: typing.Any) -> typing.Union[str, typing.List[str], None]:
         """Extract directory name(s) from entry"""
-        if not hasattr(entry, 'domain_directories'):
+        if not hasattr(entry, "domain_directories"):
             return None
-        
+
         dirs = entry.domain_directories
         if not dirs:
             return None
-        
+
         if self.level is None:
             # Return all directories
             return dirs
@@ -72,23 +74,23 @@ class DirectoryHierarchyExtractor:
 
 class TypeExtractor:
     """Extract groundtruth type from evaluation entry
-    
+
     Extracts document type annotations (e.g., "article", "announcement")
     from groundtruth filenames.
     """
 
     def __call__(self, entry: typing.Any) -> typing.Optional[str]:
         """Extract GT type from entry"""
-        if hasattr(entry, 'gt_type') and entry.gt_type != _NOT_SET:
+        if hasattr(entry, "gt_type") and entry.gt_type != _NOT_SET:
             return entry.gt_type
         return None
 
 
 class CustomMetadataExtractor:
     """Extract custom metadata from entry tags
-    
+
     Allows aggregation by arbitrary metadata attached to evaluation entries.
-    
+
     Args:
         key: Metadata key to extract from entry.tags dictionary
         default: Default value if key not found
@@ -100,17 +102,17 @@ class CustomMetadataExtractor:
 
     def __call__(self, entry: typing.Any) -> typing.Any:
         """Extract metadata value from entry"""
-        if hasattr(entry, 'tags'):
+        if hasattr(entry, "tags"):
             return entry.tags.get(self.key, self.default)
         return self.default
 
 
 class FilenamePatternExtractor:
     """Extract values from filename using regex pattern
-    
+
     Useful for extracting dates, identifiers, or other structured information
     from standardized filename patterns.
-    
+
     Args:
         pattern: Regular expression pattern with one capturing group
         group: Which capturing group to extract (default: 1)
@@ -122,7 +124,7 @@ class FilenamePatternExtractor:
 
     def __call__(self, entry: typing.Any) -> typing.Optional[str]:
         """Extract pattern match from filename"""
-        if hasattr(entry, 'path_candidate'):
+        if hasattr(entry, "path_candidate"):
             filename = entry.path_candidate.name
             match = self.pattern.search(filename)
             if match and len(match.groups()) >= self.group:
@@ -132,30 +134,30 @@ class FilenamePatternExtractor:
 
 class METSModsExtractor:
     """Extract MODS metadata from METS/MODS files
-    
+
     Extracts metadata values from MODS sections embedded in METS files.
     This extractor assumes groundtruth files are referenced as filePointers
     in a METS file with corresponding MODS metadata sections.
-    
+
     The METS file should structure like:
     - mets:fileSec contains mets:file elements with file pointers
     - mets:dmdSec contains mods:mods elements with metadata
     - Files are linked to metadata via DMDID references
-    
+
     Args:
         mets_file_path: Path to the METS/MODS file
         xpath_expression: XPath expression to extract MODS element value
                          (e.g., ".//mods:language/mods:languageTerm[@type='code']")
         namespaces: Optional custom namespace mapping (default: standard METS/MODS)
         cache_parsed: If True, caches parsed METS document (default: True)
-    
+
     Example:
         # Extract language code from MODS
         extractor = METSModsExtractor(
             mets_file_path=Path("path/to/mets.xml"),
             xpath_expression=".//mods:language/mods:languageTerm[@type='code']"
         )
-        
+
         # Extract genre
         extractor = METSModsExtractor(
             mets_file_path=Path("path/to/mets.xml"),
@@ -165,9 +167,9 @@ class METSModsExtractor:
 
     # Standard METS/MODS namespaces
     DEFAULT_NAMESPACES = {
-        'mets': 'http://www.loc.gov/METS/',
-        'mods': 'http://www.loc.gov/mods/v3',
-        'xlink': 'http://www.w3.org/1999/xlink'
+        "mets": "http://www.loc.gov/METS/",
+        "mods": "http://www.loc.gov/mods/v3",
+        "xlink": "http://www.w3.org/1999/xlink",
     }
 
     def __init__(
@@ -175,7 +177,7 @@ class METSModsExtractor:
         mets_file_path: Path,
         xpath_expression: str,
         namespaces: typing.Optional[typing.Dict[str, str]] = None,
-        cache_parsed: bool = True
+        cache_parsed: bool = True,
     ):
         self.mets_file_path = mets_file_path
         self.xpath_expression = xpath_expression
@@ -186,108 +188,164 @@ class METSModsExtractor:
 
     def _parse_mets_file(self):
         """Parse METS file and build file-to-MODS mapping
-        
-        Returns parsed lxml tree and mapping dict
+
+        Returns parsed lxml tree and mapping dict.
+
+        The mapping prefers page-level logical DMDIDs linked via structLink over
+        broad fileGrp-level DMDIDs when both are present.
         """
         if self.cache_parsed and self._parsed_tree is not None:
             return self._parsed_tree, self._file_to_mods_map
-        
-        try:
-            from lxml import etree
-        except ImportError:
-            raise ImportError(
-                "lxml is required for METS/MODS extraction. "
-                "Install it with: pip install lxml"
-            )
-        
+
         if not self.mets_file_path.exists():
             raise FileNotFoundError(f"METS file not found: {self.mets_file_path}")
-        
+
         # Parse METS file
-        tree = etree.parse(str(self.mets_file_path))
-        
-        # Build file-to-MODS mapping
+        tree = ET.parse(str(self.mets_file_path))
+
+        # Build file-to-MODS mapping (fallback from file/fileGrp DMDID)
         file_map = {}
-        
-        # Find all file elements with their DMDID references
-        files = tree.xpath('//mets:file', namespaces=self.namespaces)
+        file_id_to_href = {}
+
+        files = tree.xpath("//mets:file", namespaces=self.namespaces)
         for file_elem in files:
-            # Get file location (FLocat/@xlink:href)
-            flocat = file_elem.xpath('./mets:FLocat/@xlink:href', namespaces=self.namespaces)
-            if flocat:
-                file_href = flocat[0]
-                
-                # Get DMDID from parent fileGrp or file element
-                dmdid = file_elem.get('DMDID')
-                if not dmdid:
-                    # Try parent fileGrp
-                    parent = file_elem.getparent()
-                    if parent is not None:
-                        dmdid = parent.get('DMDID')
-                
-                if dmdid:
-                    # Handle multiple DMDIDs (space-separated)
-                    dmdids = dmdid.split()
-                    file_map[file_href] = dmdids
-        
+            file_id = file_elem.get("ID")
+            flocat = file_elem.xpath(
+                "./mets:FLocat/@xlink:href", namespaces=self.namespaces
+            )
+            if not flocat:
+                continue
+
+            file_href = flocat[0]
+            if file_id:
+                file_id_to_href[file_id] = file_href
+
+            # Get DMDID from file element first, then parent fileGrp.
+            dmdid = file_elem.get("DMDID")
+            if not dmdid:
+                parent = file_elem.getparent()
+                if parent is not None:
+                    dmdid = parent.get("DMDID")
+
+            if dmdid:
+                file_map[file_href] = dmdid.split()
+
+        # For complex METS, resolve per-file DMDIDs through
+        # LOGICAL -> structLink -> PHYSICAL -> fptr(FILEID) -> FLocat(xlink:href).
+        logical_div_to_dmdids = {}
+        logical_divs = tree.xpath(
+            '//mets:structMap[@TYPE="LOGICAL"]//mets:div[@ID]',
+            namespaces=self.namespaces,
+        )
+        for logical_div in logical_divs:
+            logical_id = logical_div.get("ID")
+            logical_dmdid = logical_div.get("DMDID")
+            if logical_id and logical_dmdid:
+                logical_div_to_dmdids[logical_id] = logical_dmdid.split()
+
+        physical_div_to_hrefs = {}
+        physical_divs = tree.xpath(
+            '//mets:structMap[@TYPE="PHYSICAL"]//mets:div[@ID]',
+            namespaces=self.namespaces,
+        )
+        for physical_div in physical_divs:
+            physical_id = physical_div.get("ID")
+            if not physical_id:
+                continue
+
+            hrefs = []
+            for file_id in physical_div.xpath(
+                "./mets:fptr/@FILEID", namespaces=self.namespaces
+            ):
+                file_href = file_id_to_href.get(file_id)
+                if file_href:
+                    hrefs.append(file_href)
+
+            if hrefs:
+                physical_div_to_hrefs[physical_id] = hrefs
+
+        xlink_ns = self.namespaces.get("xlink", "http://www.w3.org/1999/xlink")
+        for link in tree.xpath(
+            "//mets:structLink/mets:smLink", namespaces=self.namespaces
+        ):
+            logical_id = link.get(f"{{{xlink_ns}}}from")
+            physical_id = link.get(f"{{{xlink_ns}}}to")
+            if not logical_id or not physical_id:
+                continue
+
+            dmdids = logical_div_to_dmdids.get(logical_id)
+            hrefs = physical_div_to_hrefs.get(physical_id)
+            if not dmdids or not hrefs:
+                continue
+
+            # structLink mapping is more specific than fileGrp-level DMDID.
+            for file_href in hrefs:
+                file_map[file_href] = dmdids
+
         if self.cache_parsed:
             self._parsed_tree = tree
             self._file_to_mods_map = file_map
-        
+
         return tree, file_map
 
     def _extract_mods_value(self, tree, dmdid: str) -> typing.Optional[str]:
         """Extract MODS metadata value for given DMDID
-        
+
         Args:
             tree: Parsed lxml tree
             dmdid: DMD section ID
-            
+
         Returns:
             Extracted metadata value or None
         """
         # Find dmdSec with matching ID
         dmd_xpath = f'//mets:dmdSec[@ID="{dmdid}"]//mods:mods'
         mods_sections = tree.xpath(dmd_xpath, namespaces=self.namespaces)
-        
+
         if not mods_sections:
             return None
-        
+
         # Apply user's XPath expression to MODS section
         for mods_section in mods_sections:
             try:
-                results = mods_section.xpath(self.xpath_expression, namespaces=self.namespaces)
+                results = mods_section.xpath(
+                    self.xpath_expression, namespaces=self.namespaces
+                )
                 if results:
-                    # Return text content of first matching element
-                    if hasattr(results[0], 'text'):
-                        return results[0].text
-                    elif isinstance(results[0], str):
-                        return results[0]
-            except Exception:
-                continue
-        
+                    values = []
+                    for result in results:
+                        if hasattr(result, "text") and result.text:
+                            values.append(result.text)
+                        elif isinstance(result, str):
+                            values.append(result)
+                    if values:
+                        return "+".join(values)
+            except Exception as e:
+                raise RuntimeError from e
+
         return None
 
     def __call__(self, entry: typing.Any) -> typing.Optional[str]:
         """Extract MODS metadata value for entry's groundtruth file
-        
+
         Args:
             entry: EvalEntry with path_groundtruth attribute
-            
+
         Returns:
             Extracted MODS metadata value or None if not found
         """
-        if not hasattr(entry, 'path_groundtruth') or entry.path_groundtruth is None:
+        if not hasattr(entry, "path_groundtruth") or entry.path_groundtruth is None:
             return None
-        
+
         try:
             # Parse METS file and get mapping
             tree, file_map = self._parse_mets_file()
-            
+            assert tree is not None and file_map is not None
+
             # Get groundtruth filename (may need to match various href formats)
             gt_filename = entry.path_groundtruth.name
             gt_path_str = str(entry.path_groundtruth)
-            
+
             # Try to find matching file entry in METS
             matched_dmdids = None
             for file_href, dmdids in file_map.items():
@@ -295,59 +353,54 @@ class METSModsExtractor:
                 if gt_filename in file_href or file_href in gt_path_str:
                     matched_dmdids = dmdids
                     break
-            
+
             if not matched_dmdids:
                 return None
-            
+
             # Extract metadata from first matching DMDID
             for dmdid in matched_dmdids:
                 value = self._extract_mods_value(tree, dmdid)
                 if value:
                     return value
-            
+
             return None
-            
+
         except Exception as e:
-            # Silently return None on errors (could add logging here)
-            return None
+            raise RuntimeError from e
 
 
 class AggregationStrategy:
     """Defines how to aggregate evaluation results across dimensions
-    
+
     An aggregation strategy specifies one or more dimensions along which
     evaluation results should be grouped and aggregated. Each dimension
     can extract different properties from evaluation entries.
-    
+
     Args:
         dimensions: List of aggregation dimensions to apply
         hierarchical: If True, creates hierarchical keys combining all dimensions
     """
 
     def __init__(
-        self,
-        dimensions: typing.List[AggregationDimension],
-        hierarchical: bool = False
+        self, dimensions: typing.List[AggregationDimension], hierarchical: bool = False
     ):
         self.dimensions = dimensions
         self.hierarchical = hierarchical
 
     def generate_keys(
-        self,
-        entry: typing.Any,
-        metric: digem.OCRMetric
+        self, entry: typing.Any, metric: digem.OCRMetric
     ) -> typing.List[str]:
         """Generate aggregation keys for an evaluation entry
-        
+
         Args:
             entry: EvalEntry to extract dimensions from
             metric: OCRMetric being aggregated
-            
+
         Returns:
             List of aggregation key strings (e.g., ["Cs@directory:ger_frk"])
         """
         keys = []
-        
+
         # Single dimension keys: metric@dimension:value
         for dim in self.dimensions:
             value = dim.extractor(entry)
@@ -359,7 +412,7 @@ class AggregationStrategy:
                         keys.append(f"{metric.label}@{dim.name}:{v}")
                 else:
                     keys.append(f"{metric.label}@{dim.name}:{value}")
-        
+
         # Hierarchical keys: metric@dim1:val1/dim2:val2/...
         if self.hierarchical and len(self.dimensions) > 1:
             values = []
@@ -371,9 +424,9 @@ class AggregationStrategy:
                         values.append((dim.name, value[0]))
                     else:
                         values.append((dim.name, value))
-            
+
             if len(values) == len(self.dimensions):
                 dim_path = "/".join(f"{name}:{val}" for name, val in values)
                 keys.append(f"{metric.label}@{dim_path}")
-        
+
         return keys
