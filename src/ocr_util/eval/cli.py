@@ -7,6 +7,7 @@ import typing
 
 from pathlib import Path
 
+import ocr_util
 import ocr_util.eval as digev
 import ocr_util.eval.dictionary_metrics.common as digev_cm
 import ocr_util.eval.metrics as digem
@@ -173,6 +174,7 @@ def _parse_extractor_spec(
 def _build_aggregation_strategy(
     aggregate_by: typing.Optional[str],
     mets_path: typing.Optional[Path],
+    strict: bool = False,
     verbosity: int = 0
 ) -> typing.Optional[digev.AggregationStrategy]:
     """Build aggregation strategy from CLI specification
@@ -184,6 +186,9 @@ def _build_aggregation_strategy(
     
     Returns:
         AggregationStrategy or None if no valid dimensions
+
+    Raises:
+        ValueError: If strict=True and at least one specification is invalid.
     """
     if not aggregate_by:
         return None
@@ -192,6 +197,7 @@ def _build_aggregation_strategy(
     specs = [s.strip() for s in aggregate_by.split(',')]
     dimensions = []
     
+    invalid_specs = []
     for spec in specs:
         result = _parse_extractor_spec(spec, mets_path, verbosity)
         if result:
@@ -199,6 +205,13 @@ def _build_aggregation_strategy(
             dimensions.append(digev.AggregationDimension(dim_name, extractor))
             if verbosity >= 1:
                 print(f"[DEBUG] Added aggregation dimension '{dim_name}' from spec '{spec}'")
+        else:
+            invalid_specs.append(spec)
+
+    if strict and invalid_specs:
+        raise ValueError(
+            f"Invalid aggregation dimension specification(s): {', '.join(invalid_specs)}"
+        )
     
     if not dimensions:
         return None
@@ -296,7 +309,8 @@ def start_evaluation(parse_args: typing.Dict):
         print(f"[DEBUG] text normalized using '{utf8norm}' code points for '{metrics}'")
 
     evaluator.is_sequential = is_seq
-    evaluator.domain_reference = path_reference
+    if path_reference is not None:
+        evaluator.domain_reference = path_reference
 
     # gather structure information
     candidates: typing.List[digev.EvalEntry] = digev.gather_candidates(path_candidates)
@@ -346,7 +360,18 @@ def start_evaluation(parse_args: typing.Dict):
     
     # Priority 1: --aggregate-by (unified approach)
     if aggregate_by:
-        strategy = _build_aggregation_strategy(aggregate_by, mets_path, verbosity)
+        # If METS file is present and MODS dimensions are requested, fail fast on invalid specs.
+        strict_validation = mets_path is not None and "mods:" in aggregate_by
+        try:
+            strategy = _build_aggregation_strategy(
+                aggregate_by,
+                mets_path,
+                strict=strict_validation,
+                verbosity=verbosity,
+            )
+        except ValueError as err:
+            print(f"[ERROR] {err}. exit!")
+            sys.exit(1)
         if not strategy:
             print("[WARN ] No valid aggregation dimensions provided. Using default aggregation.")
     
@@ -364,7 +389,16 @@ def start_evaluation(parse_args: typing.Dict):
         if verbosity >= 1:
             print(f"[DEBUG] Converting legacy --mods-dimensions to unified format: {aggregate_by_converted}")
         
-        strategy = _build_aggregation_strategy(aggregate_by_converted, mets_path, verbosity)
+        try:
+            strategy = _build_aggregation_strategy(
+                aggregate_by_converted,
+                mets_path,
+                strict=True,
+                verbosity=verbosity,
+            )
+        except ValueError as err:
+            print(f"[ERROR] {err}. exit!")
+            sys.exit(1)
         if not strategy:
             print("[WARN ] No valid MODS dimensions provided. Using default aggregation.")
     
@@ -398,7 +432,7 @@ def start_evaluation(parse_args: typing.Dict):
 def start():
     """Wrap argparsing"""
     parser = argparse.ArgumentParser(
-        description=f"Evaluate Mass Digitalization Data {digev.__version__}"
+        description=f"OCR Utils {ocr_util.__version__}"
     )
     parser.add_argument(
         "candidates",

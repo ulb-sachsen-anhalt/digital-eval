@@ -165,7 +165,7 @@ class Evaluator:
             extras (_type_, optional): Implementation dependend. Defaults to None.
         """
         self.domain_candidate = root_candidates
-        self.domain_reference = None
+        self.domain_reference: typing.Optional[Path] = None
         self.evaluation_entries = []
         self.verbosity = verbosity
         self.evaluation_data = {}

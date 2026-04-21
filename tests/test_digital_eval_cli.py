@@ -252,3 +252,53 @@ def test_cli_with_mets_file_only_warning(cli_paths, capsys):
     # assert - should still work with default aggregation
     assert len(eval_results) > 0
 
+
+def test_cli_with_mets_invalid_mods_dimension_fails_early(cli_paths):
+    """Fail fast when --aggregate-by requests unknown mods dimension with METS file."""
+
+    dig.VERBOSITY = 1
+    dst_candidates = cli_paths['candidate_dir']
+    dst_reference = cli_paths['reference_dir']
+    dst_mets = cli_paths['mets_file']
+
+    cli_args = {
+        "candidates": dst_candidates,
+        "reference": dst_reference,
+        "metrics": dig.DEFAULT_OCR_METRICS,
+        "verbosity": 1,
+        "utf8": dig.DEFAULT_UTF8_NORM,
+        "sequential": True,
+        "mets_file": str(dst_mets),
+        "aggregate_by": "mods:does_not_exist",
+    }
+
+    with pytest.raises(SystemExit) as excinfo:
+        dig.start_evaluation(cli_args)
+
+    assert excinfo.value.code == 1
+
+
+def test_cli_with_legacy_invalid_mods_dimension_fails_early(cli_paths):
+    """Fail fast for invalid legacy --mods-dimensions with METS file."""
+
+    dig.VERBOSITY = 1
+    dst_candidates = cli_paths['candidate_dir']
+    dst_reference = cli_paths['reference_dir']
+    dst_mets = cli_paths['mets_file']
+
+    cli_args = {
+        "candidates": dst_candidates,
+        "reference": dst_reference,
+        "metrics": dig.DEFAULT_OCR_METRICS,
+        "verbosity": 1,
+        "utf8": dig.DEFAULT_UTF8_NORM,
+        "sequential": True,
+        "mets_file": str(dst_mets),
+        "mods_dimensions": "language,does_not_exist",
+    }
+
+    with pytest.raises(SystemExit) as excinfo:
+        dig.start_evaluation(cli_args)
+
+    assert excinfo.value.code == 1
+
