@@ -17,10 +17,11 @@ DEFAULT_VERBOSITY = 0
 SUB_CMD_FRAME = "frame"
 SUB_CMD_GROUNDTRUTH_CORPUS = "corpus"
 CORPUS_CACHE_DIR_NAME = "ocr_util_corpus_mets_cache"
-CORPUS_CACHE_DIR = os.path.join(os.path.expanduser("~"), '.cache', CORPUS_CACHE_DIR_NAME)
+CORPUS_CACHE_DIR = os.path.join(
+    os.path.expanduser("~"), ".cache", CORPUS_CACHE_DIR_NAME
+)
 
 SUB_CMD_EVALUATE = "eval"
-
 
 
 def points_type(points: str) -> str:
@@ -72,7 +73,7 @@ def start() -> None:
         f.e.: --frame "2892,2480 5072,2480 5072,5148 2892,5148"
         """,
     )
-    
+
     # groundtruth-corpus subcommand
     groundtruth_corpus_arg_parser = sub_arg_parsers.add_parser(
         SUB_CMD_GROUNDTRUTH_CORPUS,
@@ -123,7 +124,7 @@ def start() -> None:
         help="Label for the corpus in the METS logical structure (default: 'Ground Truth Corpus')",
         required=False,
     )
-    
+
     # evaluate subcommand
     evaluate_arg_parser = sub_arg_parsers.add_parser(
         SUB_CMD_EVALUATE,
@@ -135,12 +136,14 @@ def start() -> None:
         help="Root directory for evaluation candidates / Path to single candidate file",
     )
     evaluate_arg_parser.add_argument(
-        "-ref", "--reference",
+        "-ref",
+        "--reference",
         required=False,
         help="Root directory for reference/groundtruth data",
     )
     evaluate_arg_parser.add_argument(
-        "-v", "--verbosity",
+        "-v",
+        "--verbosity",
         action="count",
         default=DEFAULT_VERBOSITY,
         required=False,
@@ -159,30 +162,40 @@ def start() -> None:
         help=f"UTF-8 normalization form (default: '{eval_cli.DEFAULT_UTF8_NORM}')",
     )
     evaluate_arg_parser.add_argument(
-        "-s", "--sequential",
+        "-s",
+        "--sequential",
         action="store_true",
         required=False,
         help="Execute calculations sequentially (default: False)",
     )
     evaluate_arg_parser.add_argument(
-        "-x", "--extra",
+        "-x",
+        "--extra",
         required=False,
         help="Pass additional information to evaluation (e.g. 'ignore_geometry')",
     )
     evaluate_arg_parser.add_argument(
-        "-l", "--language",
+        "-l",
+        "--language",
         required=False,
         help="Language code for LanguageTool (ISO 639-2)",
     )
     evaluate_arg_parser.add_argument(
-        "-u", "--lt-api-url",
+        "-u",
+        "--lt-api-url",
         required=False,
         help="LanguageTool API URL",
     )
     evaluate_arg_parser.add_argument(
         "--aggregate-by",
         required=False,
-        help="Comma-separated aggregation dimensions (e.g. 'directory', 'type', 'mods:DIMENSION')",
+        help=(
+            "Aggregation dimensions. Use ',' for independent keys "
+            "(e.g. 'mods:language,mods:dateIssued:century') or '+' for "
+            "combined/hierarchical keys "
+            "(e.g. 'mods:language+mods:dateIssued:century'). "
+            "Other supported types: 'directory', 'type', 'pattern:REGEX'."
+        ),
     )
     evaluate_arg_parser.add_argument(
         "--mets-file",
@@ -197,8 +210,8 @@ def start() -> None:
 
     args = arg_parser.parse_args()
 
-    verbosity: int = getattr(args, 'verbosity', DEFAULT_VERBOSITY)
-    
+    verbosity: int = getattr(args, "verbosity", DEFAULT_VERBOSITY)
+
     if args.subcommand == SUB_CMD_FRAME:
         input_ocr_file: str = args.input_ocr_file
         output_ocr_file: str = args.output_ocr_file
@@ -214,7 +227,7 @@ def start() -> None:
         file_result: PurePath = do.from_digital_object(piece_result, output_ocr_file)
         if verbosity > 0:
             print("[INFO ] file_result", file_result)
-    
+
     elif args.subcommand == SUB_CMD_GROUNDTRUTH_CORPUS:
         # Create Args object for Gt2Mets
         gt2mets_args = Args(
@@ -222,15 +235,17 @@ def start() -> None:
             output_dir=Path(args.output_dir).absolute(),
             temp_dir=Path(args.temp_dir).absolute(),
             limit=int(args.limit),
-            corpus_label=args.corpus_label
+            corpus_label=args.corpus_label,
         )
-        
+
         if verbosity > 0:
             print(f"[INFO ] Input directory: {gt2mets_args.input_dir}")
             print(f"[INFO ] Output directory: {gt2mets_args.output_dir}")
             print(f"[INFO ] Temp directory: {gt2mets_args.temp_dir}")
-            print(f"[INFO ] Limit: {gt2mets_args.limit if gt2mets_args.limit > 0 else 'unlimited'}")
-        
+            print(
+                f"[INFO ] Limit: {gt2mets_args.limit if gt2mets_args.limit > 0 else 'unlimited'}"
+            )
+
         try:
             gt2mets = Gt2Mets(gt2mets_args)
             gt2mets.run()
@@ -242,7 +257,7 @@ def start() -> None:
 
     elif args.subcommand == SUB_CMD_EVALUATE:
         eval_args = vars(args)
-        eval_args.pop('subcommand', None)
+        eval_args.pop("subcommand", None)
         eval_cli.start_evaluation(eval_args)
 
 

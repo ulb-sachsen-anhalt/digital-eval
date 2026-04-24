@@ -13,6 +13,10 @@ from .aggregation import (
     CustomMetadataExtractor,
     FilenamePatternExtractor,
     METSModsExtractor,
+    METSDivAttrExtractor,
+    ValueTransformExtractor,
+    decade_transform,
+    century_transform,
 )
 from .resolve import (
     find_groundtruth,

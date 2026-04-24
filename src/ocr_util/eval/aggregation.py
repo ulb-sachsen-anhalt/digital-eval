@@ -132,6 +132,208 @@ class FilenamePatternExtractor:
         return None
 
 
+def decade_transform(value: str) -> typing.Optional[str]:
+    """Transform a 4-digit year string into its decade bucket (e.g. '1867' → '1860s')."""
+    try:
+        year = int(str(value).strip()[:4])
+        return f"{(year // 10) * 10}s"
+    except (ValueError, TypeError):
+        return None
+
+
+def century_transform(value: str) -> typing.Optional[str]:
+    """Transform a 4-digit year string into its century bucket (e.g. '1867' → '19th')."""
+    try:
+        year = int(str(value).strip()[:4])
+        century = year // 100 + 1
+        suffix = {1: "st", 2: "nd", 3: "rd"}.get(
+            century % 10 if century % 100 not in (11, 12, 13) else 0, "th"
+        )
+        return f"{century}{suffix}"
+    except (ValueError, TypeError):
+        return None
+
+
+class ValueTransformExtractor:
+    """Wrap any extractor and apply a transform function to its output value.
+
+    Useful for bucketing continuous values such as dates into ranges (e.g.
+    decade buckets).
+
+    Args:
+        inner: Base extractor callable
+        transform: Function applied to the extracted value; should return
+                   a string or None (None means the entry is excluded from
+                   this dimension)
+    """
+
+    def __init__(
+        self,
+        inner: typing.Callable[[typing.Any], typing.Any],
+        transform: typing.Callable[[typing.Any], typing.Optional[str]],
+    ):
+        self.inner = inner
+        self.transform = transform
+
+    def __call__(self, entry: typing.Any) -> typing.Optional[str]:
+        value = self.inner(entry)
+        if value is None:
+            return None
+        return self.transform(value)
+
+
+class METSDivAttrExtractor:
+    """Extract mets:div attribute values from the LOGICAL structMap.
+
+    Maps each groundtruth file to its linked logical ``mets:div`` element via
+    the structLink section and returns the requested XML attribute value.
+
+    Typical use cases:
+    * ``attribute="TYPE"``  → structural type of the logical unit
+      (e.g. ``"section"``, ``"chapter"``, ``"article"``, ``"preface"``)
+    * ``attribute="LABEL"`` → human-readable label of the logical unit
+
+    Lookup strategy (most-specific first):
+
+    1. **structLink** — ``mets:smLink xlink:to=physId`` gives the linked
+       logical div; its attribute is used.
+    2. **DMDID fallback** — if no structLink is present, look up the logical
+       div that carries the same ``DMDID`` as the file's ``fileGrp``.
+
+    Args:
+        mets_file_path: Path to the METS file
+        attribute: ``mets:div`` attribute name to extract (e.g. ``"TYPE"``)
+        namespaces: Optional namespace mapping override
+        cache_parsed: Cache the parsed file-to-attribute mapping (default True)
+    """
+
+    DEFAULT_NAMESPACES = {
+        "mets": "http://www.loc.gov/METS/",
+        "xlink": "http://www.w3.org/1999/xlink",
+    }
+
+    def __init__(
+        self,
+        mets_file_path: Path,
+        attribute: str,
+        namespaces: typing.Optional[typing.Dict[str, str]] = None,
+        cache_parsed: bool = True,
+    ):
+        self.mets_file_path = mets_file_path
+        self.attribute = attribute
+        self.namespaces = namespaces or self.DEFAULT_NAMESPACES
+        self.cache_parsed = cache_parsed
+        self._file_to_attr_map: typing.Optional[typing.Dict[str, str]] = None
+
+    def _build_map(self) -> typing.Dict[str, str]:
+        """Parse METS file and build file_href → attribute-value mapping."""
+        if self.cache_parsed and self._file_to_attr_map is not None:
+            return self._file_to_attr_map
+
+        if not self.mets_file_path.exists():
+            raise FileNotFoundError(f"METS file not found: {self.mets_file_path}")
+
+        tree = ET.parse(str(self.mets_file_path))
+        ns = self.namespaces
+        xlink_ns = ns.get("xlink", "http://www.w3.org/1999/xlink")
+
+        # file ID → href
+        file_id_to_href: typing.Dict[str, str] = {}
+        for file_elem in tree.xpath("//mets:file", namespaces=ns):
+            fid = file_elem.get("ID")
+            flocat = file_elem.xpath("./mets:FLocat/@xlink:href", namespaces=ns)
+            if fid and flocat:
+                file_id_to_href[fid] = flocat[0]
+
+        # physical div ID → [file hrefs]
+        phys_to_hrefs: typing.Dict[str, typing.List[str]] = {}
+        for pdiv in tree.xpath(
+            '//mets:structMap[@TYPE="PHYSICAL"]//mets:div[@ID]', namespaces=ns
+        ):
+            pid = pdiv.get("ID")
+            hrefs = [
+                file_id_to_href[fid]
+                for fid in pdiv.xpath("./mets:fptr/@FILEID", namespaces=ns)
+                if fid in file_id_to_href
+            ]
+            if pid and hrefs:
+                phys_to_hrefs[pid] = hrefs
+
+        # logical div ID → attribute value
+        log_to_attr: typing.Dict[str, str] = {}
+        # also: DMDID → attribute value (fallback)
+        dmdid_to_attr: typing.Dict[str, str] = {}
+        for ldiv in tree.xpath(
+            '//mets:structMap[@TYPE="LOGICAL"]//mets:div[@ID]', namespaces=ns
+        ):
+            lid = ldiv.get("ID")
+            attr_val = ldiv.get(self.attribute)
+            if lid and attr_val:
+                log_to_attr[lid] = attr_val
+            dmdid = ldiv.get("DMDID")
+            if dmdid and attr_val:
+                for d in dmdid.split():
+                    dmdid_to_attr.setdefault(d, attr_val)
+
+        # physical div ID → [logical div IDs] (reverse of structLink)
+        phys_to_logical: typing.Dict[str, typing.List[str]] = {}
+        for link in tree.xpath("//mets:structLink/mets:smLink", namespaces=ns):
+            logical_id = link.get(f"{{{xlink_ns}}}from")
+            physical_id = link.get(f"{{{xlink_ns}}}to")
+            if logical_id and physical_id:
+                phys_to_logical.setdefault(physical_id, []).append(logical_id)
+
+        file_to_attr: typing.Dict[str, str] = {}
+
+        # Primary: structLink resolution
+        for phys_id, hrefs in phys_to_hrefs.items():
+            for log_id in phys_to_logical.get(phys_id, []):
+                attr_val = log_to_attr.get(log_id)
+                if attr_val:
+                    for href in hrefs:
+                        file_to_attr.setdefault(href, attr_val)
+                    break
+
+        # Fallback: DMDID on file / fileGrp → logical div attribute
+        for file_elem in tree.xpath("//mets:file", namespaces=ns):
+            flocat = file_elem.xpath("./mets:FLocat/@xlink:href", namespaces=ns)
+            if not flocat:
+                continue
+            href = flocat[0]
+            if href in file_to_attr:
+                continue
+            dmdid = file_elem.get("DMDID")
+            if not dmdid:
+                parent = file_elem.getparent()
+                if parent is not None:
+                    dmdid = parent.get("DMDID")
+            if dmdid:
+                for d in dmdid.split():
+                    if d in dmdid_to_attr:
+                        file_to_attr[href] = dmdid_to_attr[d]
+                        break
+
+        if self.cache_parsed:
+            self._file_to_attr_map = file_to_attr
+
+        return file_to_attr
+
+    def __call__(self, entry: typing.Any) -> typing.Optional[str]:
+        """Extract mets:div attribute for entry's groundtruth file."""
+        if not hasattr(entry, "path_groundtruth") or entry.path_groundtruth is None:
+            return None
+        try:
+            file_to_attr = self._build_map()
+            gt_filename = entry.path_groundtruth.name
+            gt_path_str = str(entry.path_groundtruth)
+            for href, attr_val in file_to_attr.items():
+                if gt_filename in href or href in gt_path_str:
+                    return attr_val
+            return None
+        except Exception as e:
+            raise RuntimeError from e
+
+
 class METSModsExtractor:
     """Extract MODS metadata from METS/MODS files
 

@@ -12,7 +12,6 @@ import os
 import re
 import sys
 import typing
-import warnings
 
 from pathlib import Path
 
@@ -33,6 +32,10 @@ from ocr_util.eval.aggregation import (
     CustomMetadataExtractor,
     FilenamePatternExtractor,
     METSModsExtractor,
+    METSDivAttrExtractor,
+    ValueTransformExtractor,
+    decade_transform,
+    century_transform,
     _NOT_SET as AGGREGATION_NOT_SET,
 )
 
@@ -173,7 +176,7 @@ class Evaluator:
         self.evaluation_map = {}
         self.text_mode = extras == EVAL_EXTRA_IGNORE_GEOMETRY
         self.is_sequential = False
-        self.metrics: typing.List[digem.SimilarityMetric] = []
+        self.metrics: typing.Sequence[digem.OCRMetric] = []
         self.evaluation_report = {}
 
     def eval_all(self, entries: typing.List[EvalEntry], sequential=False) -> None:
@@ -253,7 +256,9 @@ class Evaluator:
                 print(f"[TRACE] token coordinates {coords[0]}, {coords[1]}")
             # check if text mode turned on
             if self.text_mode and coords is None:
-                print(f"[WARN ] no coordinates for {entry.path_groundtruth} - apply extra '{EVAL_EXTRA_IGNORE_GEOMETRY}'!")
+                print(
+                    f"[WARN ] no coordinates for {entry.path_groundtruth} - apply extra '{EVAL_EXTRA_IGNORE_GEOMETRY}'!"
+                )
                 continue
 
             coords = None if self.text_mode else coords
@@ -343,61 +348,61 @@ class Evaluator:
     def aggregate_generic(
         self,
         strategy: typing.Optional[AggregationStrategy] = None,
-        by_metrics: typing.Optional[typing.List[int]] = None
+        by_metrics: typing.Optional[typing.List[int]] = None,
     ) -> None:
         """Generic aggregation using pluggable strategy
-        
+
         This is the new, flexible aggregation method that supports arbitrary
         aggregation dimensions through the AggregationStrategy pattern.
-        
+
         Args:
             strategy: AggregationStrategy defining how to aggregate results.
                      If None, uses default strategy (backward compatible)
             by_metrics: List of metric indices to aggregate (e.g., [0, 1, 2, 3]).
                        If None, aggregates all metrics.
-        
+
         Example:
             # Aggregate by document type only
             type_strategy = AggregationStrategy([
                 AggregationDimension("type", TypeExtractor())
             ])
             evaluator.aggregate_generic(type_strategy)
-            
+
             # Aggregate by custom metadata
             engine_strategy = AggregationStrategy([
                 AggregationDimension("engine", CustomMetadataExtractor("ocr_engine"))
             ])
             evaluator.aggregate_generic(engine_strategy)
         """
-        
+
         # Preconditions
         self._check_aggregate_preconditions()
-        
+
         # Default strategy: backward compatible (directory hierarchy + type)
         if strategy is None:
             strategy = self._get_default_aggregation_strategy()
-        
+
         # Default metrics: all metrics
         if by_metrics is None:
             by_metrics = list(range(len(self.metrics)))
-        
+
         # Clear existing evaluation map
         self.evaluation_map = {}
-        
+
         # Aggregate using strategy
         for entry in self.evaluation_entries:
             for metrics_index in by_metrics:
                 # Skip if this metric index doesn't exist
                 if metrics_index >= len(entry.metrics):
                     continue
-                
+
                 metric = entry.metrics[metrics_index]
                 metric_value = metric.value
                 metric_refs = metric.n_ref
-                
+
                 # Generate all applicable aggregation keys
                 agg_keys = strategy.generate_keys(entry, metric)
-                
+
                 # Add to evaluation map
                 for key in agg_keys:
                     if key not in self.evaluation_map:
@@ -408,33 +413,33 @@ class Evaluator:
 
     def _get_default_aggregation_strategy(self) -> AggregationStrategy:
         """Get default aggregation strategy for backward compatibility
-        
+
         The default strategy aggregates by:
         1. Directory hierarchy (all levels)
         2. Document type (if present)
         3. Combination of root directory + type
-        
+
         This mimics the behavior of the original aggregate() method.
         """
         dimensions = [AggregationDimension("", DirectoryHierarchyExtractor())]
-        
+
         # Also aggregate by type at root level for backward compatibility
         # This is handled by generating composite keys
         strategy = AggregationStrategy(dimensions, hierarchical=False)
-        
+
         return strategy
 
     def aggregate(self, by_type=False, by_metrics=None):
         """Aggregate item's metrics for domain/directory and/or annotated type
-        
+
         [LEGACY METHOD] This method uses a fixed aggregation strategy based on
         filesystem directory structure. For more flexible aggregation, consider
         using aggregate_generic() which supports custom aggregation dimensions.
-        
+
         Args:
             by_type: If True, also aggregate by document type at root level
             by_metrics: List of metric indices to aggregate (default: [0,1,2,3])
-        
+
         See also:
             aggregate_generic(): More flexible aggregation with custom strategies
         """
