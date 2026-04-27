@@ -1,5 +1,5 @@
 [build-system]
-requires = ["setuptools>=61.0"]
+requires = ["setuptools>=61.0.0", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [tool.setuptools.dynamic]
@@ -12,9 +12,9 @@ where = ["src"]
 ocr_util = ["corpus/*.xml"]
 
 [project]
-name = "digital-eval"
+name = "ocr-util"
 dynamic = ["version"]
-description = "Evaluate Digitalization Data"
+description = "OCR Utils"
 readme = "README.md"
 requires-python = ">=3.10"
 authors = [{name = "Universitäts- und Landesbibliothek Sachsen-Anhalt",email = "development@bibliothek.uni-halle.de"}]
@@ -44,7 +44,20 @@ test = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/ulb-sachsen-anhalt/digital-eval"
+Homepage = "https://github.com/ulb-sachsen-anhalt/ocr-util"
 
 [project.scripts]
-ocr-util = "ocr_util.cli:start"
+ocr = "ocr_util.cli:start"
+
+[tool.coverage.run]
+source = ["exporter"]
+branch = false
+omit = ["*/tests/*", "*/__pycache__/*", "*/venv/*", "*/build/*"]
+
+[tool.coverage.report]
+precision = 2
+
+[tool.black]
+line-length = 120
+target-version = ["py310"]
+include = '\.pyi?$'
