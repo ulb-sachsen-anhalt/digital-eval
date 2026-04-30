@@ -13,28 +13,30 @@ Collection of utils to
 * recent *nix-OS
 * Python3.10+ Environment
 
-## Local installation
-
-```bash
-pip install - e.
-```
-
 ## Usage
+
+Each section contains detailed usage help instructions:
 
 ```bash
 # evaluation
 ocr eval --help
 
 # corpus management
-ocr generate-corpus --help
+ocr corpus --help
+
+# slice image by image + input OCR
+ocr slice --help
+
+# render image + input OCR
+ocr show --help
 ```
 
-### Evaluation data problems
+### Data problems
 
 Inconsistent OCR Groundtruth with empty texts (ALTO String elements missing CONTENT or PAGE without TextEquiv) or invalid geometrical coordinates (less than 3 points or even empty) will lead to evaluation errors if geometry must be respected.
 
 _Please note_:  
-Erroneous or otherwise insufficient data files are excluded from evaluation.
+Invalid data files are tried(!) to be excluded from evaluation.
 
 ## Development
 
@@ -61,7 +63,7 @@ python -m pytest --cov=src
 python -m pytest -q -n auto
 ```
 
-## Contribute
+## Contribution
 
 Contributions, suggestions and proposals welcome!
 
