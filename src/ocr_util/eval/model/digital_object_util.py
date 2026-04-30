@@ -57,11 +57,11 @@ class DigitalObjectUtil:
             raise dmc.DigitalObjectException("invalid document root")
         name_space = doc_root.getAttribute("xmlns")
         piece: Optional[DigitalObjectTree]
-        if doc_root.localName == "alto":
+        if doc_root.localName.lower() == "alto":
             piece = FormatAltoV3Util.extract_data(path_in)
         elif name_space == PAGE_2013:
             piece = FormatPageUtil.extract_data(path_in)
-        elif doc_root.localName == "PcGts":
+        elif doc_root.localName.lower() == "pcgts":
             piece = FormatPageUtil.extract_data(path_in)
         else:
             raise dmc.DigitalObjectException(

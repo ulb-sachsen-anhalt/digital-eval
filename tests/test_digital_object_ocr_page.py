@@ -210,3 +210,20 @@ def test_digital_object_inconsistent_geometry():
 
     # assert
     assert 'not contained in parent box' in str(_err.value.args[0])
+
+
+def test_invalid_page_from_vlm():
+    """Fix behavior with previously invalid PAGE data - problem was 
+    our way of determing namespaces"""
+
+    # urn+nbn+de+gbv+3+1-112032-p0026-5_ger.gt
+    # arrange
+    ocr_path = f'{TEST_RES_DIR}/xml/0001.xml'
+
+    # act
+    dtr = to_digital_object(ocr_path)
+
+    # assert
+    assert dtr is not None
+    assert dtr.level == dom.DigitalObjectLevel.PAGE
+    assert len(dtr.children) == 1
