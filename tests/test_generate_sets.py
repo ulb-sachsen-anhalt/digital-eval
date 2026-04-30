@@ -8,16 +8,8 @@ import os
 import pathlib
 import shutil
 
-from cv2 import (
-    imread,
-    imwrite,
-    putText,
-    FONT_HERSHEY_COMPLEX,
-    IMREAD_UNCHANGED,
-    IMWRITE_TIFF_RESUNIT,
-    IMWRITE_TIFF_XDPI,
-    IMWRITE_TIFF_YDPI,
-)
+import cv2
+
 import numpy as np
 import pytest
 import lxml.etree as etree
@@ -62,10 +54,10 @@ def generate_image(path_image, words, columns, rows, params=None):
         for word in words:
             render_text = word[1]
             origin = (word[0][0] + 10, word[0][1] + 10)
-            dst = putText(
-                dst, render_text, origin, FONT_HERSHEY_COMPLEX, 1.0, (0, 0, 0), 3, bottomLeftOrigin=False)
+            dst = cv2.putText(
+                dst, render_text, origin, cv2.FONT_HERSHEY_COMPLEX, 1.0, (0, 0, 0), 3, bottomLeftOrigin=False)
 
-    imwrite(str(path_image), dst, params)
+    cv2.imwrite(str(path_image), dst, params)
     return path_image
 
 
@@ -121,9 +113,9 @@ def fixture_newspaper_p512(tmpdir):
 
     file_path = tmpdir.mkdir('scan').join('1667522809_J_0073_0512.tif')
     tif_params = [
-        IMWRITE_TIFF_RESUNIT, 2,
-        IMWRITE_TIFF_XDPI, 300,
-        IMWRITE_TIFF_YDPI, 300
+        cv2.IMWRITE_TIFF_RESUNIT, 2,
+        cv2.IMWRITE_TIFF_XDPI, 300,
+        cv2.IMWRITE_TIFF_YDPI, 300
     ]
 
     # 6619x9976px
@@ -477,7 +469,7 @@ def rowimage_0251_0011_tl36(tmp_path):
     assert os.path.isfile(res)
     path_img = tmp_path / 'tl_36.tif'
     shutil.copyfile(res, path_img)
-    image_frame = imread(str(path_img), IMREAD_UNCHANGED)
+    image_frame = cv2.imread(str(path_img), cv2.IMREAD_UNCHANGED)
 
     # check original image data distribution back - foreground
     # 17.236 gray val <= 128 foreground, 161.594 brighter as background
@@ -543,7 +535,7 @@ def rowimage_0251_0011_tl04(tmp_path):
     assert os.path.isfile(res)
     path_img = tmp_path / 'tl_4.tif'
     shutil.copyfile(res, path_img)
-    image_frame = imread(str(path_img), IMREAD_UNCHANGED)
+    image_frame = cv2.imread(str(path_img), cv2.IMREAD_UNCHANGED)
 
     # check original image data distribution back - foreground
     (_, bins, vals) = np.unique((image_frame > 127),
@@ -585,7 +577,7 @@ def rowimage_inclined(tmp_path):
     assert os.path.isfile(res)
     path_img = tmp_path / 'LINE_099_tl_407.png'
     shutil.copyfile(res, path_img)
-    image_frame = imread(str(path_img), IMREAD_UNCHANGED)
+    image_frame = cv2.imread(str(path_img), cv2.IMREAD_UNCHANGED)
     return image_frame
 
 

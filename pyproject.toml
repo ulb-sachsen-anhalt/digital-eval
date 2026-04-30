@@ -30,6 +30,7 @@ dependencies = [
     "numpy",
     "shapely",
     "lxml",
+    "opencv-python-headless",
 ]
 
 [project.optional-dependencies]
