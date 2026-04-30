@@ -205,5 +205,21 @@ def main():
         print(f"[ERROR  ] invalid OCR '{path_ocr_data}' or Image '{path_img_data}'!")
 
 
+def start_slice(parse_args: typing.Dict):
+    """Start slice processing with parsed arguments from parent CLI"""
+    path_ocr_data = Path(parse_args["data"]).resolve()
+    parse_args["data"] = path_ocr_data
+    path_img_data = Path(parse_args["image"]).resolve()
+    parse_args["image"] = path_img_data
+    if path_ocr_data.is_file() and path_img_data.is_file():
+        print(f"[INFO ] generate trainingsets from single file '{path_ocr_data}'")
+        _run_single_page(parse_args)
+    elif path_ocr_data.is_dir() and path_img_data.is_dir():
+        _run_dir(parse_args)
+        print(f"[INFO ] inspect OCR-dir '{path_ocr_data}' and image dir '{path_img_data}")
+    else:
+        print(f"[ERROR  ] invalid OCR '{path_ocr_data}' or Image '{path_img_data}'!")
+
+
 if __name__ == "__main__":
     main()

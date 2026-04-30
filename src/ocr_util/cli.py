@@ -9,6 +9,8 @@ from pathlib import Path, PurePath
 import ocr_util.eval.model as do
 import ocr_util.eval.model.filter as dofi
 import ocr_util.eval.cli as eval_cli
+import ocr_util.slice.cli as slice_cli
+import ocr_util.show.cli as show_cli
 from ocr_util.corpus.Gt2Mets import Gt2Mets
 from ocr_util.corpus.common import Args
 
@@ -22,6 +24,8 @@ CORPUS_CACHE_DIR = os.path.join(
 )
 
 SUB_CMD_EVALUATE = "eval"
+SUB_CMD_SLICE = "slice"
+SUB_CMD_SHOW = "show"
 
 
 def points_type(points: str) -> str:
@@ -33,7 +37,7 @@ def points_type(points: str) -> str:
 
 def start() -> None:
     arg_parser: argparse.ArgumentParser = argparse.ArgumentParser(
-        prog="ocr-util",
+        prog="ocr",
     )
     sub_arg_parsers = arg_parser.add_subparsers(
         title="Subkommandos",
@@ -208,6 +212,117 @@ def start() -> None:
         help="[LEGACY] Comma-separated MODS dimensions; use --aggregate-by instead",
     )
 
+    # slice subcommand
+    slice_arg_parser = sub_arg_parsers.add_parser(
+        SUB_CMD_SLICE,
+        help="Generate pairs of textlines and image frames from OCR and image data",
+        add_help=True,
+    )
+    slice_arg_parser.add_argument(
+        "data",
+        type=str,
+        help="path to local alto|page file corresponding to image",
+    )
+    slice_arg_parser.add_argument(
+        "-i",
+        "--image",
+        required=True,
+        help="path to local image file tif|jpg|png corresponding to ocr",
+    )
+    slice_arg_parser.add_argument(
+        "-o",
+        "--output_dir",
+        default=slice_cli.DEFAULT_OUTDIR_PREFIX,
+        help=f"output directory, re-created if already exists (default: {slice_cli.DEFAULT_OUTDIR_PREFIX})",
+    )
+    slice_arg_parser.add_argument(
+        "--prefix-output",
+        required=False,
+        help="optional: prefix each pair using this arg (default: '')",
+    )
+    slice_arg_parser.add_argument(
+        "-m",
+        "--minchars",
+        required=False,
+        type=int,
+        default=int(slice_cli.DEFAULT_MIN_CHARS),
+        help=f"optional: minimum printable chars required for a line to be included into set (default: {slice_cli.DEFAULT_MIN_CHARS})",
+    )
+    slice_arg_parser.add_argument(
+        "-s",
+        "--summary",
+        required=False,
+        action="store_true",
+        default=slice_cli.DEFAULT_USE_SUMMARY,
+        help=f"optional: print all lines in additional file (default: {slice_cli.DEFAULT_USE_SUMMARY})",
+    )
+    slice_arg_parser.add_argument(
+        "-r",
+        "--reorder",
+        required=False,
+        action="store_true",
+        default=slice_cli.DEFAULT_USE_REORDER,
+        help=f"optional: re-order word tokens from right-to-left (default: {slice_cli.DEFAULT_USE_REORDER})",
+    )
+    slice_arg_parser.add_argument(
+        "--binarize",
+        required=False,
+        action="store_true",
+        default=slice_cli.DEFAULT_BINARIZE,
+        help=f"optional: binarize textline images (default: {slice_cli.DEFAULT_BINARIZE})",
+    )
+    slice_arg_parser.add_argument(
+        "--sanitize",
+        required=False,
+        type=bool,
+        default=slice_cli.DEFAULT_SANITIZE,
+        help=f"optional: sanitize textline images (default: {slice_cli.DEFAULT_SANITIZE})",
+    )
+    slice_arg_parser.add_argument(
+        "--no-sanitize", dest="sanitize", action="store_false"
+    )
+    slice_arg_parser.add_argument(
+        "--intrusion-ratio",
+        required=False,
+        default=slice_cli.DEFAULT_INTRUSION_RATIO,
+        help=f"optional: alter threshold for top and bottom ratios for intrusion detection for sanitizing (default: {slice_cli.DEFAULT_INTRUSION_RATIO})",
+    )
+    slice_arg_parser.add_argument(
+        "--rotation-threshold",
+        required=False,
+        type=float,
+        default=slice_cli.DEFAULT_ROTATION_THRESH,
+        help=f"optional: alter threshold for rotation of textline image (default: {slice_cli.DEFAULT_ROTATION_THRESH})",
+    )
+    slice_arg_parser.add_argument(
+        "-p",
+        "--padding",
+        required=False,
+        type=int,
+        default=slice_cli.DEFAULT_PADDING,
+        help=f"optional: additional padding for existing textline image (default: {slice_cli.DEFAULT_PADDING})",
+    )
+
+    # show subcommand
+    show_arg_parser = sub_arg_parsers.add_parser(
+        SUB_CMD_SHOW,
+        help="Visualize OCR segmentation on images",
+        add_help=True,
+    )
+    show_arg_parser.add_argument(
+        "-i", "--image", required=True, help="path image file (TIF)"
+    )
+    show_arg_parser.add_argument(
+        "-o", "--ocr", required=True, help="path OCR file (ALTO or PAGE XML)"
+    )
+    show_arg_parser.add_argument(
+        "-d", "--output-dir", required=False, default=os.getcwd(),
+        help="output directory for visualization results (default: current working directory)"
+    )
+    show_arg_parser.add_argument(
+        "-v", "--verbose", required=False, action="store_true", help="output info"
+    )
+
     args = arg_parser.parse_args()
 
     verbosity: int = getattr(args, "verbosity", DEFAULT_VERBOSITY)
@@ -259,6 +374,16 @@ def start() -> None:
         eval_args = vars(args)
         eval_args.pop("subcommand", None)
         eval_cli.start_evaluation(eval_args)
+
+    elif args.subcommand == SUB_CMD_SLICE:
+        slice_args = vars(args)
+        slice_args.pop("subcommand", None)
+        slice_cli.start_slice(slice_args)
+
+    elif args.subcommand == SUB_CMD_SHOW:
+        show_args = vars(args)
+        show_args.pop("subcommand", None)
+        show_cli.start_show(show_args)
 
 
 if __name__ == "__main__":

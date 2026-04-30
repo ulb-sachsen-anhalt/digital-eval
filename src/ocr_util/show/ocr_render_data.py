@@ -6,6 +6,7 @@ import os
 from typing import Any, cast
 
 import cv2 as _cv2
+import numpy as np
 
 # cv2 bindings are generated dynamically and frequently confuse static analyzers.
 cv2 = cast(Any, _cv2)
@@ -19,46 +20,99 @@ from ocr_util.eval.model.digital_object_util import DigitalObjectUtil
 from ocr_util.eval.model.main import to_digital_object
 
 
-def _convert(path_img):
+VERBOSE_LEVEL1 = False  # Set to True for detailed debug output
+
+# ===========================
+# Visualization Constants
+# ===========================
+
+# Colors in BGR format (OpenCV convention)
+# Region colors (green tones)
+COLOR_REGION_DARK_GREEN = (0, 196, 0)    # Dark green for region polygons
+COLOR_REGION_BRIGHT_GREEN = (0, 255, 0)  # Bright green for region labels
+
+# Line colors (blue tones)
+COLOR_LINE_DARK_BLUE = (0, 0, 196)       # Dark blue for line polygons
+COLOR_LINE_BRIGHT_BLUE = (0, 0, 255)     # Bright blue for line labels
+
+# Word colors (red tones)
+COLOR_WORD_RED = (255, 0, 0)             # Red (appears as blue in BGR) for word text
+
+# Line thickness for polygon rendering
+THICKNESS_REGION_POLYGON = 4             # Thicker lines for regions
+THICKNESS_LINE_POLYGON = 2               # Medium lines for text lines
+THICKNESS_TEXT_STROKE = 2                # Text stroke thickness
+
+# Transparency/Alpha blending weights
+ALPHA_POLYGON_FILL = 0.4                 # Transparency for filled polygons
+ALPHA_POLYGON_BASE = 0.6                 # Base image weight for filled polygons
+ALPHA_POLYGON_OVERLAY = 0.5              # Polygon overlay transparency
+ALPHA_IMAGE_BASE = 0.3                   # Base image weight for polygon overlay
+ALPHA_TEXT_OVERLAY = 0.8                 # Text overlay transparency
+ALPHA_TEXT_BASE = 0.2                    # Base image weight for text overlay
+
+# Text positioning margins
+MARGIN_LABEL_LEFT = 10                   # Left margin for ID labels
+MARGIN_LABEL_TOP = 30                    # Top margin for ID labels
+MARGIN_CONTENT_LEFT = 5                  # Left margin for text content
+MARGIN_CONTENT_TOP = 20                  # Top margin for text content
+
+# Font settings
+FONT_SIZE_LABEL = 0.8                    # Font scale for ID labels
+FONT_SIZE_CONTENT = 0.6                  # Font scale for text content
+FONT_LABEL = cv2.FONT_HERSHEY_SIMPLEX    # Simple font for labels
+FONT_CONTENT = cv2.FONT_HERSHEY_COMPLEX  # Complex font for content
+
+# Polygon requirements
+MIN_POLYGON_POINTS = 3                   # Minimum points for a valid polygon
+
+# Text placeholder
+EMPTY_TEXT_PLACEHOLDER = '?'             # Placeholder for empty text content
+
+
+def _convert(path_img, output_dir):
+    """Convert input image to PNG format in the specified output directory."""
     img = cv2.imread(path_img, cv2.IMREAD_COLOR)
     filename = os.path.basename(path_img).split('.')[0]
-    directory = os.path.dirname(path_img)
-    full_conversion_path = os.path.join(directory, filename+'.png')
+    # Create output directory if it doesn't exist
+    os.makedirs(output_dir, exist_ok=True)
+    full_conversion_path = os.path.join(output_dir, filename + '.png')
     msg_convert = 'convert {} to {}'.format(path_img, full_conversion_path)
     print('[INFO] ' + msg_convert)
     cv2.imwrite(full_conversion_path, img)
     return full_conversion_path
 
 
-def _digo_to_box_data(digo):
-    """Convert a DigitalObjectTree node into a (id, x1, y1, x2, y2, text) tuple.
-    Returns None when no bounding box is available."""
-    box = digo.as_box()
-    if box is None:
+def _digo_to_polygon_data(digo):
+    """Convert a DigitalObjectTree node into a (id, polygon_points, text) tuple.
+    Returns None when no polygon points are available."""
+    if not digo.dimensions or len(digo.dimensions) < MIN_POLYGON_POINTS:
         return None
-    x1 = int(box[0][0])
-    y1 = int(box[0][1])
-    x2 = int(box[2][0])
-    y2 = int(box[2][1])
+    
+    # Convert points to integer coordinates for OpenCV
+    polygon_points = [(int(pt[0]), int(pt[1])) for pt in digo.dimensions]
+    
     try:
         text = digo.transcription
     except RuntimeError:
         text = ''
-    box_data = (digo.id, x1, y1, x2, y2, text)
+    
+    polygon_data = (digo.id, polygon_points, text)
     if VERBOSE_LEVEL1:
-        print('[DEBUG] read data {}'.format(box_data))
-    return box_data
+        print('[DEBUG] read polygon data: id={}, points={}, text={}'.format(
+            polygon_data[0], len(polygon_data[1]), polygon_data[2][:20] if polygon_data[2] else ''))
+    return polygon_data
 
 
-def _visualize(path_img, path_ocr, display=False):
+def _visualize(path_img, path_ocr):
     start_msg = 'merge img {} with ocr data {}'.format(path_img, path_ocr)
     print('[INFO] ' + start_msg)
     root_digo = to_digital_object(path_ocr)
     all_digos = DigitalObjectUtil.flatten(root_digo)
 
-    regions = [_digo_to_box_data(d) for d in all_digos if d.level == DigitalObjectLevel.REGION]
-    lines   = [_digo_to_box_data(d) for d in all_digos if d.level == DigitalObjectLevel.LINE]
-    words   = [_digo_to_box_data(d) for d in all_digos if d.level == DigitalObjectLevel.WORD]
+    regions = [_digo_to_polygon_data(d) for d in all_digos if d.level == DigitalObjectLevel.REGION]
+    lines   = [_digo_to_polygon_data(d) for d in all_digos if d.level == DigitalObjectLevel.LINE]
+    words   = [_digo_to_polygon_data(d) for d in all_digos if d.level == DigitalObjectLevel.WORD]
 
     regions = [r for r in regions if r is not None]
     lines   = [l for l in lines   if l is not None]
@@ -68,92 +122,268 @@ def _visualize(path_img, path_ocr, display=False):
     print('[INFO] read {} lines'.format(len(lines)))
     print('[INFO] read {} words'.format(len(words)))
 
+    # Generate output paths with different suffixes
+    base_path = os.path.splitext(path_img)[0]
+    path_regions = base_path + '_sgm_rgn.png'
+    path_lines = base_path + '_sgm_lns.png'
+    path_words = base_path + '_sgm_ocr.png'
+
+    current_img = path_img
+    
+    # Stage 1: Render regions only
     if regions:
-        _render_bb(path_img, regions, (0, 196, 0), -1, (0, 255, 0), display=display)
+        _render_polygons(current_img, path_regions, regions, None, COLOR_REGION_DARK_GREEN, 
+                        THICKNESS_REGION_POLYGON, COLOR_REGION_BRIGHT_GREEN)
+        current_img = path_regions
+    
+    # Stage 2: Render regions + lines, but mask out regions where lines exist
     if lines:
-        _render_bb(path_img, lines, (0, 0, 196), 8, (0, 0, 255), display=display)
+        _render_polygons_with_mask(current_img, path_lines, regions, lines, 
+                                   COLOR_REGION_DARK_GREEN, THICKNESS_REGION_POLYGON, COLOR_REGION_BRIGHT_GREEN,
+                                   COLOR_LINE_DARK_BLUE, THICKNESS_LINE_POLYGON, COLOR_LINE_BRIGHT_BLUE)
+        current_img = path_lines
+    
+    # Stage 3: Render everything, but mask out regions/lines where words exist
     if words:
-        _add_contents(path_img, words, (255, 0, 0), display=display)
+        _render_with_word_mask(current_img, path_words, regions, lines, words,
+                               COLOR_REGION_DARK_GREEN, THICKNESS_REGION_POLYGON, COLOR_REGION_BRIGHT_GREEN,
+                               COLOR_LINE_DARK_BLUE, THICKNESS_LINE_POLYGON, COLOR_LINE_BRIGHT_BLUE,
+                               COLOR_WORD_RED)
+        current_img = path_words
+    
+    return current_img
 
-def _render_bb(path_img, els, color, thickness, text_color, display=False):
-    msg_render = 'render {} elements on img {}'.format(len(els), path_img)
+def _render_polygons(input_path, output_path, els, exclusion_mask, color, thickness, text_color):
+    """Render polygons using actual shape points from OCR data.
+    
+    Args:
+        input_path: Input image path
+        output_path: Output image path
+        els: List of polygon elements to render
+        exclusion_mask: Binary mask (numpy array) where 255 = exclude rendering, None = render everywhere
+        color: Color for polygon outline
+        thickness: Line thickness
+        text_color: Color for ID labels
+    """
+    msg_render = 'render {} polygon elements from {} to {}'.format(len(els), input_path, output_path)
     print('[INFO] ' + msg_render)
-    img = cv2.imread(path_img)
-    overlay_box = img.copy()
+    img = cv2.imread(input_path)
+    overlay_poly = img.copy()
     overlay_text = img.copy()
+    
     for el in els:
-        x1 = el[1]
-        y1 = el[2]
-        x2 = el[3]
-        y2 = el[4]
-        #msg_rect = 'rectangle bb {}x{}:{}x{}'.format(x1, y1, x2, y2)
-        #print('[DEBUG] ' + msg_rect)
-        margin_left = 10
-        margin_top = 30
-        cv2.putText(overlay_text, "ID: {}".format(el[0]), (x1+margin_left, y1+margin_top), cv2.FONT_HERSHEY_SIMPLEX, 1.0, text_color, 3)
-        cv2.rectangle(overlay_box, (x1, y1), (x2, y2), color, thickness)
+        element_id = el[0]
+        polygon_points = el[1]
+        
+        # Convert to numpy array for OpenCV
+        pts = np.array(polygon_points, dtype=np.int32)
+        
+        # Draw polygon outline
+        cv2.polylines(overlay_poly, [pts], isClosed=True, color=color, thickness=thickness)
+        
+        # Optional: draw semi-transparent filled polygon for better visibility
+        if thickness > THICKNESS_LINE_POLYGON:
+            overlay_fill = overlay_poly.copy()
+            cv2.fillPoly(overlay_fill, [pts], color)
+            cv2.addWeighted(overlay_fill, ALPHA_POLYGON_FILL, overlay_poly, ALPHA_POLYGON_BASE, 0, overlay_poly)
+        
+        # Add ID label at the first point (top-left)
+        label_x, label_y = polygon_points[0]
+        cv2.putText(overlay_text, "ID: {}".format(element_id), 
+                   (label_x + MARGIN_LABEL_LEFT, label_y + MARGIN_LABEL_TOP), 
+                   FONT_LABEL, FONT_SIZE_LABEL, text_color, THICKNESS_TEXT_STROKE)
 
-    cv2.addWeighted(overlay_box, 0.7, img, 0.3, 0, img)
-    cv2.addWeighted(overlay_text, 0.8, img, 0.2, 0, img)
-    if display:
-        try:
-            cv2.imshow('render result', img)
-            cv2.waitKey(0)
-        except cv2.error as e:
-            print('[WARNING] Display not available (headless environment): {}'.format(str(e)))
-    cv2.imwrite(path_img, img)
+    # Apply exclusion mask if provided
+    if exclusion_mask is not None:
+        # Where mask is 255 (white), keep original image; where 0 (black), apply overlay
+        inv_mask = cv2.bitwise_not(exclusion_mask)
+        inv_mask_3ch = cv2.cvtColor(inv_mask, cv2.COLOR_GRAY2BGR)
+        
+        # Blend overlays only where mask allows (inv_mask is 255)
+        overlay_poly_masked = cv2.bitwise_and(overlay_poly, inv_mask_3ch)
+        img_masked = cv2.bitwise_and(img, inv_mask_3ch)
+        overlay_text_masked = cv2.bitwise_and(overlay_text, inv_mask_3ch)
+        
+        # Keep original image where excluded
+        img_excluded = cv2.bitwise_and(img, cv2.bitwise_not(inv_mask_3ch))
+        
+        # Combine masked overlay with original image
+        temp_img = cv2.addWeighted(overlay_poly_masked, ALPHA_POLYGON_OVERLAY, img_masked, ALPHA_IMAGE_BASE, 0)
+        temp_img = cv2.add(temp_img, img_excluded)
+        
+        # Apply text overlay
+        overlay_text_masked_only = cv2.bitwise_and(overlay_text, inv_mask_3ch)
+        img_for_text = cv2.bitwise_and(temp_img, inv_mask_3ch)
+        img_excluded_text = cv2.bitwise_and(temp_img, cv2.bitwise_not(inv_mask_3ch))
+        
+        temp_img = cv2.addWeighted(overlay_text_masked_only, ALPHA_TEXT_OVERLAY, img_for_text, ALPHA_TEXT_BASE, 0)
+        img = cv2.add(temp_img, img_excluded_text)
+    else:
+        # No mask, render normally
+        cv2.addWeighted(overlay_poly, ALPHA_POLYGON_OVERLAY, img, ALPHA_IMAGE_BASE, 0, img)
+        cv2.addWeighted(overlay_text, ALPHA_TEXT_OVERLAY, img, ALPHA_TEXT_BASE, 0, img)
+    
+    cv2.imwrite(output_path, img)
+    print('[INFO] written: {}'.format(output_path))
 
-def _add_contents(path_img, els, text_color, display=False):
-    msg_render = 'render {} elements on img {}'.format(len(els), path_img)
+
+def _create_polygon_mask(img_shape, polygon_elements):
+    """Create a binary mask from polygon elements.
+    
+    Args:
+        img_shape: Shape of the image (height, width, channels)
+        polygon_elements: List of polygon elements
+    
+    Returns:
+        Binary mask where 255 = polygon area, 0 = background
+    """
+    mask = np.zeros(img_shape[:2], dtype=np.uint8)
+    for el in polygon_elements:
+        polygon_points = el[1]
+        pts = np.array(polygon_points, dtype=np.int32)
+        cv2.fillPoly(mask, [pts], 255)
+    return mask
+
+
+def _render_polygons_with_mask(input_path, output_path, regions, lines,
+                                region_color, region_thickness, region_text_color,
+                                line_color, line_thickness, line_text_color):
+    """Render regions and lines, masking out regions where lines exist.
+    
+    Args:
+        input_path: Input image path
+        output_path: Output image path
+        regions: List of region polygon elements
+        lines: List of line polygon elements
+        region_color, region_thickness, region_text_color: Region rendering parameters
+        line_color, line_thickness, line_text_color: Line rendering parameters
+    """
+    print('[INFO] rendering with line mask to prevent region-line color overlap')
+    
+    # Load image to get dimensions
+    img = cv2.imread(input_path)
+    
+    # Create mask for lines
+    line_mask = _create_polygon_mask(img.shape, lines)
+    
+    # Render regions with line mask (regions excluded where lines exist)
+    temp_path = output_path.replace('.png', '_temp.png')
+    _render_polygons(input_path, temp_path, regions, line_mask,
+                    region_color, region_thickness, region_text_color)
+    
+    # Render lines on top without mask
+    _render_polygons(temp_path, output_path, lines, None,
+                    line_color, line_thickness, line_text_color)
+    
+    # Clean up temporary file
+    if os.path.exists(temp_path):
+        os.remove(temp_path)
+
+
+def _render_with_word_mask(input_path, output_path, regions, lines, words,
+                           region_color, region_thickness, region_text_color,
+                           line_color, line_thickness, line_text_color,
+                           word_color):
+    """Render regions, lines, and words, masking appropriately to prevent overlaps.
+    
+    Args:
+        input_path: Input image path
+        output_path: Output image path
+        regions: List of region polygon elements
+        lines: List of line polygon elements
+        words: List of word polygon elements
+        region_color, region_thickness, region_text_color: Region rendering parameters
+        line_color, line_thickness, line_text_color: Line rendering parameters
+        word_color: Word text color
+    """
+    print('[INFO] rendering with word mask to prevent color overlap')
+    
+    # Load image to get dimensions
+    img = cv2.imread(input_path)
+    
+    # Create masks
+    line_mask = _create_polygon_mask(img.shape, lines)
+    word_mask = _create_polygon_mask(img.shape, words)
+    
+    # Combine masks: regions excluded where lines OR words exist
+    region_exclusion_mask = cv2.bitwise_or(line_mask, word_mask)
+    
+    # Lines excluded where words exist
+    line_exclusion_mask = word_mask
+    
+    # Render regions with combined mask
+    temp_path_1 = output_path.replace('.png', '_temp1.png')
+    _render_polygons(input_path, temp_path_1, regions, region_exclusion_mask,
+                    region_color, region_thickness, region_text_color)
+    
+    # Render lines with word mask
+    temp_path_2 = output_path.replace('.png', '_temp2.png')
+    _render_polygons(temp_path_1, temp_path_2, lines, line_exclusion_mask,
+                    line_color, line_thickness, line_text_color)
+    
+    # Render word content on top without mask
+    _add_contents_polygons(temp_path_2, output_path, words, word_color)
+    
+    # Clean up temporary files
+    for temp in [temp_path_1, temp_path_2]:
+        if os.path.exists(temp):
+            os.remove(temp)
+
+
+def _add_contents_polygons(input_path, output_path, els, text_color):
+    """Render text content at polygon positions."""
+    msg_render = 'render {} text elements from {} to {}'.format(len(els), input_path, output_path)
     print('[INFO] ' + msg_render)
-    img = cv2.imread(path_img)
-    #overlay_box = img.copy()
+    img = cv2.imread(input_path)
     overlay_text = img.copy()
+    
     for el in els:
-        x1 = el[1]
-        y1 = el[2]
-        #x2 = el[3]
-        #y2 = el[4]
-        #msg_rect = 'rectangle bb {}x{}:{}x{}'.format(x1, y1, x2, y2)
-        #print('[DEBUG] ' + msg_rect)
-        margin_left = 10
-        margin_top = 30
-        render_text = "{}".format(el[5])
-        if not render_text:
-            render_text = '?'
-        cv2.putText(overlay_text, render_text, (x1+margin_left, y1+margin_top), cv2.FONT_HERSHEY_COMPLEX, 1.0, text_color, 3)
-        #cv2.rectangle(overlay_box, (x1, y1), (x2, y2), color, thickness)
+        element_id = el[0]
+        polygon_points = el[1]
+        text_content = el[2]
+        
+        # Use the first point (typically top-left) as text position
+        if polygon_points:
+            text_x, text_y = polygon_points[0]
+            
+            render_text = "{}".format(text_content)
+            if not render_text:
+                render_text = EMPTY_TEXT_PLACEHOLDER
+            
+            cv2.putText(overlay_text, render_text, 
+                       (text_x + MARGIN_CONTENT_LEFT, text_y + MARGIN_CONTENT_TOP), 
+                       FONT_CONTENT, FONT_SIZE_CONTENT, text_color, THICKNESS_TEXT_STROKE)
 
-    cv2.addWeighted(overlay_text, 0.8, img, 0.2, 0, img)
-    if display:
-        try:
-            cv2.imshow('render result', img)
-            cv2.waitKey(0)
-        except cv2.error as e:
-            print('[WARNING] Display not available (headless environment): {}'.format(str(e)))
-    cv2.imwrite(path_img, img)
+    cv2.addWeighted(overlay_text, ALPHA_TEXT_OVERLAY, img, ALPHA_TEXT_BASE, 0, img)
+    cv2.imwrite(output_path, img)
+    print('[INFO] written: {}'.format(output_path))
+
 
 
 ########
 # MAIN #
 ########
-APP_ARGUMENTS = argparse.ArgumentParser()
-APP_ARGUMENTS.add_argument("-i", "--image", required=True, help="path image file (TIF)")
-APP_ARGUMENTS.add_argument("-o", "--ocr", required=True, help="path OCR file (ALTO or PAGE XML)")
-APP_ARGUMENTS.add_argument("-v", "--verbose", required=False, help="output info")
-APP_ARGUMENTS.add_argument("-d", "--display", required=False, action="store_true", help="display result interactively (requires GUI support)")
+if __name__ == "__main__":
+    APP_ARGUMENTS = argparse.ArgumentParser()
+    APP_ARGUMENTS.add_argument("-i", "--image", required=True, help="path image file (TIF)")
+    APP_ARGUMENTS.add_argument("-o", "--ocr", required=True, help="path OCR file (ALTO or PAGE XML)")
+    APP_ARGUMENTS.add_argument("-d", "--output-dir", required=False, default=os.getcwd(),
+                              help="output directory for visualization results (default: current working directory)")
+    APP_ARGUMENTS.add_argument("-v", "--verbose", required=False, help="output info")
 
-ARGS = vars(APP_ARGUMENTS.parse_args())
-PATH_IMG = ARGS["image"]
-PATH_OCR = ARGS["ocr"]
-VERBOSE_LEVEL1 = ARGS["verbose"]
-DISPLAY = ARGS["display"]
+    ARGS = vars(APP_ARGUMENTS.parse_args())
+    PATH_IMG = ARGS["image"]
+    PATH_OCR = ARGS["ocr"]
+    OUTPUT_DIR = ARGS["output_dir"]
+    VERBOSE_LEVEL1 = ARGS["verbose"]
 
-if VERBOSE_LEVEL1:
-    print('[INFO] call with args ' + str(ARGS))
+    if VERBOSE_LEVEL1:
+        print('[INFO] call with args ' + str(ARGS))
+        print('[INFO] output directory: {}'.format(OUTPUT_DIR))
 
-if os.path.exists(PATH_IMG) and os.path.exists(PATH_OCR):
-    CONVERTED_TMP = _convert(PATH_IMG)
-    _visualize(CONVERTED_TMP, PATH_OCR, display=DISPLAY)
-else:
-    print('[ERROR] {} or {} not existing!'.format(PATH_IMG, PATH_OCR))
+    if os.path.exists(PATH_IMG) and os.path.exists(PATH_OCR):
+        CONVERTED_TMP = _convert(PATH_IMG, OUTPUT_DIR)
+        final_output = _visualize(CONVERTED_TMP, PATH_OCR)
+        print('[INFO] visualization complete. Final output: {}'.format(final_output))
+    else:
+        print('[ERROR] {} or {} not existing!'.format(PATH_IMG, PATH_OCR))
