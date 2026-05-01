@@ -1,8 +1,0 @@
-autopep8
-flake8
-coverage
-coverage-badge
-nose2
-pytest-cov
-pytest-xdist
-lxml

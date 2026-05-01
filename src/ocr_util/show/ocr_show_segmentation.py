@@ -35,48 +35,49 @@ COLOR_REGION_BRIGHT_GREEN = (0, 255, 0)  # Bright green for region labels
 COLOR_LINE_DARK_BLUE = (0, 0, 196)       # Dark blue for line polygons
 COLOR_LINE_BRIGHT_BLUE = (0, 0, 255)     # Bright blue for line labels
 
-# Word colors (red tones)
-COLOR_WORD_RED = (255, 0, 0)             # Red (appears as blue in BGR) for word text
+# Word colors (cyan/light blue tones)
+COLOR_WORD_CYAN = (255, 255, 0)          # Cyan for word polygons
+COLOR_WORD_BRIGHT_CYAN = (255, 255, 128) # Bright cyan for word labels
 
 # Line thickness for polygon rendering
 THICKNESS_REGION_POLYGON = 4             # Thicker lines for regions
 THICKNESS_LINE_POLYGON = 2               # Medium lines for text lines
+THICKNESS_WORD_POLYGON = 1               # Thin lines for word polygons
 THICKNESS_TEXT_STROKE = 2                # Text stroke thickness
 
 # Transparency/Alpha blending weights
 ALPHA_POLYGON_FILL = 0.4                 # Transparency for filled polygons
 ALPHA_POLYGON_BASE = 0.6                 # Base image weight for filled polygons
-ALPHA_POLYGON_OVERLAY = 0.5              # Polygon overlay transparency
-ALPHA_IMAGE_BASE = 0.3                   # Base image weight for polygon overlay
+ALPHA_POLYGON_OVERLAY = 0.8              # Polygon overlay transparency (80% opacity)
+ALPHA_IMAGE_BASE = 0.2                   # Base image weight for polygon overlay
 ALPHA_TEXT_OVERLAY = 0.8                 # Text overlay transparency
 ALPHA_TEXT_BASE = 0.2                    # Base image weight for text overlay
 
 # Text positioning margins
 MARGIN_LABEL_LEFT = 10                   # Left margin for ID labels
 MARGIN_LABEL_TOP = 30                    # Top margin for ID labels
-MARGIN_CONTENT_LEFT = 5                  # Left margin for text content
-MARGIN_CONTENT_TOP = 20                  # Top margin for text content
 
 # Font settings
 FONT_SIZE_LABEL = 0.8                    # Font scale for ID labels
-FONT_SIZE_CONTENT = 0.6                  # Font scale for text content
 FONT_LABEL = cv2.FONT_HERSHEY_SIMPLEX    # Simple font for labels
-FONT_CONTENT = cv2.FONT_HERSHEY_COMPLEX  # Complex font for content
 
 # Polygon requirements
 MIN_POLYGON_POINTS = 3                   # Minimum points for a valid polygon
 
-# Text placeholder
-EMPTY_TEXT_PLACEHOLDER = '?'             # Placeholder for empty text content
 
-
-def _convert(path_img, output_dir):
-    """Convert input image to PNG format in the specified output directory."""
+def _convert(path_img, output_dir, img_format='jpg'):
+    """Convert input image to the specified format in the output directory.
+    
+    Args:
+        path_img: Path to input image
+        output_dir: Output directory
+        img_format: Output image format (default: 'jpg')
+    """
     img = cv2.imread(path_img, cv2.IMREAD_COLOR)
     filename = os.path.basename(path_img).split('.')[0]
     # Create output directory if it doesn't exist
     os.makedirs(output_dir, exist_ok=True)
-    full_conversion_path = os.path.join(output_dir, filename + '.png')
+    full_conversion_path = os.path.join(output_dir, filename + '.' + img_format)
     msg_convert = 'convert {} to {}'.format(path_img, full_conversion_path)
     print('[INFO] ' + msg_convert)
     cv2.imwrite(full_conversion_path, img)
@@ -104,7 +105,15 @@ def _digo_to_polygon_data(digo):
     return polygon_data
 
 
-def _visualize(path_img, path_ocr):
+def _visualize(path_img, path_ocr, img_format='jpg', show_labels=False):
+    """Visualize OCR data overlaid on image.
+    
+    Args:
+        path_img: Path to input image
+        path_ocr: Path to OCR data file
+        img_format: Output image format (default: 'jpg')
+        show_labels: Whether to render polygon ID labels (default: False)
+    """
     start_msg = 'merge img {} with ocr data {}'.format(path_img, path_ocr)
     print('[INFO] ' + start_msg)
     root_digo = to_digital_object(path_ocr)
@@ -124,36 +133,42 @@ def _visualize(path_img, path_ocr):
 
     # Generate output paths with different suffixes
     base_path = os.path.splitext(path_img)[0]
-    path_regions = base_path + '_sgm_rgn.png'
-    path_lines = base_path + '_sgm_lns.png'
-    path_words = base_path + '_sgm_ocr.png'
+    path_regions = base_path + '_sgm_rgn.' + img_format
+    path_lines = base_path + '_sgm_lns.' + img_format
+    path_words = base_path + '_sgm_wrd.' + img_format
 
-    current_img = path_img
-    
     # Stage 1: Render regions only
     if regions:
-        _render_polygons(current_img, path_regions, regions, None, COLOR_REGION_DARK_GREEN, 
-                        THICKNESS_REGION_POLYGON, COLOR_REGION_BRIGHT_GREEN)
-        current_img = path_regions
+        _render_polygons(path_img, path_regions, regions, None, COLOR_REGION_DARK_GREEN, 
+                        THICKNESS_REGION_POLYGON, COLOR_REGION_BRIGHT_GREEN, show_labels)
     
     # Stage 2: Render regions + lines, but mask out regions where lines exist
     if lines:
-        _render_polygons_with_mask(current_img, path_lines, regions, lines, 
+        _render_polygons_with_mask(path_img, path_lines, regions, lines, 
                                    COLOR_REGION_DARK_GREEN, THICKNESS_REGION_POLYGON, COLOR_REGION_BRIGHT_GREEN,
-                                   COLOR_LINE_DARK_BLUE, THICKNESS_LINE_POLYGON, COLOR_LINE_BRIGHT_BLUE)
-        current_img = path_lines
+                                   COLOR_LINE_DARK_BLUE, THICKNESS_LINE_POLYGON, COLOR_LINE_BRIGHT_BLUE,
+                                   img_format, show_labels)
     
     # Stage 3: Render everything, but mask out regions/lines where words exist
     if words:
-        _render_with_word_mask(current_img, path_words, regions, lines, words,
+        _render_with_word_mask(path_img, path_words, regions, lines, words,
                                COLOR_REGION_DARK_GREEN, THICKNESS_REGION_POLYGON, COLOR_REGION_BRIGHT_GREEN,
                                COLOR_LINE_DARK_BLUE, THICKNESS_LINE_POLYGON, COLOR_LINE_BRIGHT_BLUE,
-                               COLOR_WORD_RED)
+                               COLOR_WORD_CYAN, THICKNESS_WORD_POLYGON, COLOR_WORD_BRIGHT_CYAN,
+                               img_format, show_labels)
+    
+    # Return the most complete visualization
+    current_img = path_img
+    if words:
         current_img = path_words
+    elif lines:
+        current_img = path_lines
+    elif regions:
+        current_img = path_regions
     
     return current_img
 
-def _render_polygons(input_path, output_path, els, exclusion_mask, color, thickness, text_color):
+def _render_polygons(input_path, output_path, els, exclusion_mask, color, thickness, text_color, show_labels=False):
     """Render polygons using actual shape points from OCR data.
     
     Args:
@@ -164,6 +179,7 @@ def _render_polygons(input_path, output_path, els, exclusion_mask, color, thickn
         color: Color for polygon outline
         thickness: Line thickness
         text_color: Color for ID labels
+        show_labels: Whether to render ID labels (default: False)
     """
     msg_render = 'render {} polygon elements from {} to {}'.format(len(els), input_path, output_path)
     print('[INFO] ' + msg_render)
@@ -181,17 +197,17 @@ def _render_polygons(input_path, output_path, els, exclusion_mask, color, thickn
         # Draw polygon outline
         cv2.polylines(overlay_poly, [pts], isClosed=True, color=color, thickness=thickness)
         
-        # Optional: draw semi-transparent filled polygon for better visibility
-        if thickness > THICKNESS_LINE_POLYGON:
-            overlay_fill = overlay_poly.copy()
-            cv2.fillPoly(overlay_fill, [pts], color)
-            cv2.addWeighted(overlay_fill, ALPHA_POLYGON_FILL, overlay_poly, ALPHA_POLYGON_BASE, 0, overlay_poly)
+        # Draw semi-transparent filled polygon for better visibility
+        overlay_fill = overlay_poly.copy()
+        cv2.fillPoly(overlay_fill, [pts], color)
+        cv2.addWeighted(overlay_fill, ALPHA_POLYGON_FILL, overlay_poly, ALPHA_POLYGON_BASE, 0, overlay_poly)
         
-        # Add ID label at the first point (top-left)
-        label_x, label_y = polygon_points[0]
-        cv2.putText(overlay_text, "ID: {}".format(element_id), 
-                   (label_x + MARGIN_LABEL_LEFT, label_y + MARGIN_LABEL_TOP), 
-                   FONT_LABEL, FONT_SIZE_LABEL, text_color, THICKNESS_TEXT_STROKE)
+        # Add ID label at the first point (top-left) if labels are enabled
+        if show_labels:
+            label_x, label_y = polygon_points[0]
+            cv2.putText(overlay_text, "ID: {}".format(element_id), 
+                       (label_x + MARGIN_LABEL_LEFT, label_y + MARGIN_LABEL_TOP), 
+                       FONT_LABEL, FONT_SIZE_LABEL, text_color, THICKNESS_TEXT_STROKE)
 
     # Apply exclusion mask if provided
     if exclusion_mask is not None:
@@ -211,17 +227,21 @@ def _render_polygons(input_path, output_path, els, exclusion_mask, color, thickn
         temp_img = cv2.addWeighted(overlay_poly_masked, ALPHA_POLYGON_OVERLAY, img_masked, ALPHA_IMAGE_BASE, 0)
         temp_img = cv2.add(temp_img, img_excluded)
         
-        # Apply text overlay
-        overlay_text_masked_only = cv2.bitwise_and(overlay_text, inv_mask_3ch)
-        img_for_text = cv2.bitwise_and(temp_img, inv_mask_3ch)
-        img_excluded_text = cv2.bitwise_and(temp_img, cv2.bitwise_not(inv_mask_3ch))
-        
-        temp_img = cv2.addWeighted(overlay_text_masked_only, ALPHA_TEXT_OVERLAY, img_for_text, ALPHA_TEXT_BASE, 0)
-        img = cv2.add(temp_img, img_excluded_text)
+        # Apply text overlay if labels are enabled
+        if show_labels:
+            overlay_text_masked_only = cv2.bitwise_and(overlay_text, inv_mask_3ch)
+            img_for_text = cv2.bitwise_and(temp_img, inv_mask_3ch)
+            img_excluded_text = cv2.bitwise_and(temp_img, cv2.bitwise_not(inv_mask_3ch))
+            
+            temp_img = cv2.addWeighted(overlay_text_masked_only, ALPHA_TEXT_OVERLAY, img_for_text, ALPHA_TEXT_BASE, 0)
+            img = cv2.add(temp_img, img_excluded_text)
+        else:
+            img = temp_img
     else:
         # No mask, render normally
         cv2.addWeighted(overlay_poly, ALPHA_POLYGON_OVERLAY, img, ALPHA_IMAGE_BASE, 0, img)
-        cv2.addWeighted(overlay_text, ALPHA_TEXT_OVERLAY, img, ALPHA_TEXT_BASE, 0, img)
+        if show_labels:
+            cv2.addWeighted(overlay_text, ALPHA_TEXT_OVERLAY, img, ALPHA_TEXT_BASE, 0, img)
     
     cv2.imwrite(output_path, img)
     print('[INFO] written: {}'.format(output_path))
@@ -247,7 +267,7 @@ def _create_polygon_mask(img_shape, polygon_elements):
 
 def _render_polygons_with_mask(input_path, output_path, regions, lines,
                                 region_color, region_thickness, region_text_color,
-                                line_color, line_thickness, line_text_color):
+                                line_color, line_thickness, line_text_color, img_format='jpg', show_labels=False):
     """Render regions and lines, masking out regions where lines exist.
     
     Args:
@@ -257,6 +277,8 @@ def _render_polygons_with_mask(input_path, output_path, regions, lines,
         lines: List of line polygon elements
         region_color, region_thickness, region_text_color: Region rendering parameters
         line_color, line_thickness, line_text_color: Line rendering parameters
+        img_format: Output image format (default: 'jpg')
+        show_labels: Whether to render ID labels (default: False)
     """
     print('[INFO] rendering with line mask to prevent region-line color overlap')
     
@@ -267,13 +289,14 @@ def _render_polygons_with_mask(input_path, output_path, regions, lines,
     line_mask = _create_polygon_mask(img.shape, lines)
     
     # Render regions with line mask (regions excluded where lines exist)
-    temp_path = output_path.replace('.png', '_temp.png')
+    base_path = os.path.splitext(output_path)[0]
+    temp_path = base_path + '_temp.' + img_format
     _render_polygons(input_path, temp_path, regions, line_mask,
-                    region_color, region_thickness, region_text_color)
+                    region_color, region_thickness, region_text_color, show_labels)
     
     # Render lines on top without mask
     _render_polygons(temp_path, output_path, lines, None,
-                    line_color, line_thickness, line_text_color)
+                    line_color, line_thickness, line_text_color, show_labels)
     
     # Clean up temporary file
     if os.path.exists(temp_path):
@@ -283,7 +306,8 @@ def _render_polygons_with_mask(input_path, output_path, regions, lines,
 def _render_with_word_mask(input_path, output_path, regions, lines, words,
                            region_color, region_thickness, region_text_color,
                            line_color, line_thickness, line_text_color,
-                           word_color):
+                           word_color, word_thickness, word_text_color,
+                           img_format='jpg', show_labels=False):
     """Render regions, lines, and words, masking appropriately to prevent overlaps.
     
     Args:
@@ -294,7 +318,9 @@ def _render_with_word_mask(input_path, output_path, regions, lines, words,
         words: List of word polygon elements
         region_color, region_thickness, region_text_color: Region rendering parameters
         line_color, line_thickness, line_text_color: Line rendering parameters
-        word_color: Word text color
+        word_color, word_thickness, word_text_color: Word rendering parameters
+        img_format: Output image format (default: 'jpg')
+        show_labels: Whether to render ID labels (default: False)
     """
     print('[INFO] rendering with word mask to prevent color overlap')
     
@@ -312,52 +338,24 @@ def _render_with_word_mask(input_path, output_path, regions, lines, words,
     line_exclusion_mask = word_mask
     
     # Render regions with combined mask
-    temp_path_1 = output_path.replace('.png', '_temp1.png')
+    base_path = os.path.splitext(output_path)[0]
+    temp_path_1 = base_path + '_temp1.' + img_format
     _render_polygons(input_path, temp_path_1, regions, region_exclusion_mask,
-                    region_color, region_thickness, region_text_color)
+                    region_color, region_thickness, region_text_color, show_labels)
     
     # Render lines with word mask
-    temp_path_2 = output_path.replace('.png', '_temp2.png')
+    temp_path_2 = base_path + '_temp2.' + img_format
     _render_polygons(temp_path_1, temp_path_2, lines, line_exclusion_mask,
-                    line_color, line_thickness, line_text_color)
+                    line_color, line_thickness, line_text_color, show_labels)
     
-    # Render word content on top without mask
-    _add_contents_polygons(temp_path_2, output_path, words, word_color)
+    # Render word polygons on top without mask
+    _render_polygons(temp_path_2, output_path, words, None,
+                    word_color, word_thickness, word_text_color, show_labels)
     
     # Clean up temporary files
     for temp in [temp_path_1, temp_path_2]:
         if os.path.exists(temp):
             os.remove(temp)
-
-
-def _add_contents_polygons(input_path, output_path, els, text_color):
-    """Render text content at polygon positions."""
-    msg_render = 'render {} text elements from {} to {}'.format(len(els), input_path, output_path)
-    print('[INFO] ' + msg_render)
-    img = cv2.imread(input_path)
-    overlay_text = img.copy()
-    
-    for el in els:
-        element_id = el[0]
-        polygon_points = el[1]
-        text_content = el[2]
-        
-        # Use the first point (typically top-left) as text position
-        if polygon_points:
-            text_x, text_y = polygon_points[0]
-            
-            render_text = "{}".format(text_content)
-            if not render_text:
-                render_text = EMPTY_TEXT_PLACEHOLDER
-            
-            cv2.putText(overlay_text, render_text, 
-                       (text_x + MARGIN_CONTENT_LEFT, text_y + MARGIN_CONTENT_TOP), 
-                       FONT_CONTENT, FONT_SIZE_CONTENT, text_color, THICKNESS_TEXT_STROKE)
-
-    cv2.addWeighted(overlay_text, ALPHA_TEXT_OVERLAY, img, ALPHA_TEXT_BASE, 0, img)
-    cv2.imwrite(output_path, img)
-    print('[INFO] written: {}'.format(output_path))
-
 
 
 ########
@@ -369,21 +367,30 @@ if __name__ == "__main__":
     APP_ARGUMENTS.add_argument("-o", "--ocr", required=True, help="path OCR file (ALTO or PAGE XML)")
     APP_ARGUMENTS.add_argument("-d", "--output-dir", required=False, default=os.getcwd(),
                               help="output directory for visualization results (default: current working directory)")
+    APP_ARGUMENTS.add_argument("-f", "--format", required=False, default="jpg",
+                              choices=["jpg", "jpeg", "png", "tif", "tiff"],
+                              help="output image format (default: jpg)")
+    APP_ARGUMENTS.add_argument("-l", "--label", action="store_true",
+                              help="render polygon ID labels (default: False)")
     APP_ARGUMENTS.add_argument("-v", "--verbose", required=False, help="output info")
 
     ARGS = vars(APP_ARGUMENTS.parse_args())
     PATH_IMG = ARGS["image"]
     PATH_OCR = ARGS["ocr"]
     OUTPUT_DIR = ARGS["output_dir"]
+    IMG_FORMAT = ARGS["format"]
+    SHOW_LABELS = ARGS["label"]
     VERBOSE_LEVEL1 = ARGS["verbose"]
 
     if VERBOSE_LEVEL1:
         print('[INFO] call with args ' + str(ARGS))
         print('[INFO] output directory: {}'.format(OUTPUT_DIR))
+        print('[INFO] output format: {}'.format(IMG_FORMAT))
+        print('[INFO] show labels: {}'.format(SHOW_LABELS))
 
     if os.path.exists(PATH_IMG) and os.path.exists(PATH_OCR):
-        CONVERTED_TMP = _convert(PATH_IMG, OUTPUT_DIR)
-        final_output = _visualize(CONVERTED_TMP, PATH_OCR)
+        CONVERTED_TMP = _convert(PATH_IMG, OUTPUT_DIR, IMG_FORMAT)
+        final_output = _visualize(CONVERTED_TMP, PATH_OCR, IMG_FORMAT, SHOW_LABELS)
         print('[INFO] visualization complete. Final output: {}'.format(final_output))
     else:
         print('[ERROR] {} or {} not existing!'.format(PATH_IMG, PATH_OCR))

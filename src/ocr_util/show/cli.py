@@ -4,7 +4,7 @@
 import os
 import typing
 
-from ocr_util.show.ocr_render_data import _convert, _visualize
+from ocr_util.show.ocr_show_segmentation import _convert, _visualize
 
 
 def start_show(parse_args: typing.Dict):
