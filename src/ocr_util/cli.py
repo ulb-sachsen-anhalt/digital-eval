@@ -27,6 +27,9 @@ SUB_CMD_EVALUATE = "eval"
 SUB_CMD_SLICE = "slice"
 SUB_CMD_SHOW = "show"
 
+# Remove this constant as it's now managed by show_cli
+# SUB_CMD_SHOW is kept for backward compatibility with other references
+
 
 def points_type(points: str) -> str:
     match: re.Match = re.match(dofi.PolygonFrameFilterUtil.POINT_LIST_PATTERN, points)
@@ -304,24 +307,7 @@ def start() -> None:
     )
 
     # show subcommand
-    show_arg_parser = sub_arg_parsers.add_parser(
-        SUB_CMD_SHOW,
-        help="Visualize OCR segmentation on images",
-        add_help=True,
-    )
-    show_arg_parser.add_argument(
-        "-i", "--image", required=True, help="path image file (TIF)"
-    )
-    show_arg_parser.add_argument(
-        "-o", "--ocr", required=True, help="path OCR file (ALTO or PAGE XML)"
-    )
-    show_arg_parser.add_argument(
-        "-d", "--output-dir", required=False, default=os.getcwd(),
-        help="output directory for visualization results (default: current working directory)"
-    )
-    show_arg_parser.add_argument(
-        "-v", "--verbose", required=False, action="store_true", help="output info"
-    )
+    show_cli.register_arguments(sub_arg_parsers)
 
     args = arg_parser.parse_args()
 
